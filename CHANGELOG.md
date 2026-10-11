@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.1
+
+**Fixed**
+
+- Pokémon Brilliant Diamond / Shining Pearl with Luminescent Platinum no longer stays on a black screen at start-up when the Pokémon companion is installed.
+- Games now start normally when an installed companion doesn't support the game version; the companion shows its notice instead of the game failing to load ("Your ROM is encrypted").
+
+Update: install over your current Eden Duo. Your games and settings are kept, and existing companions keep working.
+
+- Requires Android 13+ (arm64) and a device with a second display.
+- Companion packages for supported games: https://github.com/igawa6/eden-duo-companions
+
 ## 1.2.0
 
 **New**

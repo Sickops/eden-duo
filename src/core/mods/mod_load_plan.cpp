@@ -343,29 +343,37 @@ bool ModLoadPlan::Apply(std::span<u8> module_image, VAddr load_base, VAddr mailb
     return true;
 }
 
-LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
-                                      const std::array<u8, 0x20>& build_id,
-                                      std::string_view module_name,
-                                      const LoadPlanLayout& layout) try {
+namespace {
+
+struct SelectedLoadPlanPackage {
+    std::string package;
+    FileSys::VirtualDir assets;
+    nlohmann::json manifest;
+    u32 required_runtime{};
+};
+
+// The package ModRuntime::Discover will select, when it carries a load plan. nullopt when there is
+// no package, it needs a newer runtime or it deliberately has no load_plan. JSON type errors
+// propagate to the caller.
+std::optional<SelectedLoadPlanPackage> SelectLoadPlanPackage(System& system, u64 title_id) {
     auto root = system.GetFileSystemController().GetModificationLoadRoot(title_id);
     if (!root) {
-        return {};
+        return std::nullopt;
     }
     auto subdirs = root->GetSubdirectories();
     std::ranges::sort(subdirs,
                       [](const auto& a, const auto& b) { return a->GetName() < b->GetName(); });
     const auto& disabled = Settings::values.disabled_addons[title_id];
-    const std::string build = Common::HexToString(build_id, true);
 
     for (const auto& subdir : subdirs) {
         if (std::ranges::find(disabled, subdir->GetName()) != disabled.end()) {
             continue;
         }
-        const auto assets = subdir->GetSubdirectory("dualscreen");
+        auto assets = subdir->GetSubdirectory("dualscreen");
         if (!assets) {
             continue;
         }
-        const auto manifest = ReadPackageJson(assets->GetFile("manifest.json"));
+        auto manifest = ReadPackageJson(assets->GetFile("manifest.json"));
         if (!manifest || !manifest->is_object()) {
             continue;
         }
@@ -392,7 +400,7 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
             }
             required_runtime = PackageMinRuntime(&*manifest, package_json ? &*package_json : nullptr);
             if (required_runtime > DualScreenRuntimeVersion) {
-                return {};
+                return std::nullopt;
             }
         }
         if (manifest->value("format", 1u) != 1u) {
@@ -406,48 +414,113 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
         // This is the package ModRuntime::Discover will select. Do not take a load plan from a
         // later package when the selected package deliberately has none.
         if (!manifest->contains("load_plan")) {
+            return std::nullopt;
+        }
+        return SelectedLoadPlanPackage{subdir->GetName(), std::move(assets), std::move(*manifest),
+                                       required_runtime};
+    }
+    return std::nullopt;
+}
+
+} // Anonymous namespace
+
+std::optional<std::string> LoadPlanTargetModule(System& system, u64 title_id) {
+    try {
+        const auto selected = SelectLoadPlanPackage(system, title_id);
+        if (!selected) {
+            return std::nullopt;
+        }
+        return selected->manifest.value("load_plan_module", std::string{"main"});
+    } catch (const nlohmann::json::exception&) {
+        // Point at the default target: its DiscoverModLoadPlan call then reports the malformed
+        // manifest (the game starts without a plan) instead of the plan being dropped silently.
+        return std::string{"main"};
+    }
+}
+
+LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
+                                      const std::array<u8, 0x20>& build_id,
+                                      std::string_view module_name,
+                                      const LoadPlanLayout& layout) {
+    std::optional<SelectedLoadPlanPackage> selected;
+    try {
+        selected = SelectLoadPlanPackage(system, title_id);
+    } catch (const nlohmann::json::exception& error) {
+        // Only the default target reports it, once (see LoadPlanTargetModule).
+        if (module_name != "main") {
             return {};
         }
+        return {LoadPlanDiscovery::Status::Invalid, {},
+                std::string{"invalid load plan metadata: "} + error.what(), {},
+                Common::HexToString(build_id, true)};
+    }
+    if (!selected) {
+        return {};
+    }
+    auto discovery = ReadModLoadPlan(selected->assets, selected->manifest,
+                                     selected->required_runtime, title_id, build_id, module_name,
+                                     layout);
+    discovery.package = selected->package;
+    return discovery;
+}
+
+LoadPlanDiscovery ReadModLoadPlan(const FileSys::VirtualDir& assets,
+                                  const nlohmann::json& manifest_json, u32 required_runtime,
+                                  u64 title_id, const std::array<u8, 0x20>& build_id,
+                                  std::string_view module_name,
+                                  const LoadPlanLayout& layout) try {
+    const auto* const manifest = &manifest_json;
+    const std::string build = Common::HexToString(build_id, true);
+    const auto fail = [&](LoadPlanDiscovery::Status status, std::string error) {
+        return LoadPlanDiscovery{status, {}, std::move(error), {}, build};
+    };
+    constexpr auto Unsupported = LoadPlanDiscovery::Status::Unsupported;
+    constexpr auto Invalid = LoadPlanDiscovery::Status::Invalid;
+    {
         // Each NSO has its own build ID. Select the target before expanding <build>, otherwise
         // rtld/sdk would look for a main-module plan using their unrelated build IDs.
         if (manifest->value("load_plan_module", std::string{"main"}) != module_name) {
             return {};
         }
         if (!manifest->at("load_plan").is_string()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load_plan is not a path"};
+            return fail(Invalid, "load_plan is not a path");
         }
         std::string path = manifest->at("load_plan").get<std::string>();
         constexpr std::string_view token = "<build>";
         if (const size_t pos = path.find(token); pos != std::string::npos) {
             path.replace(pos, token.size(), build);
         }
-        const auto json = ReadPackageJson(ResolveRelativeFile(assets, path), MaxLoadPlanBytes);
+        const auto plan_file = ResolveRelativeFile(assets, path);
+        if (!plan_file) {
+            // The package supports other builds of the game (another game version).
+            return fail(Unsupported, "the package has no load plan for this build");
+        }
+        const auto json = ReadPackageJson(plan_file, MaxLoadPlanBytes);
         if (!json || !json->is_object()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load plan missing or invalid JSON"};
+            return fail(Invalid, "load plan is not valid JSON");
         }
         if (!json->contains("module") || !json->at("module").is_string()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load plan module is invalid"};
+            return fail(Invalid, "load plan module is invalid");
         }
         if (json->at("module").get<std::string>() != module_name) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load plan module mismatch"};
+            return fail(Unsupported, "load plan targets another module");
         }
         const u32 format = json->value("format", 0u);
         if ((format != 1u && format != 2u) ||
             json->value("title_id", std::string{}) != fmt::format("{:016X}", title_id) ||
             json->value("build_id", std::string{}) != build) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load plan identity mismatch"};
+            return fail(Unsupported, "load plan is for another title or build");
         }
         if (!IsLoadPlanRuntimeCompatible(format, required_runtime, DualScreenRuntimeVersion)) {
-            return {LoadPlanDiscovery::Status::Invalid, {},
-                    "format-2 guest helpers require package min_runtime 19 or newer"};
+            return fail(Invalid, "format-2 guest helpers require package min_runtime 19 or newer");
         }
         if (!json->contains("layout") || !json->at("layout").is_object()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "load plan layout missing"};
+            return fail(Invalid, "load plan layout missing");
         }
         const auto& expected_layout = json->at("layout");
         if (!expected_layout.contains("segments") || !expected_layout.at("segments").is_array() ||
             expected_layout.at("segments").size() != layout.segments.size()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "invalid segment layout"};
+            return fail(Invalid, "invalid segment layout");
         }
         for (size_t i = 0; i < layout.segments.size(); ++i) {
             u32 location{}, size{};
@@ -455,18 +528,23 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
             if (!segment.is_object() || !ReadU32(segment, "location", location) ||
                 !ReadU32(segment, "size", size) || location != layout.segments[i].location ||
                 size != layout.segments[i].size) {
-                return {LoadPlanDiscovery::Status::Invalid, {}, "NSO segment mismatch"};
+                return fail(Unsupported, "load plan expects another executable layout");
             }
         }
         u32 bss_size{};
-        if (!ReadU32(expected_layout, "bss_size", bss_size) || bss_size != layout.bss_size ||
-            !json->contains("mailbox_size") || !json->at("mailbox_size").is_number_unsigned()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "NSO BSS or mailbox invalid"};
+        if (!ReadU32(expected_layout, "bss_size", bss_size)) {
+            return fail(Invalid, "load plan BSS size missing");
+        }
+        if (bss_size != layout.bss_size) {
+            return fail(Unsupported, "load plan expects another executable layout");
+        }
+        if (!json->contains("mailbox_size") || !json->at("mailbox_size").is_number_unsigned()) {
+            return fail(Invalid, "load plan mailbox size missing");
         }
         const u64 mailbox_size = json->at("mailbox_size").get<u64>();
         if (mailbox_size == 0 || mailbox_size > MaxMailboxSize ||
             (mailbox_size & Core::Memory::YUZU_PAGEMASK) != 0) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "mailbox size is not page aligned"};
+            return fail(Invalid, "mailbox size is not page aligned");
         }
         std::vector<ModLoadPlan::Write> writes;
         if ((json->contains("patches") &&
@@ -474,30 +552,30 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
             (json->contains("payloads") &&
              !ParseWrites(json->at("payloads"), true, writes, format == 2)) ||
             writes.empty()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "invalid or empty write list"};
+            return fail(Invalid, "invalid or empty write list");
         }
         std::optional<u32> epoch_offset;
         if (json->contains("mailbox_epoch_offset")) {
             u32 offset{};
             if (!ReadU32(*json, "mailbox_epoch_offset", offset) || offset % 4 != 0 ||
                 mailbox_size < 4 || offset > mailbox_size - 4) {
-                return {LoadPlanDiscovery::Status::Invalid, {}, "invalid mailbox epoch offset"};
+                return fail(Invalid, "invalid mailbox epoch offset");
             }
             epoch_offset = offset;
         }
         std::optional<ModLoadPlan::GuestCode> guest_code;
         if ((format == 2) != json->contains("guest_code")) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "guest code requires format 2"};
+            return fail(Invalid, "guest code requires format 2");
         }
         if (format == 2) {
             const auto& code_json = json->at("guest_code");
             if (!code_json.is_object() || !code_json.contains("bytes")) {
-                return {LoadPlanDiscovery::Status::Invalid, {}, "guest code missing bytes"};
+                return fail(Invalid, "guest code missing bytes");
             }
             auto bytes = ParseHexBytes(code_json.at("bytes"));
             if (!bytes || bytes->empty() || bytes->size() > MaxGuestCodeBytes ||
                 bytes->size() % 4 != 0) {
-                return {LoadPlanDiscovery::Status::Invalid, {}, "invalid guest code size"};
+                return fail(Invalid, "invalid guest code size");
             }
             nlohmann::json item{{"offset", 0u},
                                 {"expected", std::string(bytes->size() * 2, '0')},
@@ -506,12 +584,12 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
                 item["relocations"] = code_json["relocations"];
             std::vector<ModLoadPlan::Write> code_writes;
             if (!ParseWrites(nlohmann::json::array({item}), true, code_writes, true)) {
-                return {LoadPlanDiscovery::Status::Invalid, {}, "invalid guest code relocations"};
+                return fail(Invalid, "invalid guest code relocations");
             }
             size_t relocation_count = code_writes[0].relocations.size();
             for (const auto& write : writes) {
                 if (write.relocations.size() > MaxRelocations - relocation_count) {
-                    return {LoadPlanDiscovery::Status::Invalid, {}, "too many relocations"};
+                    return fail(Invalid, "too many relocations");
                 }
                 relocation_count += write.relocations.size();
             }
@@ -523,15 +601,15 @@ LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
         ModLoadPlan plan{mailbox_size, std::move(writes), epoch_offset, std::move(guest_code),
                          main_size};
         if (format == 2 && !plan.GuestCodeSize()) {
-            return {LoadPlanDiscovery::Status::Invalid, {}, "unsupported guest code instructions"};
+            return fail(Invalid, "unsupported guest code instructions");
         }
-        return {LoadPlanDiscovery::Status::Found, std::move(plan), {}};
+        return {LoadPlanDiscovery::Status::Found, std::move(plan), {}, {}, build};
     }
     return {};
 } catch (const nlohmann::json::exception& error) {
-    return {LoadPlanDiscovery::Status::Invalid,
-            {},
-            std::string{"invalid load plan metadata: "} + error.what()};
+    return {LoadPlanDiscovery::Status::Invalid, {},
+            std::string{"invalid load plan metadata: "} + error.what(), {},
+            Common::HexToString(build_id, true)};
 }
 
 } // namespace Core::Mods

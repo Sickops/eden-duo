@@ -11,7 +11,10 @@
 #include <utility>
 #include <vector>
 
+#include <nlohmann/json_fwd.hpp>
+
 #include "common/common_types.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace Core {
 class System;
@@ -103,22 +106,42 @@ private:
 
 struct LoadPlanDiscovery {
     enum class Status {
-        None,
-        Found,
-        Invalid,
+        None,        ///< no selected package, or it carries no load plan for this module
+        Found,       ///< a plan for this executable
+        Unsupported, ///< the package has no plan for this build, or its plan names another build
+        Invalid,     ///< the plan for this build is malformed
     };
 
     Status status{Status::None};
     std::optional<ModLoadPlan> plan;
     std::string error;
+    std::string package; ///< the selected package's folder name, for log messages
+    std::string build;   ///< the module's build ID (hex), for log messages
 };
 
 /// Selects the same first enabled, lexically sorted dual-screen package as ModRuntime::Discover.
-/// A manifest without load_plan is treated as no plan. A selected malformed or mismatched plan is
-/// Invalid rather than silently skipped, preventing a hook for the wrong executable from loading.
+/// A manifest without load_plan is treated as no plan. A plan that is missing for this build,
+/// names another executable or is malformed is reported as Unsupported or Invalid and never
+/// returned. Neither stops the game: the loader starts it without the plan (no guest helper and
+/// no mailbox), so the companion runs without guest actions or shows its not-supported page.
 [[nodiscard]] LoadPlanDiscovery DiscoverModLoadPlan(System& system, u64 title_id,
                                                     const std::array<u8, 0x20>& build_id,
                                                     std::string_view module_name,
                                                     const LoadPlanLayout& layout);
+
+/// DiscoverModLoadPlan for an already selected package: assets is its dualscreen folder,
+/// manifest its parsed manifest.json and required_runtime its declared minimum runtime.
+[[nodiscard]] LoadPlanDiscovery ReadModLoadPlan(const FileSys::VirtualDir& assets,
+                                                const nlohmann::json& manifest,
+                                                u32 required_runtime, u64 title_id,
+                                                const std::array<u8, 0x20>& build_id,
+                                                std::string_view module_name,
+                                                const LoadPlanLayout& layout);
+
+/// The module the selected package's load plan targets ("main" unless the manifest sets
+/// load_plan_module). nullopt when the selected package has no load plan or needs a newer runtime.
+/// The loader reserves the mailbox after the last module when this is not the last one, so mods
+/// that branch between modules at fixed offsets keep their layout.
+[[nodiscard]] std::optional<std::string> LoadPlanTargetModule(System& system, u64 title_id);
 
 } // namespace Core::Mods

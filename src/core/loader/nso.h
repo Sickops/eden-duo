@@ -8,6 +8,7 @@
 
 #include <array>
 #include <optional>
+#include <string>
 #include <type_traits>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -95,13 +96,36 @@ public:
         return IdentifyType(file);
     }
 
+    // Where a dual-screen load plan's mailbox lives when the title has several modules: after the
+    // LAST module, so no module moves. Mods such as Luminescent Platinum branch directly from main
+    // into a later module (subsdk) and break if anything is inserted between modules (after main,
+    // or after rtld, which also stops the game during start-up).
+    struct DualScreenMailboxSlot {
+        u64 size = 0;          // bytes to reserve (the plan's mailbox_size), 0 = no plan
+        std::string host;      // the module that carries it (the last one loaded)
+        VAddr layout_end = 0;  // where it starts, relative to the host's own load base (layout
+                               // pass, NCE pre-text space excluded)
+        VAddr address = 0;     // its address in the process, set before the load pass
+    };
+
+    // The module the selected dual-screen package's load plan targets ("main" unless the manifest
+    // names another), nullopt when no package has a load plan. Only that module needs the title
+    // ID passed to LoadModule, so the multi-MiB manifest is not parsed once per module.
+    static std::optional<std::string> LoadPlanTargetModule(Core::System& system, u64 title_id);
+
+    // The mailbox size of the load plan that applies to this NSO, 0 when there is none (an
+    // invalid plan is reported when the module itself loads).
+    static u64 PeekLoadPlanMailboxSize(Core::System& system, const FileSys::VfsFile& nso_file,
+                                       u64 title_id);
+
     static std::optional<VAddr> LoadModule(Kernel::KProcess& process, Core::System& system,
                                            const FileSys::VfsFile& nso_file, VAddr load_base,
                                            bool should_pass_arguments, bool load_into_process,
                                            std::optional<FileSys::PatchManager> pm = {},
                                            std::vector<Core::NCE::Patcher>* patches = nullptr,
                                            s32 patch_index = -1,
-                                           std::optional<u64> title_id = std::nullopt);
+                                           std::optional<u64> title_id = std::nullopt,
+                                           DualScreenMailboxSlot* mailbox_slot = nullptr);
 
     LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 

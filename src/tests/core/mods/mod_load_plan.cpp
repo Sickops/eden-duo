@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <cstring>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 #include <nlohmann/json.hpp>
 
+#include "common/hex_util.h"
 #include "core/mods/mod_load_plan.h"
 #include "core/mods/mod_package_io.h"
 #include "core/file_sys/vfs/vfs_vector.h"
@@ -20,6 +24,64 @@ std::vector<u8> Words(std::initializer_list<u32> words) {
     std::vector<u8> bytes(words.size() * sizeof(u32));
     std::memcpy(bytes.data(), words.begin(), bytes.size());
     return bytes;
+}
+
+constexpr u64 PlanTitle = 0x0100ABCD12340000;
+
+std::array<u8, 0x20> BuildId(u8 first) {
+    std::array<u8, 0x20> id{};
+    id[0] = first;
+    id[1] = 0x5E;
+    return id;
+}
+
+LoadPlanLayout PlanLayout() {
+    LoadPlanLayout layout;
+    layout.segments = {{{0, 0x1000}, {0x1000, 0x1000}, {0x2000, 0x1000}}};
+    layout.bss_size = 0x1000;
+    return layout;
+}
+
+nlohmann::json PlanJson(const std::array<u8, 0x20>& build) {
+    return {
+        {"format", 1},
+        {"module", "main"},
+        {"title_id", "0100ABCD12340000"},
+        {"build_id", Common::HexToString(build, true)},
+        {"layout",
+         {{"segments",
+           {{{"location", 0}, {"size", 0x1000}},
+            {{"location", 0x1000}, {"size", 0x1000}},
+            {{"location", 0x2000}, {"size", 0x1000}}}},
+          {"bss_size", 0x1000}}},
+        {"mailbox_size", 0x1000},
+        {"patches", {{{"offset", 0x100}, {"expected", "1F2003D5"}, {"replacement", "C0035FD6"}}}},
+    };
+}
+
+/// A package's dualscreen folder with guest/<build>/load-plan.json for each given plan.
+FileSys::VirtualDir PlanAssets(const std::vector<std::pair<std::string, std::string>>& plans) {
+    std::vector<FileSys::VirtualDir> builds;
+    for (const auto& [build, text] : plans) {
+        auto file = std::make_shared<FileSys::VectorVfsFile>(
+            std::vector<u8>(text.begin(), text.end()), "load-plan.json");
+        builds.push_back(std::make_shared<FileSys::VectorVfsDirectory>(
+            std::vector<FileSys::VirtualFile>{file}, std::vector<FileSys::VirtualDir>{}, build));
+    }
+    auto guest = std::make_shared<FileSys::VectorVfsDirectory>(std::vector<FileSys::VirtualFile>{},
+                                                               std::move(builds), "guest");
+    return std::make_shared<FileSys::VectorVfsDirectory>(
+        std::vector<FileSys::VirtualFile>{}, std::vector<FileSys::VirtualDir>{guest}, "dualscreen");
+}
+
+const nlohmann::json PlanManifest{{"load_plan", "guest/<build>/load-plan.json"}};
+
+/// A main image whose plan site holds the bytes the plan expects (NOP).
+std::vector<u8> PlanImage() {
+    std::vector<u8> image(0x4000);
+    const auto nop = Words({0xD503201F});
+    std::copy(nop.begin(), nop.end(), image.begin() + 0x100);
+    return image;
 }
 
 } // namespace
@@ -318,6 +380,95 @@ TEST_CASE("DSMod rejected reload preserves the current manifest", "[dsmod][load-
     REQUIRE(prepared.pages.size() == 1);
     REQUIRE(prepared.pages.front().id == "new");
     REQUIRE(current.pages.front().id == "live");
+}
+
+TEST_CASE("DSMod valid load plan for the running build is found and applied",
+          "[dsmod][load-plan][boot]") {
+    const auto build = BuildId(0x4F);
+    const auto hex = Common::HexToString(build, true);
+    const auto assets = PlanAssets({{hex, PlanJson(build).dump()}});
+    const auto discovery =
+        ReadModLoadPlan(assets, PlanManifest, 19, PlanTitle, build, "main", PlanLayout());
+    REQUIRE(discovery.status == LoadPlanDiscovery::Status::Found);
+    REQUIRE(discovery.plan);
+    REQUIRE(discovery.build == hex);
+    REQUIRE(discovery.plan->MailboxSize() == 0x1000);
+
+    auto image = PlanImage();
+    REQUIRE(discovery.plan->Apply(image, 0x80000000, 0x80008000));
+    REQUIRE(std::vector<u8>(image.begin() + 0x100, image.begin() + 0x104) ==
+            Words({0xD65F03C0}));
+
+    // Other modules of the same executable are not the plan's target.
+    REQUIRE(ReadModLoadPlan(assets, PlanManifest, 19, PlanTitle, build, "sdk", PlanLayout())
+                .status == LoadPlanDiscovery::Status::None);
+}
+
+TEST_CASE("DSMod load plan missing for the running build lets the game start without it",
+          "[dsmod][load-plan][boot]") {
+    // The package ships a plan for one game version; another version (no update installed, a
+    // newer update) has a different build ID and no plan.
+    const auto supported = BuildId(0x4F);
+    const auto running = BuildId(0x91);
+    const auto assets =
+        PlanAssets({{Common::HexToString(supported, true), PlanJson(supported).dump()}});
+    const auto discovery =
+        ReadModLoadPlan(assets, PlanManifest, 19, PlanTitle, running, "main", PlanLayout());
+    REQUIRE(discovery.status == LoadPlanDiscovery::Status::Unsupported);
+    REQUIRE_FALSE(discovery.plan);
+    REQUIRE(discovery.build == Common::HexToString(running, true));
+    REQUIRE(discovery.error.find("no load plan for this build") != std::string::npos);
+
+    // A plan stored under the running build that names another build, or another executable
+    // layout, is not for this executable either.
+    const auto renamed = PlanAssets({{Common::HexToString(running, true), PlanJson(supported).dump()}});
+    REQUIRE(ReadModLoadPlan(renamed, PlanManifest, 19, PlanTitle, running, "main", PlanLayout())
+                .status == LoadPlanDiscovery::Status::Unsupported);
+    auto other_layout = PlanLayout();
+    other_layout.segments[1].size = 0x2000;
+    const auto exact = PlanAssets({{Common::HexToString(running, true), PlanJson(running).dump()}});
+    const auto moved =
+        ReadModLoadPlan(exact, PlanManifest, 19, PlanTitle, running, "main", other_layout);
+    REQUIRE(moved.status == LoadPlanDiscovery::Status::Unsupported);
+    REQUIRE_FALSE(moved.plan);
+    auto other_bss = PlanLayout();
+    other_bss.bss_size = 0x3000;
+    REQUIRE(ReadModLoadPlan(exact, PlanManifest, 19, PlanTitle, running, "main", other_bss)
+                .status == LoadPlanDiscovery::Status::Unsupported);
+
+    // A malformed plan for this build is reported (Invalid), never thrown, and carries no plan.
+    for (const auto text : {"{", "[]", R"({"module":"main","format":1})"}) {
+        const auto broken = PlanAssets({{Common::HexToString(running, true), text}});
+        const auto result =
+            ReadModLoadPlan(broken, PlanManifest, 19, PlanTitle, running, "main", PlanLayout());
+        REQUIRE(result.status != LoadPlanDiscovery::Status::Found);
+        REQUIRE_FALSE(result.plan);
+    }
+    auto bad_writes = PlanJson(running);
+    bad_writes["patches"] = nlohmann::json::array();
+    const auto empty = PlanAssets({{Common::HexToString(running, true), bad_writes.dump()}});
+    const auto invalid =
+        ReadModLoadPlan(empty, PlanManifest, 19, PlanTitle, running, "main", PlanLayout());
+    REQUIRE(invalid.status == LoadPlanDiscovery::Status::Invalid);
+    REQUIRE_FALSE(invalid.plan);
+}
+
+TEST_CASE("DSMod load plan whose bytes do not match the executable is not applied",
+          "[dsmod][load-plan][boot]") {
+    // Same build ID, but the code at the plan site differs (an ExeFS patch, or a mod that
+    // replaced the function): Apply refuses and leaves the image untouched, and the loader then
+    // starts the game without the plan.
+    const auto build = BuildId(0x4F);
+    const auto assets = PlanAssets({{Common::HexToString(build, true), PlanJson(build).dump()}});
+    const auto discovery =
+        ReadModLoadPlan(assets, PlanManifest, 19, PlanTitle, build, "main", PlanLayout());
+    REQUIRE(discovery.plan);
+    auto image = PlanImage();
+    const auto patched = Words({0x94000010}); // BL elsewhere
+    std::copy(patched.begin(), patched.end(), image.begin() + 0x100);
+    const auto before = image;
+    REQUIRE_FALSE(discovery.plan->Apply(image, 0x80000000, 0x80008000));
+    REQUIRE(image == before);
 }
 
 } // namespace Core::Mods
