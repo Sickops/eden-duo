@@ -4,7 +4,7 @@
     SPDX-License-Identifier: GPL-3.0-or-later
 -->
 <!-- Eden Duo branding overlay: overrides upstream values from src/main/res for every
-     product flavor (added to the flavor source sets by duo.gradle.kts). -->
+     product flavor (added to the flavor source sets by duo.gradle). -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <color name="ic_launcher_background">#000000</color>
 
