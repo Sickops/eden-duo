@@ -30,6 +30,7 @@
 #include "common/dsmod_dev_tools.h"
 #include "common/logging.h"
 #include "core/core.h"
+#include "core/mods/mod_input_tokens.h"
 #include "core/mods/mod_runtime.h"
 #include "core/mods/mod_runtime_shared.h"
 #include "core/mods/mod_settings.h"
@@ -72,6 +73,18 @@ InputCommon::VirtualGamepad::VirtualButton ParseButton(const std::string& name, 
     ok = false;
     return VB::ButtonA;
 }
+
+namespace {
+
+auto ParseInputChord(std::string_view name) {
+    return InputTokens::ParseChord(name, [](std::string_view button) {
+        bool ok{};
+        ParseButton(std::string{button}, ok);
+        return ok;
+    });
+}
+
+} // namespace
 
 std::optional<ModRuntime::ActionScalar> ModRuntime::ResolveActionRef(
     const std::string& ref, const StateSnapshot& snapshot, std::optional<s64> payload) const {
@@ -191,47 +204,38 @@ bool ModRuntime::PressToken(const std::string& name, u32 frames) {
     if (pad == nullptr || name.empty()) {
         return false;
     }
-    // "L+R": a chord, every part pressed on the same tick (a trailing '+' is a stick token).
-    if (const auto plus = name.find('+'); plus != std::string::npos && name.back() != '+') {
-        return PressToken(name.substr(0, plus), frames) && PressToken(name.substr(plus + 1), frames);
-    }
-    // "RX+", "LY-" and friends name a stick shove rather than a button.
-    if (name.size() >= 3 && (name[0] == 'L' || name[0] == 'R') &&
-        (name[1] == 'X' || name[1] == 'Y') && (name.back() == '+' || name.back() == '-')) {
-        const bool right = name[0] == 'R';
-        const float v = name.back() == '+' ? 1.0f : -1.0f;
-        const float sx = name[1] == 'X' ? v : 0.0f;
-        const float sy = name[1] == 'Y' ? v : 0.0f;
-        const auto which = right ? InputCommon::VirtualGamepad::VirtualStick::Right
-                                 : InputCommon::VirtualGamepad::VirtualStick::Left;
-        for (const std::size_t pl : {std::size_t{0}, std::size_t{8}}) {
-            pad->SetStickPosition(pl, which, sx, sy);
-        }
-        const u32 hold = std::max(2u, frames);
-        if (auto it = std::find_if(held_sticks.begin(), held_sticks.end(),
-                                   [right](const HeldStick& held) { return held.right == right; });
-            it != held_sticks.end()) {
-            it->ticks_left = std::max(it->ticks_left, hold);
-        } else {
-            held_sticks.push_back(HeldStick{right, hold});
-        }
-        return true;
-    }
-    bool ok{};
-    const auto button = ParseButton(name, ok);
-    if (!ok) {
-        return false;
-    }
-    for (const std::size_t pl : {std::size_t{0}, std::size_t{8}}) {
-        pad->SetButtonState(pl, button, true);
-    }
+    const auto tokens = ParseInputChord(name);
+    if (!tokens) return false;
     const u32 hold = std::max(2u, frames);
-    if (auto it = std::find_if(held_buttons.begin(), held_buttons.end(),
-                               [&name](const HeldButton& held) { return held.name == name; });
-        it != held_buttons.end()) {
-        it->ticks_left = std::max(it->ticks_left, hold);
-    } else {
-        held_buttons.push_back(HeldButton{name, hold});
+    for (const auto& token : *tokens) {
+        if (token.stick) {
+            const auto& stick = *token.stick;
+            const auto which = stick.right ? InputCommon::VirtualGamepad::VirtualStick::Right
+                                           : InputCommon::VirtualGamepad::VirtualStick::Left;
+            for (const std::size_t pl : {std::size_t{0}, std::size_t{8}}) {
+                pad->SetStickPosition(pl, which, stick.x, stick.y);
+            }
+            if (auto it = std::find_if(held_sticks.begin(), held_sticks.end(),
+                                      [&](const HeldStick& held) { return held.right == stick.right; });
+                it != held_sticks.end()) {
+                it->ticks_left = std::max(it->ticks_left, hold);
+            } else {
+                held_sticks.push_back(HeldStick{stick.right, hold});
+            }
+        } else {
+            bool ok{};
+            const auto button = ParseButton(std::string{token.name}, ok);
+            for (const std::size_t pl : {std::size_t{0}, std::size_t{8}}) {
+                pad->SetButtonState(pl, button, true);
+            }
+            if (auto it = std::find_if(held_buttons.begin(), held_buttons.end(),
+                                      [&](const HeldButton& held) { return held.name == token.name; });
+                it != held_buttons.end()) {
+                it->ticks_left = std::max(it->ticks_left, hold);
+            } else {
+                held_buttons.push_back(HeldButton{std::string{token.name}, hold});
+            }
+        }
     }
     return true;
 }
@@ -621,24 +625,8 @@ ModRuntime::ActionResult ModRuntime::RunAction(const Action& action, const State
                         action.button);
             return ActionResult::Skipped;
         }
-        // A stick shove ("RX+") is a legitimate action token even though it is not a button.
-        const auto is_stick = [](const std::string& n) {
-            return n.size() >= 3 && (n[0] == 'L' || n[0] == 'R') && (n[1] == 'X' || n[1] == 'Y') &&
-                   (n.back() == '+' || n.back() == '-');
-        };
-        // A chord ("L+R") is valid when every part is a button.
-        const auto is_chord = [](const std::string& n) {
-            const auto plus = n.find('+');
-            if (plus == std::string::npos || n.back() == '+')
-                return false;
-            bool a{}, b{};
-            ParseButton(n.substr(0, plus), a);
-            ParseButton(n.substr(plus + 1), b);
-            return a && b;
-        };
-        bool ok{};
-        ParseButton(action.button, ok);
-        if (!ok && !is_stick(action.button) && !is_chord(action.button)) {
+        if (!ParseInputChord(action.button) ||
+            (!action.button_neg.empty() && !ParseInputChord(action.button_neg))) {
             return ActionResult::Skipped;
         }
         // Press on both the handheld and player-1 ports; npad polls at 1 kHz, so hold a few ticks.

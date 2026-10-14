@@ -1,0 +1,44 @@
+<resources>
+    <!-- Published companions as of 2026-10-12, used before the first online catalog refresh. -->
+    <string-array name="dual_screen_supported_title_ids" translatable="false">
+        <item>01005CA01580E000</item>
+        <item>010093801237C000</item>
+        <item>01006BB00C6F0000</item>
+        <item>0100152000022000</item>
+        <item>010015100B514000</item>
+        <item>01006F8002326000</item>
+        <item>010055D009F78000</item>
+        <item>010021C000B6A000</item>
+        <item>0100000011D90000</item>
+        <item>010018E011D92000</item>
+        <item>0100F9F00C696000</item>
+        <item>01003E601E324000</item>
+        <item>0100C510166F0000</item>
+    </string-array>
+
+    <style name="Widget.Eden.DualScreenBadge" parent="">
+        <item name="android:layout_width">28dp</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/dual_screen_badge_background</item>
+        <item name="android:src">@drawable/ic_dual_screen</item>
+        <item name="android:tint">?attr/colorOnPrimaryContainer</item>
+        <item name="android:visibility">gone</item>
+        <item name="android:elevation">2dp</item>
+    </style>
+    <string name="dual_screen_download_available">%1$s: dual-screen companion available to download</string>
+    <string name="dual_screen_update_available">%1$s: dual-screen companion update available</string>
+    <style name="Widget.Eden.DualScreenDownload" parent="">
+        <item name="android:layout_width">16dp</item>
+        <item name="android:layout_height">16dp</item>
+        <item name="android:padding">2dp</item>
+        <item name="android:background">@drawable/dual_screen_download_background</item>
+        <item name="android:src">@drawable/ic_companion_download</item>
+        <item name="android:tint">?attr/colorOnPrimary</item>
+        <item name="android:visibility">gone</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:elevation">3dp</item>
+    </style>
+</resources>

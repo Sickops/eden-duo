@@ -261,14 +261,24 @@ void IOFile::Open(const fs::path& path, FileAccessMode mode, FileType type, File
     }
 #elif __ANDROID__
     if (Android::IsContentUri(path)) {
-        ASSERT_MSG(mode == FileAccessMode::Read, "Content URI file access is for read-only!");
-        const auto fd = Android::OpenContentUri(path, Android::OpenMode::Read);
+        const auto android_mode = [mode] {
+            switch (mode) {
+            case FileAccessMode::Read: return Android::OpenMode::Read;
+            case FileAccessMode::Write: return Android::OpenMode::WriteTruncate;
+            case FileAccessMode::Append: return Android::OpenMode::WriteAppend;
+            case FileAccessMode::ReadWrite: return Android::OpenMode::ReadWrite;
+            case FileAccessMode::ReadAppend: return Android::OpenMode::ReadWriteAppend;
+            default: return Android::OpenMode::Never;
+            }
+        }();
+        const auto fd = Android::OpenContentUri(path, android_mode);
         if (fd != -1) {
-            file = fdopen(fd, "r");
+            file = fdopen(fd, AccessModeToStr(mode, type));
             const auto error_num = errno;
             if (error_num != 0 && file == nullptr) {
                 LOG_ERROR(Common_Filesystem, "Error opening file: {}, error: {}", path.c_str(),
                           strerror(error_num));
+                close(fd);
             }
         } else {
             LOG_ERROR(Common_Filesystem, "Error opening file: {}", path.c_str());

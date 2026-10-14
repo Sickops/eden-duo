@@ -251,6 +251,28 @@ object DualScreenPackageInstaller {
         }
     }
 
+    /** Installs a fetched archive with its original release asset name for version validation. */
+    fun install(
+        archive: File,
+        filename: String,
+        gameTitleId: String,
+        addonDirectory: File,
+        progressCallback: (max: Long, progress: Long) -> Boolean = { _, _ -> false }
+    ): Result = try {
+        installArchive(
+            archive.inputStream(),
+            filename,
+            archive.length(),
+            gameTitleId,
+            addonDirectory,
+            progressCallback,
+            appRuntimeVersion()
+        )
+    } catch (e: Exception) {
+        log("install of $filename failed", e)
+        failed(Error.InstallFailed, e.message ?: e.javaClass.simpleName)
+    }
+
     /**
      * [runtimeVersion] is the app's dual-screen runtime: a package whose min_runtime is newer is
      * refused and the installed version kept. Null skips the check (the runtime still gates).
@@ -820,7 +842,9 @@ object DualScreenPackageInstaller {
             }
             for ((platform, library) in packageModule.libraries) {
                 val file = File(root, "$MODULE_DIR/$platform/$gameId.so")
-                if (!file.isFile) return failed(Error.InvalidLayout, "$MODULE_DIR/$platform/$gameId.so")
+                if (!file.isFile) {
+                    return failed(Error.InvalidLayout, "$MODULE_DIR/$platform/$gameId.so")
+                }
                 val actual = sha256(file)
                 if (actual != library.sha256) {
                     return failed(

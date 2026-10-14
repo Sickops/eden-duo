@@ -70,7 +70,14 @@ class DriverFetcherFragment : Fragment() {
         DriverRepo("GameHub Adreno 8xx", "crueter/GameHub-8Elite-Drivers", 1),
         DriverRepo("KIMCHI Turnip", "K11MCH1/AdrenoToolsDrivers", 2, true, SortMode.PublishTime),
         DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3),
-        DriverRepo("Whitebelyash Turnip", "whitebelyash/freedreno_turnip-CI", sort=4, false, SortMode.PublishTime),
+        DriverRepo("Whitebelyash Turnip", "whitebelyash/freedreno_turnip-CI", sort=4, false,
+            SortMode.PublishTime
+        ),
+        DriverRepo(
+            "Balemuni Aurora Turnip",
+            "Balemuni/Balemunis-Aurora",
+            5,
+            sortMode = SortMode.PublishTime),
     )
 
     private val driverMap = listOf(

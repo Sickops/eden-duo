@@ -32,6 +32,16 @@
             app:strokeWidth="4dp"
             tools:src="@drawable/default_icon" />
 
+        <ImageView
+            android:id="@+id/dual_screen_badge"
+            style="@style/Widget.Eden.DualScreenBadge"
+            app:layout_constraintTop_toTopOf="@id/image_game_screen"
+            app:layout_constraintEnd_toEndOf="@id/image_game_screen" />
+
+        <ImageView android:id="@+id/dual_screen_download"
+            style="@style/Widget.Eden.DualScreenDownload"
+            app:layout_constraintTop_toTopOf="@id/dual_screen_badge" app:layout_constraintEnd_toEndOf="@id/dual_screen_badge" android:translationX="4dp" android:translationY="-4dp" />
+
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/text_game_title"
             style="@style/SynthwaveText.Body"

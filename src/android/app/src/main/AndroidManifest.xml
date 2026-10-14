@@ -38,6 +38,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <queries>
         <intent>
+            <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+        </intent>
+        <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>

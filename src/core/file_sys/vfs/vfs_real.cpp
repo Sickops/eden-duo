@@ -362,6 +362,14 @@ std::vector<VirtualFile> RealVfsDirectory::IterateEntries<RealVfsFile, VfsFile>(
     }
 
     std::vector<VirtualFile> out;
+#ifdef __ANDROID__
+    if (FS::Android::IsContentUri(path)) {
+        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
+            if (!directory) out.emplace_back(base.OpenFileFromEntry(path + '/' + name, {}, path, perms));
+        }
+        return out;
+    }
+#endif
 
     const FS::DirEntryCallable callback = [this,
                                            &out](const std::filesystem::directory_entry& entry) {
@@ -384,6 +392,14 @@ std::vector<VirtualDir> RealVfsDirectory::IterateEntries<RealVfsDirectory, VfsDi
     }
 
     std::vector<VirtualDir> out;
+#ifdef __ANDROID__
+    if (FS::Android::IsContentUri(path)) {
+        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
+            if (directory) out.emplace_back(base.OpenDirectory(path + '/' + name, perms));
+        }
+        return out;
+    }
+#endif
 
     const FS::DirEntryCallable callback = [this,
                                            &out](const std::filesystem::directory_entry& entry) {
@@ -542,6 +558,14 @@ std::map<std::string, VfsEntryType, std::less<>> RealVfsDirectory::GetEntries() 
     }
 
     std::map<std::string, VfsEntryType, std::less<>> out;
+#ifdef __ANDROID__
+    if (FS::Android::IsContentUri(path)) {
+        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
+            out.insert_or_assign(name, directory ? VfsEntryType::Directory : VfsEntryType::File);
+        }
+        return out;
+    }
+#endif
 
     const FS::DirEntryCallable callback = [&out](const std::filesystem::directory_entry& entry) {
         const auto filename = FS::PathToUTF8String(entry.path().filename());

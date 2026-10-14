@@ -170,7 +170,8 @@ namespace Core::Mods {
 ///          Ready/page/auxiliary helper lifecycle; exact bounded package metadata and transactional
 ///          reload validation. Metadata is 4 MiB, plans 1 MiB, native modules 64 MiB; ABI 1 stays.
 ///          This boundary does not implement a controller binding router or guest viewport API.
-inline constexpr u32 DualScreenRuntimeVersion = 19;
+///   20     arbitrary analog stick vectors, normalized diagonal aliases and atomic input chords.
+inline constexpr u32 DualScreenRuntimeVersion = 20;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
 /// (runtime 13). Before runtime 13 a job already running when the next was dispatched finished
@@ -270,6 +271,9 @@ struct PendingTap {
     /// Runtime 14: not a tap but a fired swipe; runs this action (the swipe widget's
     /// on_swipe_left / on_swipe_right, or on_swipe_up / on_swipe_down).
     std::string swipe_action;
+    /// Continuous module-owned view callback, carrying its documented ABI1 integer payload.
+    std::string gesture_action;
+    std::optional<s64> gesture_payload;
 };
 
 class ModRuntime {
@@ -1668,6 +1672,27 @@ private:
     std::string swipe_right_action;
     std::string swipe_up_action;
     std::string swipe_down_action;
+    /// Fractional desktop wheel deltas belong only to the currently hovered swipe pane.
+    std::string wheel_target;
+    float wheel_dx{};
+    float wheel_dy{};
+    std::chrono::steady_clock::time_point wheel_clock{};
+    struct CallbackTarget {
+        s64 index{-1};
+        size_t page{};
+        Widget widget;
+        VideoCore::DSMod::AuxPanTracker pan;
+        float span{};
+        size_t fingers{};
+    };
+    CallbackTarget callback_target;
+    CallbackTarget native_pinch_target;
+    std::chrono::steady_clock::time_point native_pinch_clock{};
+    s64 CallbackAt(const std::vector<Widget>& expanded, const StateSnapshot& snapshot,
+                   s32 x, s32 y) const;
+    bool CallbackValid(const CallbackTarget& target, const std::vector<Widget>& expanded,
+                       const StateSnapshot& snapshot) const;
+    void QueueGesture(const std::string& action, s64 payload, s32 x, s32 y);
     float gesture_span{0.0f};  ///< finger separation last frame, for pinch
     mutable std::mutex view_mutex;
     ViewState view_state;
@@ -1789,6 +1814,12 @@ private:
     void UpdateGestures(const StateSnapshot& snapshot,
                         std::span<const VideoCore::DSMod::AuxTouchPoint> points, size_t count,
                         u32 panel_w, u32 panel_h, u32 canvas_w, u32 canvas_h);
+    void UpdateWheel(const StateSnapshot& snapshot,
+                     std::span<const VideoCore::DSMod::AuxWheelEvent> events,
+                     u32 panel_w, u32 panel_h, u32 canvas_w, u32 canvas_h, bool touch_active);
+    void UpdateNativePinch(const StateSnapshot& snapshot,
+                           std::span<const VideoCore::DSMod::AuxPinchEvent> events,
+                           u32 panel_w, u32 panel_h, u32 canvas_w, u32 canvas_h, bool touch_active);
 
 public:
     /// Snapshot of every pannable widget's position, for the renderer.

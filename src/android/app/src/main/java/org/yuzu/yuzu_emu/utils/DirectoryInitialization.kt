@@ -40,6 +40,11 @@ object DirectoryInitialization {
     private fun initializeInternalStorage() {
         try {
             userPath = YuzuApplication.appContext.getExternalFilesDir(null)!!.canonicalPath
+            try {
+                EmulatorDataImporter.recover(java.io.File(userPath!!))
+            } catch (e: IOException) {
+                throw IllegalStateException("Cannot recover previous Eden Duo data", e)
+            }
             NativeLibrary.setAppDirectory(userPath!!)
             NativeLibrary.setDualScreenCodeDirectory(
                 java.io.File(YuzuApplication.appContext.codeCacheDir, "dualscreen").canonicalPath

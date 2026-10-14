@@ -301,6 +301,27 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         }
     }
 
+    // Reserve the helper's RX pages before NCE sees the image in either pass. PatchText records
+    // the complete module size to relocate branches to a patch section shared by later modules.
+    // Appending these pages after RelocateAndCopy would leave earlier modules' branch targets
+    // short by this size (for example, rtld would branch into sdk's data instead of its patches).
+    if (load_plan && load_plan->GuestCodeSize() != 0) {
+        const u64 code_size = load_plan->GuestCodeSize();
+        if (code_size > std::numeric_limits<u32>::max() - image_size ||
+            load_base > std::numeric_limits<VAddr>::max() - image_size - code_size) {
+            LOG_ERROR(Loader, "Dual-screen guest code is too large for {}", name);
+            return std::nullopt;
+        }
+        const auto offset = codeset.memory.size();
+        if (offset % Core::Memory::YUZU_PAGESIZE != 0) {
+            LOG_ERROR(Loader, "Dual-screen guest code placement is unaligned for {}", name);
+            return std::nullopt;
+        }
+        codeset.memory.resize(offset + code_size);
+        codeset.CompanionCodeSegment() = {offset, offset, static_cast<u32>(code_size)};
+        image_size += static_cast<u32>(code_size);
+    }
+
 #ifdef HAS_NCE
     // If we are computing the process code layout and using nce backend, patch.
     const auto& code = codeset.CodeSegment();
@@ -343,21 +364,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 #endif
 
     if (load_plan && load_plan->GuestCodeSize() != 0) {
-        const u64 code_size = load_plan->GuestCodeSize();
-        if (code_size > std::numeric_limits<u32>::max() - image_size ||
-            load_base > std::numeric_limits<VAddr>::max() - image_size - code_size) {
-            LOG_ERROR(Loader, "Dual-screen guest code is too large for {}", name);
-            return std::nullopt;
-        }
         if (load_into_process) {
-            const auto offset = codeset.memory.size();
-            if (offset % Core::Memory::YUZU_PAGESIZE != 0) {
-                LOG_ERROR(Loader, "Dual-screen guest code placement is unaligned for {}", name);
-                return std::nullopt;
-            }
-            codeset.memory.resize(offset + code_size);
-            auto& segment = codeset.CompanionCodeSegment();
-            segment = {offset, offset, static_cast<u32>(code_size)};
+            const auto offset = codeset.CompanionCodeSegment().offset;
             auto module_image = std::span<u8>{codeset.memory}.subspan(module_start);
             if (!plan_skipped &&
                 !load_plan->Apply(module_image, load_base + module_start, mailbox_address,
@@ -366,7 +374,6 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
                           "or an ExeFS patch)");
             }
         }
-        image_size += static_cast<u32>(code_size);
     }
 
     // If we aren't actually loading (i.e. just computing the process code layout), we are done

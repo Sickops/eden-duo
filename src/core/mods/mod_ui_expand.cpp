@@ -200,6 +200,8 @@ size_t ExpandTemplateInto(const Page& page, const Widget& source, const StateSna
             substitute(clone.on_swipe_right);
             substitute(clone.on_swipe_up);
             substitute(clone.on_swipe_down);
+            substitute(clone.on_pan);
+            substitute(clone.on_pinch);
             substitute(clone.id);
             substitute(clone.hide_bind);
             substitute(clone.need_bind);

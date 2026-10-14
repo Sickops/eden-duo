@@ -192,7 +192,7 @@ const EdenDsmodModuleSaveExtensions* eden_dsmod_get_save_extensions(uint32_t ver
 // pause/resume in progress) -- the module may simply retry on a later sample.
 #define EDEN_DSMOD_WRITE_EXT_VERSION 1u
 #define EDEN_DSMOD_WRITE_EXT_HASH UINT64_C(0x5e3b9d17a2c4f680)
-#define EDEN_DSMOD_WRITE_BATCH_MAX_OPS 16u
+#define EDEN_DSMOD_WRITE_BATCH_MAX_OPS 32u
 #define EDEN_DSMOD_WRITE_BATCH_MAX_BYTES 64u
 typedef struct EdenDsmodWriteOp {
     uint64_t address;

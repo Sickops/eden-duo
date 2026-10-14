@@ -54,6 +54,15 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/gradient_overlay_bottom" />
 
+                <ImageView
+                    android:id="@+id/dual_screen_badge"
+                    style="@style/Widget.Eden.DualScreenBadge"
+                    android:layout_gravity="top|end" />
+
+        <ImageView android:id="@+id/dual_screen_download"
+            style="@style/Widget.Eden.DualScreenDownload"
+            android:layout_gravity="top|end" android:layout_marginTop="2dp" android:layout_marginEnd="2dp" />
+
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/text_game_title_compact"
                     style="@style/SynthwaveText.Body"

@@ -14,6 +14,7 @@
 
 #include "common/common_types.h"
 #include "core/frontend/emu_window.h"
+#include "video_core/dsmod/aux_routing.h"
 
 namespace Core {
 class System;
@@ -50,4 +51,7 @@ private:
     bool mouse_down = false;
     float mouse_x{};
     float mouse_y{};
+    VideoCore::DSMod::AuxFingerTracker fingers;
+    bool native_pinch_active{};
+    u32 native_pinch_x{}, native_pinch_y{};
 };

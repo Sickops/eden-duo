@@ -19,6 +19,9 @@ import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
+import androidx.navigation.fragment.findNavController
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.InstallableAdapter
@@ -82,6 +85,18 @@ class InstallableFragment : Fragment() {
         }
 
         val installables = listOf(
+            Installable(
+                R.string.emulator_import_title,
+                R.string.emulator_import_short_description,
+                install = {
+                    findNavController().navigate(
+                        HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.EMULATOR_IMPORT,
+                            null
+                        )
+                    )
+                }
+            ),
             Installable(
                 R.string.user_data,
                 R.string.user_data_description,
@@ -163,6 +178,11 @@ class InstallableFragment : Fragment() {
                 requireContext(),
                 resources.getInteger(R.integer.grid_columns)
             )
+            .apply {
+                spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                    override fun getSpanSize(position: Int) = if (position == 0) spanCount else 1
+                }
+            }
             adapter = InstallableAdapter(installables)
         }
 

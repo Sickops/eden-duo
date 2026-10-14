@@ -55,10 +55,19 @@ bool AuxWindow_SDL3::OwnsEvent(const SDL_Event& event) const {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     case SDL_EVENT_MOUSE_BUTTON_UP:
         return event.button.windowID == window_id;
+    case SDL_EVENT_MOUSE_WHEEL:
+        return event.wheel.windowID == window_id;
     case SDL_EVENT_FINGER_DOWN:
     case SDL_EVENT_FINGER_MOTION:
     case SDL_EVENT_FINGER_UP:
+    case SDL_EVENT_FINGER_CANCELED:
         return event.tfinger.windowID == window_id;
+#if SDL_VERSION_ATLEAST(3, 4, 0)
+    case SDL_EVENT_PINCH_BEGIN:
+    case SDL_EVENT_PINCH_UPDATE:
+    case SDL_EVENT_PINCH_END:
+        return event.pinch.windowID == window_id;
+#endif
     default:
         return false;
     }
@@ -83,7 +92,7 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
         is_shown = false;
         return;
     case SDL_EVENT_MOUSE_MOTION:
-        if (event.motion.which == SDL_TOUCH_MOUSEID) {
+        if (event.motion.which == SDL_TOUCH_MOUSEID || !fingers.Empty()) {
             return;
         }
         mouse_x = event.motion.x;
@@ -93,7 +102,8 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
         }
         return;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        if (event.button.which == SDL_TOUCH_MOUSEID || event.button.button != SDL_BUTTON_LEFT) {
+        if (event.button.which == SDL_TOUCH_MOUSEID || event.button.button != SDL_BUTTON_LEFT ||
+            !fingers.Empty()) {
             return;
         }
         mouse_x = event.button.x;
@@ -102,27 +112,94 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
         PublishTouch(true, true);
         return;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-        if (event.button.which == SDL_TOUCH_MOUSEID || event.button.button != SDL_BUTTON_LEFT) {
+        if (event.button.which == SDL_TOUCH_MOUSEID || event.button.button != SDL_BUTTON_LEFT ||
+            !fingers.Empty()) {
             return;
         }
         mouse_down = false;
         PublishTouch(false, false);
         return;
+    case SDL_EVENT_MOUSE_WHEEL: {
+        // Own this event even when no companion pane accepts it: an aux wheel must never
+        // reach the main game's mouse bindings. Real touch/left-button gestures take priority.
+        if (mouse_down || !fingers.Empty() || event.wheel.which == SDL_TOUCH_MOUSEID) {
+            return;
+        }
+        float dx = event.wheel.x;
+        float dy = event.wheel.y;
+        if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+            dx = -dx;
+            dy = -dy;
+        }
+        if ((SDL_GetModState() & SDL_KMOD_SHIFT) != 0 && dx == 0.0f) {
+            dx = -dy;
+            dy = 0.0f;
+        }
+        int ww = 1, wh = 1, pw = 1, ph = 1;
+        SDL_GetWindowSize(window, &ww, &wh);
+        SDL_GetWindowSizeInPixels(window, &pw, &ph);
+        const float sx = static_cast<float>(pw) / static_cast<float>(std::max(ww, 1));
+        const float sy = static_cast<float>(ph) / static_cast<float>(std::max(wh, 1));
+        system.GPU().DSModAux().PushWheel({
+            static_cast<u32>(std::max(0.0f, event.wheel.mouse_x * sx)),
+            static_cast<u32>(std::max(0.0f, event.wheel.mouse_y * sy)), dx, dy});
+        return;
+    }
     case SDL_EVENT_FINGER_DOWN:
     case SDL_EVENT_FINGER_MOTION: {
-        int w = 0, h = 0;
-        SDL_GetWindowSize(window, &w, &h);
-        mouse_x = event.tfinger.x * static_cast<float>(w);
-        mouse_y = event.tfinger.y * static_cast<float>(h);
-        const bool started = event.type == SDL_EVENT_FINGER_DOWN;
-        mouse_down = true;
-        PublishTouch(true, started);
+        int w = 1, h = 1;
+        SDL_GetWindowSizeInPixels(window, &w, &h);
+        if (fingers.Empty() && mouse_down) {
+            mouse_down = false;
+            PublishTouch(false, false);
+        }
+        fingers.Update(event.tfinger.touchID, event.tfinger.fingerID,
+                       static_cast<u32>(std::clamp(event.tfinger.x, 0.0f, 1.0f) * std::max(w - 1, 0)),
+                       static_cast<u32>(std::clamp(event.tfinger.y, 0.0f, 1.0f) * std::max(h - 1, 0)));
+        system.GPU().DSModAux().SetTouch(fingers.Points());
+        fingers.ClearStarts();
         return;
     }
     case SDL_EVENT_FINGER_UP:
-        mouse_down = false;
-        PublishTouch(false, false);
+    case SDL_EVENT_FINGER_CANCELED:
+        fingers.Release(event.tfinger.touchID, event.tfinger.fingerID);
+        system.GPU().DSModAux().SetTouch(fingers.Points());
+        fingers.ClearStarts();
         return;
+#if SDL_VERSION_ATLEAST(3, 4, 0)
+    case SDL_EVENT_PINCH_BEGIN: {
+        if (mouse_down || !fingers.Empty()) return;
+        int ww = 1, wh = 1, pw = 1, ph = 1;
+        SDL_GetWindowSize(window, &ww, &wh);
+        SDL_GetWindowSizeInPixels(window, &pw, &ph);
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        native_pinch_x = static_cast<u32>(std::max(0.0f, mouse_x * pw / std::max(ww, 1)));
+        native_pinch_y = static_cast<u32>(std::max(0.0f, mouse_y * ph / std::max(wh, 1)));
+        native_pinch_active = true;
+        system.GPU().DSModAux().PushPinch({VideoCore::DSMod::AuxPinchEvent::Phase::Begin,
+                                          native_pinch_x, native_pinch_y, 1.0f});
+        return;
+    }
+    case SDL_EVENT_PINCH_UPDATE:
+        if (native_pinch_active && !mouse_down && fingers.Empty()) {
+            int ww = 1, wh = 1, pw = 1, ph = 1;
+            SDL_GetWindowSize(window, &ww, &wh);
+            SDL_GetWindowSizeInPixels(window, &pw, &ph);
+            SDL_GetMouseState(&mouse_x, &mouse_y);
+            native_pinch_x = static_cast<u32>(std::max(0.0f, mouse_x * pw / std::max(ww, 1)));
+            native_pinch_y = static_cast<u32>(std::max(0.0f, mouse_y * ph / std::max(wh, 1)));
+            system.GPU().DSModAux().PushPinch({VideoCore::DSMod::AuxPinchEvent::Phase::Update,
+                                              native_pinch_x, native_pinch_y, event.pinch.scale});
+        }
+        return;
+    case SDL_EVENT_PINCH_END:
+        if (native_pinch_active) {
+            system.GPU().DSModAux().PushPinch({VideoCore::DSMod::AuxPinchEvent::Phase::End,
+                                              native_pinch_x, native_pinch_y, 1.0f});
+        }
+        native_pinch_active = false;
+        return;
+#endif
     default:
         return;
     }
@@ -142,6 +219,11 @@ void AuxWindow_SDL3::OnResize() {
     layout.screen = Common::Rectangle<u32>{0, 0, static_cast<u32>(width), static_cast<u32>(height)};
     layout.is_srgb = false;
     NotifyFramebufferLayoutChanged(layout);
+    // The UI render paths use this resized layout directly. Publish the same panel
+    // dimensions for touch mapping; guest-layer rendering may never run for a module UI.
+    auto& aux = system.GPU().DSModAux();
+    aux.width.store(layout.width);
+    aux.height.store(layout.height);
 }
 
 void AuxWindow_SDL3::PublishTouch(bool down, bool started) {

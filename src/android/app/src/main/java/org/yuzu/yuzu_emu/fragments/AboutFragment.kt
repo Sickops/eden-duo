@@ -23,6 +23,7 @@ import androidx.navigation.findNavController
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.databinding.FragmentAboutBinding
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -82,7 +83,7 @@ class AboutFragment : Fragment() {
 
         val buildName = getString(R.string.app_name_suffixed)
         val buildVersion = NativeLibrary.getBuildVersion()
-        val fullVersionText = "$buildName ($buildVersion)"
+        val fullVersionText = "$buildName ${BuildConfig.VERSION_NAME}\n($buildVersion)"
 
         binding.textVersionName.text = fullVersionText
         binding.buttonVersionName.setOnClickListener {
@@ -100,6 +101,18 @@ class AboutFragment : Fragment() {
             }
         }
 
+        binding.buttonDuoDiscord.setOnClickListener {
+            openLink(
+                getString(R.string.eden_duo_discord_link)
+            )
+        }
+        binding.buttonDuoGithub.setOnClickListener {
+            openLink(
+                getString(R.string.eden_duo_github_link)
+            )
+        }
+        binding.buttonDuoKofi.setOnClickListener { openLink(getString(R.string.eden_duo_kofi_link)) }
+        binding.buttonDuoPoll.setOnClickListener { openLink(getString(R.string.eden_duo_poll_link)) }
         binding.buttonDiscord.setOnClickListener { openLink(getString(R.string.discord_link)) }
         binding.buttonStoat.setOnClickListener { openLink(getString(R.string.stoat_link)) }
         binding.buttonX.setOnClickListener { openLink(getString(R.string.x_link)) }

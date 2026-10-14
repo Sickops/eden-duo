@@ -10,6 +10,7 @@
 
     <LinearLayout
         android:id="@+id/header"
+        android:gravity="center_vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -19,18 +20,35 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
             style="@style/SynthwaveText.Title"
             android:textSize="27sp"
             />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dual_screen_filter"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:minWidth="0dp"
+            android:padding="12dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:contentDescription="@string/dual_screen_filter"
+            android:checkable="true"
+            app:cornerRadius="24dp"
+            app:icon="@drawable/ic_dual_screen"
+            app:iconSize="24dp"
+            app:iconPadding="0dp"
+            app:iconGravity="textStart"
+            app:iconTint="@color/dual_screen_filter_tint"
+            app:backgroundTint="@color/dual_screen_filter_background" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/view_button"
@@ -57,7 +75,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <Space
-            android:layout_width="15dp"
+            android:layout_width="8dp"
             android:layout_height="wrap_content"
             />
 
@@ -86,7 +104,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <Space
-            android:layout_width="15dp"
+            android:layout_width="8dp"
             android:layout_height="wrap_content"
             />
 

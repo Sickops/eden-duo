@@ -31,6 +31,7 @@
 #include <filesystem>
 #include "common/dsmod_dev_tools.h"
 #include "common/logging.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/mods/mod_expr.h"
@@ -986,13 +987,26 @@ std::optional<ModRuntime::GuestExpect> ModRuntime::ExpectUnchanged(const DataPoi
 }
 
 bool ModRuntime::RunWithGuestStopped(const std::function<void()>& fn) {
-    // Single core: this CoreTiming callback already runs between guest time slices. Multi-core:
-    // suspend the application's threads without pausing core timing (which this thread drives).
-    if (!system.IsMulticore()) {
+    // A module's destroy callback may restore guarded temporary writes while reload
+    // already owns the suspension. Only this runtime on this thread may reuse it.
+    static thread_local const ModRuntime* stopped_runtime{};
+    if (stopped_runtime == this) {
         fn();
         return true;
     }
-    return system.RunWithGuestThreadsSuspended(fn);
+    const auto guarded = [&] {
+        const auto* previous = stopped_runtime;
+        stopped_runtime = this;
+        SCOPE_EXIT { stopped_runtime = previous; };
+        fn();
+    };
+    // Single core: this CoreTiming callback already runs between guest time slices. Multi-core:
+    // suspend the application's threads without pausing core timing (which this thread drives).
+    if (!system.IsMulticore()) {
+        guarded();
+        return true;
+    }
+    return system.RunWithGuestThreadsSuspended(guarded);
 }
 
 bool ModRuntime::ApplyGuestStores(std::span<const GuestExpect> expects,

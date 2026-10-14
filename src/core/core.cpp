@@ -13,6 +13,7 @@
 #include "common/logging.h"
 #include "common/adpf.h"
 #include "common/settings.h"
+#include "common/scope_exit.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
@@ -248,12 +249,18 @@ struct System::Impl {
 
     bool RunWithGuestThreadsSuspended(const std::function<void()>& fn) {
         std::unique_lock<std::mutex> lk(suspend_guard, std::try_to_lock);
-        if (!lk.owns_lock() || IsPaused()) {
+        if (!lk.owns_lock()) {
             return false;
         }
+        // A completed pause already holds guest execution stopped. Cleanup writes may
+        // run without resuming it; only a pause/resume transition must be retried.
+        if (IsPaused()) {
+            fn();
+            return true;
+        }
         kernel.SuspendEmulation(true);
+        SCOPE_EXIT { kernel.SuspendEmulation(false); };
         fn();
-        kernel.SuspendEmulation(false);
         return true;
     }
 

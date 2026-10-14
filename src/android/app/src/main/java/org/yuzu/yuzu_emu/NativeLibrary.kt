@@ -69,7 +69,7 @@ object NativeLibrary {
         return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.openContentUri(path, openmode)
         } else {
-            FileUtil.openContentUri(path, openmode)
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.open(path, openmode ?: "r")
         }
     }
 
@@ -79,7 +79,7 @@ object NativeLibrary {
         return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else {
-            FileUtil.getFileSize(path)
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.size(path)
         }
     }
 
@@ -89,7 +89,7 @@ object NativeLibrary {
         return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
         } else {
-            FileUtil.exists(path, suppressLog = true)
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.exists(path)
         }
     }
 
@@ -99,7 +99,7 @@ object NativeLibrary {
         return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.isDirectory(path)
         } else {
-            FileUtil.isDirectory(path)
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.isDirectory(path)
         }
     }
 
@@ -109,7 +109,7 @@ object NativeLibrary {
         if (DocumentsTree.isNativePath(path)) {
             YuzuApplication.documentsTree!!.getParentDirectory(path)
         } else {
-            path
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.parent(path)
         }
 
     @Keep
@@ -118,7 +118,7 @@ object NativeLibrary {
         if (DocumentsTree.isNativePath(path)) {
             YuzuApplication.documentsTree!!.getFilename(path)
         } else {
-            FileUtil.getFilename(Uri.parse(path))
+            org.yuzu.yuzu_emu.utils.DocumentFileAccess.name(path)
         }
 
     @Keep
@@ -135,6 +135,16 @@ object NativeLibrary {
     fun getFileExtension(source: String): String {
         return FileUtil.getExtension(source.toUri())
     }
+
+    @Keep
+    @JvmStatic
+    fun operateDocument(path: String, other: String, operation: Int): Boolean =
+        org.yuzu.yuzu_emu.utils.DocumentFileAccess.operate(path, other, operation)
+
+    @Keep
+    @JvmStatic
+    fun listDocumentEntries(path: String): Array<String> =
+        org.yuzu.yuzu_emu.utils.DocumentFileAccess.entries(path)
 
     external fun setAppDirectory(directory: String)
 

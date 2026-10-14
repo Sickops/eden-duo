@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include <jni.h>
 
 namespace Common::FS::Android {
@@ -18,6 +19,8 @@ static jmethodID s_get_size;
 static jmethodID s_is_directory;
 static jmethodID s_file_exists;
 static jmethodID s_open_content_uri;
+static jmethodID s_operate_document;
+static jmethodID s_list_document_entries;
 
 enum class OpenMode {
     Read,
@@ -42,5 +45,7 @@ bool IsDirectory(const std::string& filepath);
 bool Exists(const std::string& filepath);
 std::string GetParentDirectory(const std::string& filepath);
 std::string GetFilename(const std::string& filepath);
+bool OperateDocument(const std::string& path, const std::string& other, int operation);
+std::vector<std::pair<std::string, bool>> ListDocumentEntries(const std::string& path);
 
 } // namespace Common::FS::Android

@@ -116,6 +116,12 @@ void ModRuntime::RefuseChangedProcess() {
         pending_taps.clear();
     }
     live_fingers.clear();
+    wheel_target.clear();
+    wheel_dx = wheel_dy = 0.0f;
+    aux.ClearWheel();
+    aux.ClearPinch();
+    callback_target = {};
+    native_pinch_target = {};
     ignored_fingers.clear();
     tap_was_down = false;
     hold_tracker = {};
@@ -631,6 +637,12 @@ void ModRuntime::Tick() {
         MaintainGuestBridge();
         ArmSpies();
         NavOff("second screen hidden"); // runtime 17: the game gets its controller back
+        aux.ClearWheel();
+        aux.ClearPinch();
+        callback_target = {};
+        native_pinch_target = {};
+        wheel_target.clear();
+        wheel_dx = wheel_dy = 0.0f;
         return;
     }
 
@@ -681,6 +693,16 @@ void ModRuntime::Tick() {
     PublishMapState(snapshot, false);
     PublishScroll(snapshot, true); // list offsets as drawn: taps hit-test the rows on screen
     UpdateGestures(snapshot, points, count, panel_w, panel_h, cw, ch);
+    std::array<VideoCore::DSMod::AuxPinchEvent,
+               VideoCore::DSMod::AuxRouting::MaxPinchEvents> pinch_events{};
+    const size_t pinch_count = aux.TakePinch(pinch_events);
+    UpdateNativePinch(snapshot, std::span{pinch_events}.first(pinch_count), panel_w, panel_h, cw, ch,
+                      count != 0 || !live_fingers.empty());
+    std::array<VideoCore::DSMod::AuxWheelEvent,
+               VideoCore::DSMod::AuxRouting::MaxWheelEvents> wheel_events{};
+    const size_t wheel_count = aux.TakeWheel(wheel_events);
+    UpdateWheel(snapshot, std::span{wheel_events}.first(wheel_count), panel_w, panel_h, cw, ch,
+                count != 0 || !live_fingers.empty());
     ReturnIdleViews();
     UpdateNav(snapshot); // runtime 17: controller focus mode; its A press is a tap drained below
     if (HasPendingInput()) {

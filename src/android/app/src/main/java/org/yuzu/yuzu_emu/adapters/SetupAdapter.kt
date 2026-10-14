@@ -32,6 +32,13 @@ class SetupAdapter(val activity: AppCompatActivity, pages: List<SetupPage>) :
     inner class SetupPageViewHolder(val binding: PageSetupBinding) :
         AbstractViewHolder<SetupPage>(binding), SetupCallback {
         override fun bind(model: SetupPage) {
+            binding.pageButtonContainer.animate().cancel()
+            binding.textConfirmation.animate().cancel()
+            binding.pageButtonContainer.removeAllViews()
+            binding.pageButtonContainer.visibility = android.view.View.VISIBLE
+            binding.pageButtonContainer.alpha = 1f
+            binding.textConfirmation.visibility = android.view.View.INVISIBLE
+            binding.textConfirmation.alpha = 0f
             if (model.pageSteps.invoke() == PageState.COMPLETE) {
                 onStepCompleted(0, pageFullyCompleted = true)
             }

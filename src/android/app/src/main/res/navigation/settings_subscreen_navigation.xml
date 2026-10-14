@@ -6,6 +6,12 @@
     app:startDestination="@id/profileManagerFragment">
 
     <fragment
+        android:id="@+id/emulatorImportFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.EmulatorImportFragment"
+        android:label="@string/emulator_import_title"
+        tools:layout="@layout/fragment_emulator_import" />
+
+    <fragment
         android:id="@+id/profileManagerFragment"
         android:name="org.yuzu.yuzu_emu.fragments.ProfileManagerFragment"
         android:label="ProfileManagerFragment">

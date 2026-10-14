@@ -19,6 +19,13 @@ namespace fs = std::filesystem;
 // File Operations
 
 bool NewFile(const fs::path& path, u64 size) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) {
+        if (!Android::OperateDocument(path, "", 1)) return false;
+        IOFile file{path, FileAccessMode::ReadWrite};
+        return file.IsOpen() && file.SetSize(size);
+    }
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -57,6 +64,9 @@ bool NewFile(const fs::path& path, u64 size) {
 }
 
 bool RemoveFile(const fs::path& path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) return Android::OperateDocument(path, "", 2);
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -91,6 +101,10 @@ bool RemoveFile(const fs::path& path) {
 }
 
 bool RenameFile(const fs::path& old_path, const fs::path& new_path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(old_path) || Android::IsContentUri(new_path))
+        return Android::OperateDocument(old_path, new_path, 5);
+#endif
     if (!ValidatePath(old_path) || !ValidatePath(new_path)) {
         LOG_ERROR(Common_Filesystem,
                   "One or both input path(s) is not valid, old_path={}, new_path={}",
@@ -169,6 +183,9 @@ std::shared_ptr<IOFile> FileOpen(const fs::path& path, FileAccessMode mode, File
 // Directory Operations
 
 bool CreateDir(const fs::path& path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) return Android::OperateDocument(path, "", 0);
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -203,6 +220,9 @@ bool CreateDir(const fs::path& path) {
 }
 
 bool CreateDirs(const fs::path& path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) return Android::OperateDocument(path, "", 0);
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -239,6 +259,9 @@ bool CreateParentDirs(const fs::path& path) {
 }
 
 bool RemoveDir(const fs::path& path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) return Android::OperateDocument(path, "", 3);
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -273,6 +296,9 @@ bool RemoveDir(const fs::path& path) {
 }
 
 bool RemoveDirRecursively(const fs::path& path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(path)) return Android::OperateDocument(path, "", 4);
+#endif
     if (!ValidatePath(path)) {
         LOG_ERROR(Common_Filesystem, "Input path is not valid, path={}", PathToUTF8String(path));
         return false;
@@ -367,6 +393,10 @@ bool RemoveDirContentsRecursively(const fs::path& path) {
 }
 
 bool RenameDir(const fs::path& old_path, const fs::path& new_path) {
+#ifdef __ANDROID__
+    if (Android::IsContentUri(old_path) || Android::IsContentUri(new_path))
+        return Android::OperateDocument(old_path, new_path, 5);
+#endif
     if (!ValidatePath(old_path) || !ValidatePath(new_path)) {
         LOG_ERROR(Common_Filesystem,
                   "One or both input path(s) is not valid, old_path={}, new_path={}",
@@ -492,7 +522,7 @@ bool IsFile(const fs::path& path) {
     std::error_code ec;
 #ifdef __ANDROID__
     if (Android::IsContentUri(path)) {
-        return !Android::IsDirectory(path);
+        return Android::Exists(path) && !Android::IsDirectory(path);
     } else {
         return fs::is_regular_file(path, ec);
     }

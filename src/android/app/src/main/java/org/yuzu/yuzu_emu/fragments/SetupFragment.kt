@@ -28,6 +28,9 @@ import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.transition.MaterialFadeThrough
 import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.File
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
+import androidx.navigation.fragment.findNavController
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.SetupAdapter
@@ -45,7 +48,6 @@ import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.LosslessScalingHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
-import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
 
 class SetupFragment : Fragment() {
@@ -62,6 +64,7 @@ class SetupFragment : Fragment() {
     private lateinit var pages: MutableList<SetupPage>
 
     private lateinit var pageButtonCallback: SetupCallback
+    private var importGenerationBefore: Long? = null
 
     companion object {
         const val KEY_NEXT_VISIBILITY = "NextButtonVisibility"
@@ -146,6 +149,36 @@ class SetupFragment : Fragment() {
                             PageState.INCOMPLETE
                         }
                     }
+                )
+            )
+            add(
+                SetupPage(
+                    R.drawable.ic_import,
+                    R.string.emulator_import_setup_title,
+                    R.string.emulator_import_setup_description,
+                    listOf(
+                        PageButton(
+                            R.drawable.ic_import,
+                            R.string.emulator_import_setup_title,
+                            R.string.emulator_import_short_description,
+                            {
+                                importGenerationBefore = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                                    .getLong(org.yuzu.yuzu_emu.model.EmulatorImportViewModel.IMPORT_GENERATION, 0)
+                                findNavController().navigate(
+                                    HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                        SettingsSubscreen.EMULATOR_IMPORT, null
+                                    )
+                                )
+                            }
+                        ),
+                        PageButton(
+                            R.drawable.ic_arrow_forward,
+                            R.string.emulator_import_start_fresh,
+                            R.string.emulator_data_description,
+                            { pageForward() }
+                        )
+                    ),
+                    { PageState.UNDEFINED }
                 )
             )
             add(
@@ -314,7 +347,7 @@ class SetupFragment : Fragment() {
                     ViewUtils.showView(binding.buttonBack)
                 }
 
-                if (isLastPage) {
+                if (isLastPage || position == 1) {
                     ViewUtils.hideView(binding.buttonNext)
                 } else {
                     ViewUtils.showView(binding.buttonNext)
@@ -389,9 +422,23 @@ class SetupFragment : Fragment() {
             hasBeenWarned = BooleanArray(pages.size)
         }
 
+        importGenerationBefore = savedInstanceState?.getLong("PendingImportGeneration", -1)?.takeIf { it >= 0 }
         setInsets()
     }
 
+
+    override fun onResume() {
+        super.onResume()
+        _binding?.viewPager2?.adapter?.notifyDataSetChanged()
+        importGenerationBefore?.let { previous ->
+            val generation = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getLong(org.yuzu.yuzu_emu.model.EmulatorImportViewModel.IMPORT_GENERATION, 0)
+            if (generation != previous) {
+                importGenerationBefore = null
+                binding.viewPager2.currentItem = if (pages[2].pageSteps() == PageState.COMPLETE) pages.lastIndex else 2
+            }
+        }
+    }
 
     override fun onStop() {
         super.onStop()
@@ -400,6 +447,7 @@ class SetupFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        importGenerationBefore?.let { outState.putLong("PendingImportGeneration", it) }
         outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
         outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
         outState.putBooleanArray(KEY_HAS_BEEN_WARNED, hasBeenWarned)

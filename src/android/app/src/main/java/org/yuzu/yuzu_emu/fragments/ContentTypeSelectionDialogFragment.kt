@@ -9,6 +9,8 @@ package org.yuzu.yuzu_emu.fragments
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -39,7 +41,7 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
 
         return MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.select_content_type)
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
+            .setPositiveButton(R.string.install) { _: DialogInterface, _: Int ->
                 when (selectedItem) {
                     0 -> parentFragmentManager.setFragmentResult(
                         REQUEST_INSTALL_GAME_UPDATE,
@@ -59,11 +61,21 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
                     )
                 }
             }
-            .setSingleChoiceItems(launchOptions, selectedItem) { _: DialogInterface, i: Int ->
+            .setSingleChoiceItems(launchOptions, selectedItem) { dialog: DialogInterface, i: Int ->
                 selectedItem = i
+                (dialog as AlertDialog).getButton(DialogInterface.BUTTON_NEUTRAL).isVisible = i == 2
+            }
+            .setNeutralButton(R.string.fetch) { _, _ ->
+                parentFragmentManager.setFragmentResult(REQUEST_FETCH_DUAL_SCREEN_MOD, Bundle())
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        (requireDialog() as AlertDialog).getButton(DialogInterface.BUTTON_NEUTRAL).isVisible =
+            selectedItem == 2
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -75,6 +87,7 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
         const val TAG = "ContentTypeSelectionDialogFragment"
         const val REQUEST_INSTALL_GAME_UPDATE = "RequestInstallGameUpdate"
         const val REQUEST_INSTALL_DUAL_SCREEN_MOD = "RequestInstallDualScreenMod"
+        const val REQUEST_FETCH_DUAL_SCREEN_MOD = "RequestFetchDualScreenMod"
 
         private const val SELECTED_ITEM = "SelectedItem"
         private const val MOD_NOTICE_SEEN = "ModNoticeSeen"

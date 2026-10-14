@@ -333,6 +333,11 @@ struct Widget {
     std::string on_swipe_up;
     std::string on_swipe_down;
     s32 swipe_px{0}; ///< minimum travel along the swipe's axis in canvas px; <= 0 = 60
+    /// Module-owned views: continuous pan/pinch action callbacks without image transforms.
+    /// on_pan: packed signed32 dx (upper) / dy (lower), logical canvas pixels.
+    /// on_pinch: uint32 ratio millionths (upper), uint16 local anchor x/y (lower).
+    std::string on_pan;
+    std::string on_pinch;
     /// Names this widget so a gesture can be remembered against it across frames. Optional:
     /// a widget without one falls back to its index on the page.
     std::string id;

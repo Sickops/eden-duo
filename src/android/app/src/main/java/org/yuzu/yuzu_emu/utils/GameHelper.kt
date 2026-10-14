@@ -15,6 +15,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
@@ -22,8 +25,16 @@ import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import org.yuzu.yuzu_emu.utils.ExternalContentBootRules.ContainerStamp
+import org.yuzu.yuzu_emu.utils.ExternalContentBootRules.ContainerTitles
 
 object GameHelper {
+    private val dataImportLock = ReentrantReadWriteLock()
+
+    fun <T> withDataImport(action: () -> T): T = dataImportLock.write { action() }
+
+    fun isEmulationActive(): Boolean = emulationActive
+
     private const val KEY_OLD_GAME_PATH = "game_path"
     const val KEY_GAMES = "Games"
     private const val KEY_GAME_CONTENT_CONTAINERS = "GameContentContainers"
@@ -61,10 +72,16 @@ object GameHelper {
     @Volatile
     private var contentContainers: Map<Long, List<ContentContainer>>? = null
 
+    // Which base titles each external-content container carries, keyed by container uri and
+    // checked against its positive size and modified time. A boot from a cold app (a front-end launch)
+    // then registers only the booting game's update/DLC containers instead of opening and parsing
+    // every container in every external content folder, which over a network share takes minutes.
+    private const val KEY_EXTERNAL_CONTAINER_TITLES = "ExternalContainerTitles"
+
     /**
      * Called on the emulation thread right before the native boot reads the filesystem provider.
      */
-    fun onEmulationStarting(gamePath: String, programId: String) {
+    fun onEmulationStarting(gamePath: String, programId: String) = dataImportLock.read {
         // Keys may have been added since the app started (the intent path used to reload them).
         NativeLibrary.reloadKeys()
         synchronized(filesystemProviderLock) {
@@ -79,12 +96,18 @@ object GameHelper {
 
     private fun registerContentForBoot(gamePath: String, programId: String) {
         val mountedContainerUris = mutableSetOf<String>()
+        val baseTitleId = (programId.toLongOrNull() ?: 0L) and BASE_TITLE_ID_MASK
         if (!externalContentMounted) {
-            mountExternalContentDirectories(mountedContainerUris)
+            // Only this game's containers are registered here, so externalContentMounted stays
+            // false and the next library scan still mounts every folder.
+            val selective = baseTitleId != 0L &&
+                mountExternalContentForTitle(baseTitleId, mountedContainerUris)
+            if (!selective) {
+                mountExternalContentDirectories(mountedContainerUris)
+            }
         }
         val externalCount = mountedContainerUris.size
 
-        val baseTitleId = (programId.toLongOrNull() ?: 0L) and BASE_TITLE_ID_MASK
         val known = if (baseTitleId != 0L) {
             loadContentContainers()[baseTitleId].orEmpty()
         } else {
@@ -156,7 +179,23 @@ object GameHelper {
 
     private lateinit var preferences: SharedPreferences
 
-    fun getGames(): List<Game> {
+    fun invalidateAfterDataImport() = dataImportLock.write {
+        synchronized(filesystemProviderLock) {
+            cachedGameList.clear()
+            contentContainers = null
+            externalContentMounted = false
+            libraryScanCompleted = false
+            GameMetadata.resetMetadata()
+            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit {
+                remove(KEY_GAMES)
+                remove(KEY_GAME_CONTENT_CONTAINERS)
+                remove(KEY_EXTERNAL_CONTAINER_TITLES)
+                remove(KEY_OLD_GAME_PATH)
+            }
+        }
+    }
+
+    fun getGames(): List<Game> = dataImportLock.read {
         val games = mutableListOf<Game>()
         val gamesByProgramId = mutableMapOf<String, Game>()
         val context = YuzuApplication.appContext
@@ -359,6 +398,132 @@ object GameHelper {
         }
     }
 
+    /**
+     * Registers only the external-content containers that carry content for [baseTitleId].
+     * Containers already seen with the same size and modified time are matched from the stored
+     * title list without being opened; new or changed ones are read once and remembered.
+     * Returns false, having registered nothing, when a folder can't be listed, so the caller
+     * falls back to registering every container.
+     */
+    private fun mountExternalContentForTitle(
+        baseTitleId: Long,
+        mountedContainerUris: MutableSet<String>
+    ): Boolean {
+        val startedAt = System.currentTimeMillis()
+        val stamps = mutableListOf<ContainerStamp>()
+        val uniqueExternalContentDirs = linkedSetOf<String>()
+        NativeConfig.getExternalContentDirs().forEach { externalDir ->
+            if (externalDir.isNotEmpty()) {
+                uniqueExternalContentDirs.add(externalDir)
+            }
+        }
+        for (externalDir in uniqueExternalContentDirs) {
+            val externalDirUri = externalDir.toUri()
+            if (!listContainerStamps(externalDirUri, stamps)) {
+                return false
+            }
+        }
+
+        val stored = loadExternalContainerTitles()
+        val selection = try {
+            ExternalContentBootRules.select(baseTitleId, stamps, stored) {
+                NativeLibrary.getContainerBaseTitleIds(it).toList()
+            }
+        } catch (e: Exception) {
+            Log.warning("[GameHelper] Cannot read external content titles: ${e.message}")
+            return false
+        }
+        val remembered = selection.remembered
+        val matches = selection.matches
+        if (remembered != stored) {
+            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit {
+                putString(KEY_EXTERNAL_CONTAINER_TITLES, Json.encodeToString(remembered))
+            }
+        }
+
+        matches.forEach {
+            if (mountedContainerUris.add(it)) {
+                NativeLibrary.addFileToFilesystemProvider(it)
+            }
+        }
+        Log.info(
+            "[GameHelper] External content for ${baseTitleId.toString(16).padStart(16, '0')}: " +
+                "${stamps.size} listed, ${selection.readCount} read, ${matches.size} registered " +
+                "in ${System.currentTimeMillis() - startedAt} ms"
+        )
+        return true
+    }
+
+    private fun loadExternalContainerTitles(): Map<String, ContainerTitles> {
+        val stored = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+            .getString(KEY_EXTERNAL_CONTAINER_TITLES, null) ?: return emptyMap()
+        return try {
+            Json.decodeFromString<Map<String, ContainerTitles>>(stored)
+        } catch (_: Exception) {
+            emptyMap()
+        }
+    }
+
+    /**
+     * Collects the nsp/xci files under [folderUri] with their size and modified time, walking as
+     * deep as [mountExternalContentDirectories] does. [folderUri] is a tree root or a document
+     * inside a tree, as FileUtil.listFiles accepts. Returns false if any folder query fails.
+     */
+    private fun listContainerStamps(folderUri: Uri, stamps: MutableList<ContainerStamp>): Boolean {
+        return try {
+            val folderDocumentId = if (FileUtil.isRootTreeUri(folderUri)) {
+                DocumentsContract.getTreeDocumentId(folderUri)
+            } else {
+                DocumentsContract.getDocumentId(folderUri)
+            }
+            collectContainerStamps(folderUri, folderDocumentId, 3, stamps)
+        } catch (e: Exception) {
+            Log.warning("[GameHelper] Cannot list external content folder: ${e.message}")
+            false
+        }
+    }
+
+    private fun collectContainerStamps(
+        treeUri: Uri,
+        parentDocumentId: String,
+        depth: Int,
+        stamps: MutableList<ContainerStamp>
+    ): Boolean {
+        if (depth <= 0) {
+            return true
+        }
+        val columns = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED
+        )
+        val childrenUri =
+            DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocumentId)
+        val folders = mutableListOf<String>()
+        val cursor = YuzuApplication.appContext.contentResolver
+            .query(childrenUri, columns, null, null, null) ?: return false
+        cursor.use {
+            while (cursor.moveToNext()) {
+                val documentId = cursor.getString(0)
+                val name = cursor.getString(1) ?: ""
+                if (cursor.getString(2) == DocumentsContract.Document.MIME_TYPE_DIR) {
+                    folders.add(documentId)
+                } else if (externalContentExtensions.contains(
+                        name.substringAfterLast('.', "").lowercase()
+                    )
+                ) {
+                    val uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId)
+                    val size = if (cursor.isNull(3)) 0L else cursor.getLong(3)
+                    val modified = if (cursor.isNull(4)) 0L else cursor.getLong(4)
+                    stamps.add(ContainerStamp(uri.toString(), size, modified))
+                }
+            }
+        }
+        return folders.all { collectContainerStamps(treeUri, it, depth - 1, stamps) }
+    }
+
     private fun mountGameFolderContent(gameUri: Uri, mountedContainerUris: MutableSet<String>) {
         if (gameUri.scheme == "content") {
             val parentUri = getParentDocumentUri(gameUri) ?: return
@@ -380,7 +545,9 @@ object GameHelper {
 
             val extension = sibling.extension.lowercase()
             if (externalContentExtensions.contains(extension)) {
-                val containerUri = Uri.fromFile(sibling).toString()
+                // The native VFS opens plain paths only (see getGame): a file:// URI here was
+                // silently never mounted, so an update next to a file:// launched game was lost.
+                val containerUri = sibling.absolutePath
                 if (mountedContainerUris.add(containerUri)) {
                     NativeLibrary.addGameFolderFileToFilesystemProvider(containerUri)
                 }

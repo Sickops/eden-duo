@@ -146,6 +146,188 @@ s64 SteadyMs() {
 }
 } // namespace
 
+s64 ModRuntime::CallbackAt(const std::vector<Widget>& expanded, const StateSnapshot& snapshot,
+                           s32 x, s32 y) const {
+    const s64 hit = HitTestIndex(expanded, snapshot, x, y, [](const Widget& w) {
+        return !w.on_pan.empty() || !w.on_pinch.empty() || w.input_block || w.pan_zoom ||
+               w.draggable || w.type == WidgetType::Map;
+    });
+    if (hit < 0) return -1;
+    const Widget& w = expanded[static_cast<size_t>(hit)];
+    return !w.input_block && !w.pan_zoom && !w.draggable && w.type != WidgetType::Map &&
+                   (!w.on_pan.empty() || !w.on_pinch.empty()) ? hit : -1;
+}
+
+bool ModRuntime::CallbackValid(const CallbackTarget& target, const std::vector<Widget>& expanded,
+                               const StateSnapshot& snapshot) const {
+    if (target.index < 0 || target.page != current_page ||
+        static_cast<size_t>(target.index) >= expanded.size()) return false;
+    const Widget& w = expanded[static_cast<size_t>(target.index)];
+    return !WidgetHidden(w, snapshot) && w.rect == target.widget.rect && w.id == target.widget.id &&
+           w.on_pan == target.widget.on_pan && w.on_pinch == target.widget.on_pinch;
+}
+
+void ModRuntime::QueueGesture(const std::string& action, s64 payload, s32 x, s32 y) {
+    if (action.empty()) return;
+    PendingTap gesture{x, y};
+    gesture.gesture_action = action;
+    gesture.gesture_payload = payload;
+    std::scoped_lock lock{tap_mutex};
+    pending_taps.push_back(std::move(gesture));
+}
+
+void ModRuntime::UpdateNativePinch(const StateSnapshot& snapshot,
+                                   std::span<const VideoCore::DSMod::AuxPinchEvent> events,
+                                   u32 panel_w, u32 panel_h, u32 canvas_w, u32 canvas_h,
+                                   bool touch_active) {
+    const auto now = std::chrono::steady_clock::now();
+    if (touch_active || page_anim.active || page_anim_request.has_value() || HasPendingInput() ||
+        current_page >= manifest.pages.size()) {
+        native_pinch_target = {};
+        return;
+    }
+    if (now - native_pinch_clock > std::chrono::seconds{2}) native_pinch_target = {};
+    if (events.empty()) return;
+    native_pinch_clock = now;
+    const auto fit = TouchRect(panel_w, panel_h, canvas_w, canvas_h);
+    const auto expanded = ExpandWidgets(manifest.pages[current_page], snapshot);
+    size_t budget = 4;
+    double scale_product = 1.0;
+    s32 anchor_x{}, anchor_y{};
+    const auto flush = [&] {
+        if (scale_product != 1.0 && budget != 0 && native_pinch_target.index >= 0) {
+            const auto& w = native_pinch_target.widget;
+            if (const auto payload = VideoCore::DSMod::PackPinchPayload(
+                    scale_product, anchor_x - w.rect[0], anchor_y - w.rect[1])) {
+                QueueGesture(w.on_pinch, *payload, anchor_x, anchor_y);
+                --budget;
+            }
+        }
+        scale_product = 1.0;
+    };
+    for (const auto& event : events) {
+        using Phase = VideoCore::DSMod::AuxPinchEvent::Phase;
+        if (event.phase == Phase::End) {
+            flush();
+            native_pinch_target = {};
+            continue;
+        }
+        if (!fit.Contains(event.x, event.y)) {
+            scale_product = 1.0;
+            native_pinch_target = {};
+            continue;
+        }
+        const s32 x = VideoCore::DSMod::PanelToCanvas(event.x, fit.x, fit.w, canvas_w);
+        const s32 y = VideoCore::DSMod::PanelToCanvas(event.y, fit.y, fit.h, canvas_h);
+        if (event.phase == Phase::Begin) {
+            flush();
+            native_pinch_target = {};
+            const s64 hit = CallbackAt(expanded, snapshot, x, y);
+            if (hit >= 0 && !expanded[static_cast<size_t>(hit)].on_pinch.empty()) {
+                native_pinch_target.index = hit;
+                native_pinch_target.page = current_page;
+                native_pinch_target.widget = expanded[static_cast<size_t>(hit)];
+            }
+            continue;
+        }
+        if (!CallbackValid(native_pinch_target, expanded, snapshot) ||
+            CallbackAt(expanded, snapshot, x, y) != native_pinch_target.index) {
+            scale_product = 1.0;
+            native_pinch_target = {};
+            continue;
+        }
+        scale_product = std::clamp(scale_product * event.scale, 1.0 / 1024.0, 1024.0);
+        anchor_x = x;
+        anchor_y = y;
+    }
+    flush();
+}
+
+void ModRuntime::UpdateWheel(const StateSnapshot& snapshot,
+                             std::span<const VideoCore::DSMod::AuxWheelEvent> events,
+                             u32 panel_w, u32 panel_h, u32 canvas_w, u32 canvas_h,
+                             bool touch_active) {
+    const auto now = std::chrono::steady_clock::now();
+    const auto reset = [&] {
+        wheel_target.clear();
+        wheel_dx = wheel_dy = 0.0f;
+    };
+    // A click/tab change in the same tick wins over queued wheel input. Do not carry a
+    // touchpad fraction across a pause, touch gesture, transition or a long idle interval.
+    if (touch_active || page_anim.active || page_anim_request.has_value() || HasPendingInput() ||
+        current_page >= manifest.pages.size()) {
+        reset();
+        return;
+    }
+    if (now - wheel_clock > std::chrono::milliseconds{350}) {
+        reset();
+    }
+    if (events.empty()) {
+        return;
+    }
+    wheel_clock = now;
+    const auto fit = TouchRect(panel_w, panel_h, canvas_w, canvas_h);
+    const auto expanded = ExpandWidgets(manifest.pages[current_page], snapshot);
+    size_t budget = 4; // consume the entire bounded queue, but never replay a burst for many ticks
+    for (const auto& event : events) {
+        if (!fit.Contains(event.x, event.y)) {
+            reset();
+            continue;
+        }
+        const s32 x = VideoCore::DSMod::PanelToCanvas(event.x, fit.x, fit.w, canvas_w);
+        const s32 y = VideoCore::DSMod::PanelToCanvas(event.y, fit.y, fit.h, canvas_h);
+        const s64 hit = HitTestIndex(expanded, snapshot, x, y, [](const Widget& w) {
+            return SwipeHitFilter(w) || w.draggable;
+        });
+        if (hit < 0 || !SwipeArms(expanded[static_cast<size_t>(hit)]) ||
+            expanded[static_cast<size_t>(hit)].draggable) {
+            reset();
+            continue;
+        }
+        const Widget& w = expanded[static_cast<size_t>(hit)];
+        const std::string target = fmt::format("{}:{}:{}:{}:{}:{}", current_page, hit,
+                                               w.on_swipe_left, w.on_swipe_right,
+                                               w.on_swipe_up, w.on_swipe_down);
+        if (wheel_target != target) {
+            reset();
+            wheel_target = target;
+        }
+        // Axis dominance prevents diagonal touchpad noise from paging two dimensions.
+        const bool horizontal = std::fabs(event.dx) > std::fabs(event.dy);
+        float& residual = horizontal ? wheel_dx : wheel_dy;
+        float& other = horizontal ? wheel_dy : wheel_dx;
+        other = 0.0f;
+        const float delta = horizontal ? event.dx : event.dy;
+        if (delta == 0.0f) {
+            continue;
+        }
+        const std::string& action = horizontal
+            ? (delta > 0.0f ? w.on_swipe_left : w.on_swipe_right)
+            : (delta > 0.0f ? w.on_swipe_down : w.on_swipe_up);
+        if (action.empty()) {
+            residual = 0.0f;
+            continue;
+        }
+        if (residual * delta < 0.0f) {
+            residual = 0.0f; // reversing the wheel responds immediately
+        }
+        residual = std::clamp(residual + delta, -8.0f, 8.0f);
+        while (std::fabs(residual) >= 1.0f && budget != 0) {
+            PendingTap wheel{x, y};
+            wheel.swipe_action = action;
+            {
+                std::scoped_lock lock{tap_mutex};
+                pending_taps.push_back(std::move(wheel));
+            }
+            residual += residual > 0.0f ? -1.0f : 1.0f;
+            --budget;
+        }
+        if (budget == 0) {
+            residual = std::fmod(residual, 1.0f); // discard whole-notch backlog, retain precision
+        }
+    }
+}
+
 void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                                 std::span<const VideoCore::DSMod::AuxTouchPoint> points,
                                 size_t count, u32 panel_w, u32 panel_h, u32 canvas_w,
@@ -223,6 +405,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         gesture_moved = false;
         gesture_span = 0.0f;
         gesture_blocked = false;
+        callback_target = {};
         // A page transition holds input off until it ends: this whole gesture is ignored (a
         // double tap on a tab must not land on the page sliding in).
         gesture_ignored = page_anim.active || page_anim_request.has_value();
@@ -246,7 +429,18 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                          gesture_down_x, gesture_down_y,
                          b.id.empty() ? fmt::format("#{}", block) : b.id);
             }
-            const s64 hit = gesture_blocked
+            if (!gesture_blocked) {
+                const s64 callback = CallbackAt(expanded, snapshot, gesture_down_x, gesture_down_y);
+                if (callback >= 0) {
+                    callback_target.index = callback;
+                    callback_target.page = current_page;
+                    callback_target.widget = expanded[static_cast<size_t>(callback)];
+                    callback_target.pan.Reset(gesture_down_x, gesture_down_y);
+                    callback_target.fingers = 1;
+                    gesture_target.clear();
+                }
+            }
+            const s64 hit = gesture_blocked || callback_target.index >= 0
                                 ? -1
                                 : HitTestIndex(expanded, snapshot, gesture_down_x, gesture_down_y,
                                                [](const Widget& w) { return w.draggable; });
@@ -291,7 +485,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
             bool swipe_up = false;
             bool swipe_down = false;
             s32 swipe_px = 0;
-            if (!gesture_ignored && current_page < manifest.pages.size()) {
+            if (!gesture_ignored && callback_target.index < 0 && current_page < manifest.pages.size()) {
                 const auto expanded = ExpandWidgets(manifest.pages[current_page], snapshot);
                 if (gesture_target.empty() && !drag_state.candidate) {
                     const s64 swipe_hit = HitTestIndex(expanded, snapshot, gesture_down_x,
@@ -335,7 +529,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         scroll_dragging = false;
         scroll_caught = false;
         scroll_samples.clear();
-        if (!gesture_ignored && !gesture_blocked && !drag_state.candidate) {
+        if (!gesture_ignored && !gesture_blocked && !drag_state.candidate && callback_target.index < 0) {
             scroll_target = ScrollRegionAt(snapshot, gesture_down_x, gesture_down_y);
             if (!scroll_target.empty()) {
                 gesture_target.clear();
@@ -352,6 +546,58 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         if (!gesture_target.empty()) {
             std::scoped_lock lk{view_mutex};
             view_state[gesture_target].gliding = false; // the finger takes over from a reset
+        }
+    }
+
+    if (callback_target.index >= 0 && !now.empty()) {
+        const auto expanded = ExpandWidgets(manifest.pages[current_page], snapshot);
+        const auto cancel = [&] {
+            callback_target = {};
+            gesture_blocked = true;
+            gesture_moved = true;
+            gesture_target.clear();
+        };
+        if (gesture_ignored || page_anim.active || page_anim_request.has_value() ||
+            !CallbackValid(callback_target, expanded, snapshot) || now.size() > 2) {
+            cancel();
+        } else if (now.size() == 1) {
+            if (callback_target.fingers != 1) {
+                callback_target.pan.Reset(now[0].x, now[0].y);
+                callback_target.span = 0.0f;
+            } else if (!callback_target.widget.on_pan.empty()) {
+                if (const auto payload = callback_target.pan.Move(now[0].x, now[0].y)) {
+                    QueueGesture(callback_target.widget.on_pan, *payload, now[0].x, now[0].y);
+                    gesture_moved = true;
+                }
+            }
+            callback_target.fingers = 1;
+        } else {
+            const auto& rect = callback_target.widget.rect;
+            const auto inside = [&](const TrackedFinger& finger) {
+                return finger.x >= rect[0] && finger.y >= rect[1] &&
+                       finger.x - rect[0] < rect[2] && finger.y - rect[1] < rect[3];
+            };
+            gesture_moved = true;
+            if (!inside(now[0]) || !inside(now[1]) || callback_target.widget.on_pinch.empty() ||
+                CallbackAt(expanded, snapshot, now[0].x, now[0].y) != callback_target.index ||
+                CallbackAt(expanded, snapshot, now[1].x, now[1].y) != callback_target.index) {
+                cancel();
+            } else {
+                const double dx = double(now[0].x) - now[1].x;
+                const double dy = double(now[0].y) - now[1].y;
+                const float span = static_cast<float>(std::hypot(dx, dy));
+                const s32 cx = (now[0].x + now[1].x) / 2;
+                const s32 cy = (now[0].y + now[1].y) / 2;
+                if (callback_target.fingers == 2 && callback_target.span > 1.0f && span > 1.0f &&
+                    span != callback_target.span) {
+                    if (const auto payload = VideoCore::DSMod::PackPinchPayload(
+                            span / callback_target.span, cx - rect[0], cy - rect[1])) {
+                        QueueGesture(callback_target.widget.on_pinch, *payload, cx, cy);
+                    }
+                }
+                callback_target.span = span;
+                callback_target.fingers = 2;
+            }
         }
     }
 
@@ -374,7 +620,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         LOG_INFO(Core, "DSMod: drag of {} cancelled by a second finger", drag_state.payload);
         drag_state = {};
     }
-    if (now.size() >= 2) {
+    if (now.size() >= 2 && callback_target.index < 0) {
         const float dx = static_cast<float>(now[0].x - now[1].x);
         const float dy = static_cast<float>(now[0].y - now[1].y);
         const float span = std::sqrt(dx * dx + dy * dy);
@@ -477,6 +723,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
 
     // Every finger gone: the gesture is over. A still one was a tap on whatever it landed on.
     if (now.empty() && !live_fingers.empty()) {
+        callback_target = {};
         const SwipeDir swipe_dir = swipe_tracker.Up();
         if (!scroll_target.empty()) {
             UpdateScrollGesture(snapshot, 0, live_fingers.front().y, gesture_moved, true);
@@ -1046,6 +1293,12 @@ void ModRuntime::DrainTaps(const StateSnapshot& snapshot) {
             out_line(fmt::format("DSMod tap ({},{}) dropped (page transition)", tap.x, tap.y));
             continue;
         }
+        if (!tap.gesture_action.empty()) {
+            // Continuous view callbacks use named-action gates and ABI1 payload transport,
+            // without per-frame touch haptics or transforming any host widget pixels.
+            run_named(tap.gesture_action, tap.gesture_payload, "gesture", tap.x, tap.y);
+            continue;
+        }
         if (!tap.hold_action.empty()) {
             // A fired press-and-hold (runtime 13): the on_hold widget's action, no hit test; the
             // hold haptic (manifest haptics "hold", strength "heavy" by default) when it ran.
@@ -1202,12 +1455,18 @@ s64 ModRuntime::DropTargetAt(const StateSnapshot& snapshot, s32 x, s32 y) const 
 s64 ModRuntime::InputBlockAt(const std::vector<Widget>& expanded, const StateSnapshot& snapshot,
                              s32 x, s32 y) const {
     const s64 hit = HitTestIndex(expanded, snapshot, x, y, [](const Widget& w) {
-        return w.input_block || w.draggable || w.pan_zoom;
+        return w.input_block || w.draggable || w.pan_zoom || !w.on_pan.empty() || !w.on_pinch.empty();
     });
     return hit >= 0 && expanded[static_cast<size_t>(hit)].input_block ? hit : -1;
 }
 
 void ModRuntime::ResetInteraction(const char* why) {
+    system.GPU().DSModAux().ClearWheel();
+    system.GPU().DSModAux().ClearPinch();
+    callback_target = {};
+    native_pinch_target = {};
+    wheel_target.clear();
+    wheel_dx = wheel_dy = 0.0f;
     if (drag_state.candidate || !selections.empty() || !pending_drops.empty()) {
         LOG_INFO(Core, "DSMod: selection/drag cleared ({})", why);
     }

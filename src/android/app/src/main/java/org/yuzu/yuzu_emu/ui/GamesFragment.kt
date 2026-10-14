@@ -66,6 +66,7 @@ class GamesFragment : Fragment() {
     companion object {
         private const val SEARCH_TEXT = "SearchText"
         private const val PREF_SORT_TYPE = "GamesSortType"
+        private const val PREF_DUAL_SCREEN_ONLY = "GamesDualScreenOnly"
     }
 
     private val gamesViewModel: GamesViewModel by activityViewModels()
@@ -122,6 +123,7 @@ class GamesFragment : Fragment() {
 
         binding.swipeRefresh.apply {
             (binding.swipeRefresh as? SwipeRefreshLayout)?.setOnRefreshListener {
+                gamesViewModel.refreshDualScreenSupport(force = true)
                 gamesViewModel.reloadGames(false)
             }
             (binding.swipeRefresh as? SwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
@@ -146,15 +148,18 @@ class GamesFragment : Fragment() {
 
         gamesViewModel.isReloading.collect(viewLifecycleOwner) {
             (binding.swipeRefresh as? SwipeRefreshLayout)?.isRefreshing = it
-            binding.noticeText.setVisible(
-                visible = gamesViewModel.games.value.isEmpty() && !it,
-                gone = false
-            )
+            filterAndSearch(
+                )
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                setAdapter(it)
+            setAdapter(it)
             }
+        gamesViewModel.dualScreenInstallStates.collect(viewLifecycleOwner) {
+            gameAdapter.setDualScreenInstallStates(it)
+        }
+        gamesViewModel.dualScreenTitleIds.collect(viewLifecycleOwner) {
+            gameAdapter.setDualScreenTitleIds(it)
+            filterAndSearch()
         }
         gamesViewModel.shouldSwapData.collect(
             viewLifecycleOwner,
@@ -199,7 +204,7 @@ class GamesFragment : Fragment() {
             val currentViewType = getCurrentViewType()
             val savedViewType = if (isLandscape || currentViewType != GameAdapter.VIEW_TYPE_CAROUSEL) currentViewType else GameAdapter.VIEW_TYPE_GRID
 
-            //This prevents Grid/List views from reusing scaled or otherwise modified ViewHolders left over from the carousel.
+            // This prevents Grid/List views from reusing scaled or otherwise modified ViewHolders left over from the carousel.
             adapter = null
             recycledViewPool.clear()
 
@@ -249,33 +254,30 @@ class GamesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        gamesViewModel.refreshAfterEmulatorImport()
+        gamesViewModel.refreshDualScreenSupport()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
             (binding.gridGames as? CarouselRecyclerView)?.setupCarousel(true)
             (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
         }
     }
 
-    private var lastSearchText: String = ""
-    private var lastFilter: Int = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
-
     private fun setAdapter(games: List<Game>) {
-        val currentSearchText = binding.searchText.text.toString()
-        val currentFilter = binding.filterButton.id
-
-        val searchChanged = currentSearchText != lastSearchText
-        val filterChanged = currentFilter != lastFilter
-
-        if (searchChanged || filterChanged) {
-            filterAndSearch(games)
-            lastSearchText = currentSearchText
-            lastFilter = currentFilter
-        } else {
-            submitGameList(games)
-            gamesViewModel.setFilteredGames(games)
-        }
-    }
+        filterAndSearch(games)
+            }
 
     private fun submitGameList(games: List<Game>) {
+        binding.noticeText.setText(
+            when {
+                dualScreenOnly -> R.string.dual_screen_filter_empty
+                gamesViewModel.games.value.isNotEmpty() -> R.string.game_filter_empty
+                else -> R.string.empty_gamelist
+            }
+        )
+        binding.noticeText.setVisible(
+            visible = games.isEmpty() && !gamesViewModel.isReloading.value,
+            gone = false
+        )
         val adapter = (binding.gridGames as? RecyclerView)?.adapter as? GameAdapter
         if (adapter == null) {
             schedulePostReloadListSettle()
@@ -321,6 +323,12 @@ class GamesFragment : Fragment() {
 
         // Setup view button
         binding.viewButton.setOnClickListener { showViewMenu(it) }
+        updateDualScreenFilterButton()
+        binding.dualScreenFilter.setOnClickListener {
+            dualScreenOnly = !dualScreenOnly
+            preferences.edit { putBoolean(PREF_DUAL_SCREEN_ONLY, dualScreenOnly) }
+            updateDualScreenFilterButton()
+            filterAndSearch() }
 
         // Setup filter button
         binding.filterButton.setOnClickListener { view ->
@@ -422,22 +430,38 @@ class GamesFragment : Fragment() {
     // Track current filter
     private var currentFilter = View.NO_ID
 
+    private var dualScreenOnly = preferences.getBoolean(PREF_DUAL_SCREEN_ONLY, false)
+
+    private fun updateDualScreenFilterButton() {
+        binding.dualScreenFilter.apply {
+            isChecked = dualScreenOnly
+            contentDescription = getString(
+                if (dualScreenOnly) R.string.dual_screen_filter_show_all else R.string.dual_screen_filter
+            )
+        }
+    }
+
     private fun filterAndSearch(baseList: List<Game> = gamesViewModel.games.value) {
+        val supportedList = if (dualScreenOnly) {
+            baseList.filter { it.programIdHex in gamesViewModel.dualScreenTitleIds.value }
+        } else {
+            baseList
+        }
         val filteredList: List<Game> = when (currentFilter) {
-            R.id.alphabetical -> baseList.sortedBy { it.title }
+            R.id.alphabetical -> supportedList.sortedBy { it.title }
             R.id.filter_recently_played -> {
-                baseList.filter {
+                supportedList.filter {
                     val lastPlayedTime = preferences.getLong(it.keyLastPlayedTime, 0L)
                     lastPlayedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyLastPlayedTime, 0L) }
             }
             R.id.filter_recently_added -> {
-                baseList.filter {
+                supportedList.filter {
                     val addedTime = preferences.getLong(it.keyAddedToLibraryTime, 0L)
                     addedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyAddedToLibraryTime, 0L) }
             }
-            else -> baseList
+            else -> supportedList
         }
 
         val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())

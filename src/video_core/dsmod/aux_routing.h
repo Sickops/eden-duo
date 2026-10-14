@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <bit>
 #include <chrono>
+#include <cmath>
 #include <condition_variable>
 #include <cstddef>
 #include <cstdlib>
@@ -18,6 +20,7 @@
 #include <deque>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <span>
 #include <stop_token>
 #include <thread>
@@ -39,6 +42,96 @@ struct AuxTouchPoint {
     u64 delta_ns;
 };
 static_assert(sizeof(AuxTouchPoint) == 24);
+
+/// Desktop-only wheel input, independent of the guest touch ABI. Coordinates are aux pixels;
+/// deltas use SDL's wheel convention (positive Y away from the user, positive X to the right).
+struct AuxWheelEvent {
+    u32 x{};
+    u32 y{};
+    float dx{};
+    float dy{};
+};
+
+/// ABI1 action payloads for generic module-owned pan/pinch views. The host never transforms
+/// their pixels: pan carries signed canvas-pixel deltas, pinch a ratio and local anchor.
+inline s64 PackPanPayload(s32 dx, s32 dy) {
+    return std::bit_cast<s64>((u64{static_cast<u32>(dx)} << 32) | static_cast<u32>(dy));
+}
+
+inline std::optional<s64> PackPinchPayload(double ratio, s32 x, s32 y) {
+    if (!std::isfinite(ratio) || ratio <= 0.0) {
+        return std::nullopt;
+    }
+    const u32 scale = static_cast<u32>(std::llround(std::clamp(ratio, 0.25, 4.0) * 1'000'000));
+    const u32 anchor = (static_cast<u32>(std::clamp(x, 0, 65535)) << 16) |
+                      static_cast<u32>(std::clamp(y, 0, 65535));
+    return std::bit_cast<s64>((u64{scale} << 32) | anchor);
+}
+
+/// Slow drags use distance only. The first callback includes all movement from touchdown;
+/// subsequent callbacks contain local deltas. Reanchor after a pinch finger lifts.
+struct AuxPanTracker {
+    s32 x{}, y{};
+    bool moving{};
+    void Reset(s32 px, s32 py) { x = px; y = py; moving = false; }
+    std::optional<s64> Move(s32 px, s32 py) {
+        const s64 dx = s64{px} - x, dy = s64{py} - y;
+        if ((!moving && std::abs(dx) <= 12 && std::abs(dy) <= 12 && dx * dx + dy * dy <= 144) ||
+            (dx == 0 && dy == 0)) {
+            return std::nullopt;
+        }
+        moving = true;
+        x = px;
+        y = py;
+        return PackPanPayload(static_cast<s32>(dx), static_cast<s32>(dy));
+    }
+};
+
+/// Preserve distinct frontend finger identities without narrowing SDL's 64-bit IDs.
+class AuxFingerTracker {
+public:
+    static constexpr size_t Capacity = 16;
+    bool Update(u64 device, u64 finger, u32 x, u32 y) {
+        for (size_t i = 0; i < count; ++i) {
+            if (keys[i] == std::pair{device, finger}) {
+                points[i].x = x; points[i].y = y;
+                return true;
+            }
+        }
+        if (count == Capacity) return false;
+        const u32 slot = next_id++;
+        if (next_id == 0) next_id = 1; // ID0 is the desktop mouse; do not recycle a recent end edge
+        keys[count] = {device, finger};
+        points[count++] = {slot, x, y, 1u, 0};
+        return true;
+    }
+    void Release(u64 device, u64 finger) {
+        for (size_t i = 0; i < count; ++i) {
+            if (keys[i] == std::pair{device, finger}) {
+                std::move(keys.begin() + i + 1, keys.begin() + count, keys.begin() + i);
+                std::move(points.begin() + i + 1, points.begin() + count, points.begin() + i);
+                --count;
+                return;
+            }
+        }
+    }
+    std::span<const AuxTouchPoint> Points() const { return {points.data(), count}; }
+    bool Empty() const { return count == 0; }
+    void ClearStarts() { for (size_t i = 0; i < count; ++i) points[i].attributes = 0; }
+    void Clear() { count = 0; }
+private:
+    std::array<std::pair<u64, u64>, Capacity> keys{};
+    std::array<AuxTouchPoint, Capacity> points{};
+    size_t count{};
+    u32 next_id{1};
+};
+
+struct AuxPinchEvent {
+    enum class Phase { Begin, Update, End };
+    Phase phase{};
+    u32 x{}, y{};
+    float scale{1.0f};
+};
 
 // Mirrors DsmAuxDisplayInfo in dsm_ipc.h (24 bytes).
 struct AuxDisplayInfo {
@@ -403,6 +496,57 @@ public:
         }
         touch_count = retained;
         return n;
+    }
+
+    static constexpr size_t MaxWheelEvents = 64;
+    void PushWheel(AuxWheelEvent event) {
+        if (!std::isfinite(event.dx) || !std::isfinite(event.dy) ||
+            (event.dx == 0.0f && event.dy == 0.0f)) {
+            return;
+        }
+        event.dx = std::clamp(event.dx, -8.0f, 8.0f);
+        event.dy = std::clamp(event.dy, -8.0f, 8.0f);
+        std::scoped_lock lk{wheel_mutex};
+        if (wheel_events.size() == MaxWheelEvents) {
+            wheel_events.pop_front(); // bounded bursts keep the most recent cursor positions
+        }
+        wheel_events.push_back(event);
+    }
+
+    size_t TakeWheel(std::span<AuxWheelEvent> out) {
+        std::scoped_lock lk{wheel_mutex};
+        const size_t count = std::min(out.size(), wheel_events.size());
+        for (size_t i = 0; i < count; ++i) {
+            out[i] = wheel_events.front();
+            wheel_events.pop_front();
+        }
+        return count;
+    }
+
+    void ClearWheel() {
+        std::scoped_lock lk{wheel_mutex};
+        wheel_events.clear();
+    }
+
+    static constexpr size_t MaxPinchEvents = 64;
+    void PushPinch(AuxPinchEvent event) {
+        if (!std::isfinite(event.scale) || event.scale <= 0.0f) return;
+        event.scale = std::clamp(event.scale, 0.25f, 4.0f);
+        std::scoped_lock lk{pinch_mutex};
+        if (pinch_events.size() == MaxPinchEvents) pinch_events.pop_front();
+        pinch_events.push_back(event);
+    }
+    size_t TakePinch(std::span<AuxPinchEvent> out) {
+        std::scoped_lock lk{pinch_mutex};
+        const size_t count = std::min(out.size(), pinch_events.size());
+        for (size_t i = 0; i < count; ++i) {
+            out[i] = pinch_events.front(); pinch_events.pop_front();
+        }
+        return count;
+    }
+    void ClearPinch() {
+        std::scoped_lock lk{pinch_mutex};
+        pinch_events.clear();
     }
 
     // --- mod UI framebuffer: produced by the mod runtime (core), consumed by the renderer ---
@@ -1062,6 +1206,11 @@ private:
     std::mutex touch_mutex;
     std::array<AuxTouchPoint, MaxTouch> touch_points{};
     size_t touch_count{0};
+
+    std::mutex wheel_mutex;
+    std::deque<AuxWheelEvent> wheel_events;
+    std::mutex pinch_mutex;
+    std::deque<AuxPinchEvent> pinch_events;
 
     struct AuxTex {
         std::vector<u32> pixels;

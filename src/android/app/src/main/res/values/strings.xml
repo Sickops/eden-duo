@@ -941,6 +941,24 @@
     <string name="updates_and_dlc">Updates and DLC</string>
     <string name="mods_and_cheats">Mods and cheats</string>
     <string name="dual_screen_mods">Dual screen mods</string>
+    <string name="dual_screen_companion_available">Companion available for %1$s</string>
+    <string name="dual_screen_filter">Show games with dual screen companions</string>
+    <string name="dual_screen_filter_show_all">Show all games</string>
+    <string name="dual_screen_filter_empty">No games match this filter. Try clearing search or turning off the dual screen filter.</string>
+    <string name="game_filter_empty">No games match your search or filters.</string>
+    <string name="about_eden_duo" translatable="false">Eden Duo</string>
+    <string name="about_eden" translatable="false">Eden</string>
+    <string name="about_discord" translatable="false">Discord</string>
+    <string name="about_github" translatable="false">GitHub</string>
+    <string name="eden_duo_discord_link" translatable="false">https://discord.gg/r6vBWKAqCK</string>
+    <string name="eden_duo_github_link" translatable="false">https://github.com/igawa6/eden-duo</string>
+    <string name="dual_screen_mod_fetch_source">Eden Duo companions for %1$s</string>
+    <string name="dual_screen_mod_fetch_loading">Fetching published companion releases…</string>
+    <string name="dual_screen_mod_fetch_empty">No published companion releases for this game yet.</string>
+    <string name="dual_screen_mod_fetch_release">%1$s\n%2$s · %3$s</string>
+    <string name="dual_screen_mod_fetch_no_notes">No release notes.</string>
+    <string name="dual_screen_mod_fetch_failed">Could not fetch the companion. Check your connection and try again.\n\n%1$s</string>
+    <string name="dual_screen_mod_downloading">Downloading %1$s</string>
     <string name="installing_dual_screen_mod">Installing dual screen mod</string>
     <string name="dual_screen_mod_installed">Dual screen mod installed successfully</string>
     <string name="dual_screen_mod_check_no_scan">The package was unpacked, but the add-on scanner could not open this game, so Eden Duo cannot confirm it will be used. Restart Eden Duo and check the Add-ons list.</string>
@@ -1932,4 +1950,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <string name="add_folders">Add Folder</string>
     <string name="percent">%1$d%%</string>
 
+    <string name="about_kofi" translatable="false">Ko-fi</string>
+    <string name="about_next_game_poll">Next game poll</string>
+    <string name="eden_duo_kofi_link" translatable="false">https://ko-fi.com/igawa6</string>
+    <string name="eden_duo_poll_link" translatable="false">https://ko-fi.com/polls/3rd-Poll-Next-Switch-Game-on-Eden-Duo-C7J128KB48</string>
 </resources>

@@ -32,6 +32,7 @@ enum class SettingsSubscreen {
     LOSSLESS_MANAGER,
     APPLET_LAUNCHER,
     INSTALLABLE,
+    EMULATOR_IMPORT,
     GAME_FOLDERS,
     ABOUT,
     LICENSES,
@@ -130,6 +131,7 @@ class SettingsSubscreenActivity : AppCompatActivity() {
             SettingsSubscreen.LOSSLESS_MANAGER -> R.id.losslessManagerFragment
             SettingsSubscreen.APPLET_LAUNCHER -> R.id.appletLauncherFragment
             SettingsSubscreen.INSTALLABLE -> R.id.installableFragment
+            SettingsSubscreen.EMULATOR_IMPORT -> R.id.emulatorImportFragment
             SettingsSubscreen.GAME_FOLDERS -> R.id.gameFoldersFragment
             SettingsSubscreen.ABOUT -> R.id.aboutFragment
             SettingsSubscreen.LICENSES -> R.id.licensesFragment

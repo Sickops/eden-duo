@@ -1630,6 +1630,8 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                     widget.on_swipe_right = w.value("on_swipe_right", std::string{});
                     widget.on_swipe_up = w.value("on_swipe_up", std::string{});
                     widget.on_swipe_down = w.value("on_swipe_down", std::string{});
+                    widget.on_pan = w.value("on_pan", std::string{});
+                    widget.on_pinch = w.value("on_pinch", std::string{});
                     widget.swipe_px = static_cast<s32>(
                         w.contains("swipe_px") ? ParseNumber(w.at("swipe_px")) : 0);
                     widget.id = w.value("id", std::string{});
@@ -2715,9 +2717,16 @@ void ModRuntime::ReloadManifest() {
         return;
     }
     // Validate the complete replacement before stopping a worker or shutting down the module.
-    StopRedrawWorker();
+    // Do not destroy an instance during a competing pause/resume transition.
+    // Its destructor may need the write service to release temporary native input.
+    if (!RunWithGuestStopped([this] {
+            StopRedrawWorker();
+            ShutdownGameModule();
+        })) {
+        LOG_WARNING(Core, "DSMod reload deferred: guest suspension is busy; retry reload");
+        return;
+    }
     {
-        ShutdownGameModule();
         manifest = std::move(replacement);
         derived_order_list = nullptr;
         shared_page.reset();

@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.os.BundleCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -25,10 +26,12 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.AddonAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentAddonsBinding
 import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.model.DualScreenModRelease
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.PatchType
 import org.yuzu.yuzu_emu.utils.AddonUtil
+import org.yuzu.yuzu_emu.utils.DualScreenModRepository
 import org.yuzu.yuzu_emu.utils.DualScreenPackageInstaller
 import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
 import org.yuzu.yuzu_emu.utils.InstallableActions
@@ -135,6 +138,23 @@ class AddonsFragment : Fragment() {
                 arrayOf("application/zip", "application/octet-stream", "*/*")
             )
         }
+        parentFragmentManager.setFragmentResultListener(
+            ContentTypeSelectionDialogFragment.REQUEST_FETCH_DUAL_SCREEN_MOD,
+            viewLifecycleOwner
+        ) { _, _ ->
+            DualScreenModFetcherDialogFragment.newInstance(args.game.programIdHex, args.game.title)
+                .show(parentFragmentManager, DualScreenModFetcherDialogFragment.TAG)
+        }
+        parentFragmentManager.setFragmentResultListener(
+            DualScreenModFetcherDialogFragment.REQUEST_INSTALL,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            BundleCompat.getParcelable(
+                bundle,
+                DualScreenModFetcherDialogFragment.RELEASE,
+                DualScreenModRelease::class.java
+            )?.let { installDualScreenPackage(release = it) }
+        }
 
         binding.buttonInstall.setOnClickListener {
             ContentTypeSelectionDialogFragment().show(
@@ -222,24 +242,66 @@ class AddonsFragment : Fragment() {
             }
         }
 
-    private fun installDualScreenPackage(uri: Uri) {
+    private fun installDualScreenPackage(uri: Uri? = null, release: DualScreenModRelease? = null) {
         val activity = requireActivity()
         val game = args.game
         ProgressDialogFragment.newInstance(
             activity,
             R.string.installing_dual_screen_mod,
             true
-        ) { progressCallback, _ ->
+        ) { progressCallback, messageCallback ->
             val addonDirectory = File(game.addonDir)
-            when (
-                val result = DualScreenPackageInstaller.install(
+            val result = if (release == null) {
+                DualScreenPackageInstaller.install(
                     context = activity,
-                    uri = uri,
+                    uri = requireNotNull(uri),
                     gameTitleId = game.programIdHex,
                     addonDirectory = addonDirectory,
                     progressCallback = progressCallback
                 )
-            ) {
+            } else {
+                try {
+                    messageCallback(
+                        activity.getString(R.string.dual_screen_mod_downloading, release.assetName)
+                    )
+                    val archive = DualScreenModRepository.download(
+                        release,
+                        activity.cacheDir,
+                        progressCallback
+                    )
+                    try {
+                        messageCallback(activity.getString(R.string.installing_dual_screen_mod))
+                        DualScreenPackageInstaller.install(
+                            archive,
+                            release.assetName,
+                            game.programIdHex,
+                            addonDirectory,
+                            progressCallback
+                        )
+                    } finally {
+                        archive.delete()
+                    }
+                } catch (_: DualScreenModRepository.DownloadCancelledException) {
+                    return@newInstance activity.getString(
+                        R.string.dual_screen_mod_install_cancelled
+                    )
+                } catch (e: Exception) {
+                    if (progressCallback(0, 0)) {
+                        return@newInstance activity.getString(
+                            R.string.dual_screen_mod_install_cancelled
+                        )
+                    }
+                    return@newInstance MessageDialogFragment.newInstance(
+                        activity,
+                        titleId = R.string.dual_screen_mod_install_failed,
+                        descriptionString = activity.getString(
+                            R.string.dual_screen_mod_fetch_failed,
+                            e.message.orEmpty()
+                        )
+                    )
+                }
+            }
+            when (result) {
                 is DualScreenPackageInstaller.Result.Installed -> {
                     addonViewModel.persistAddonStates()
                     val notes = applyDualScreenAddonStates(activity, game.programId, result)
