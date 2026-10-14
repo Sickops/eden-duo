@@ -76,6 +76,11 @@ android {
         // source set overrides src/main/res, so upstream's resource files stay untouched.
         android.sourceSets.getByName(flavor.name).res.srcDir('src/duo/res')
     }
+
+    lint {
+        // Known findings in upstream-owned code and generated externals; new issues still fail.
+        baseline = file('lint-baseline.xml')
+    }
 }
 
 // The validation layer can already sit in jniLibs from a development build (the CMake step
