@@ -25,6 +25,33 @@ stable reference.
 | 3 | eden-cli keeps its own `getopt_long` table and `PrintHelp` instead of upstream's unified parser (#4424, `Core::ParseLaunchParams`); about 117 lines upstream removed are restored | `src/yuzu_cmd/yuzu.cpp` (`PrintHelp` ~91-117, option loop ~897-1104) | eden-cli needs Duo-only harness flags (dump, install, scripted input, aux window) | High: upstream parser changes and new flags never reach eden-cli. Planned fix: parse Duo flags first, pass the rest to `ParseLaunchParams` |
 | 4 | Kernel `application_process` guarded by a lock plus an epoch counter | `src/core/hle/kernel/kernel.{h,cpp}` (`SetApplicationProcess`, `RetainApplicationProcess`, `IsApplicationProcess`, `application_process_epoch`) | The companion runtime reads the application process from other threads and must detect a process swap; also closes an upstream race | Medium |
 
+## Android resource and Gradle overlays
+
+Upstream's Android branding files are not edited; Duo overrides them instead, so a
+sync never conflicts on them but also never shows when upstream changes them.
+
+* `src/android/app/build.gradle.kts` ends with `apply(from = "duo.gradle")`.
+  `duo.gradle` (Groovy, because a Kotlin script plugin cannot see the Android Gradle
+  plugin classes) sets the application id, version name, CMake flags
+  (`ENABLE_UPDATE_CHECKER=OFF`, release `EDEN_DSMOD_BUILD_DEV_TOOLS=OFF`,
+  `YUZU_DOWNLOAD_ANDROID_VVL=OFF`, file-prefix maps), the relWithDebInfo "Dev"
+  identity, the mainline "Eden Duo" name, the release VVL packaging exclude, test
+  dependencies and the lint baseline. On a sync, check that upstream's
+  `defaultConfig`, `release`/`relWithDebInfo` build types, flavor names and
+  `productFlavors.all` app-name block still exist under the same names.
+* `src/android/app/src/duo/res` is added to every product flavor's source set and
+  overrides `src/main/res`: launcher/splash/about images, both `fragment_about.xml`
+  layouts, `ic_launcher_background`, and `addon_notice_description` /
+  `invalid_directory_description`. Sync risk: when upstream changes one of these
+  files (new about-page views or ids, reworded add-on strings), compare and carry the
+  change into the overlay by hand.
+* Duo-added strings and arrays live in `values/duo_strings.xml` and
+  `values/duo_arrays.xml` (English only, `tools:ignore="MissingTranslation"`).
+* `src/android/app/lint-baseline.xml` lists the lint errors in upstream-owned code
+  and generated SDL sources only. Regenerate it after a sync (delete it, run
+  `:app:lintMainlineRelease` twice, keep only the error entries) and never baseline
+  an error in a Duo-owned file.
+
 ## Generic fixes carried on top of upstream
 
 Not Duo features. Each should stay a separate, self-contained change so a sync can
