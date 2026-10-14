@@ -4,8 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
@@ -191,20 +189,6 @@ Frame* PresentManager::GetRenderFrame() {
     frame->present_done.Wait();
     frame->present_done.Reset();
 
-    return frame;
-}
-
-Frame* PresentManager::TryGetRenderFrame() {
-    std::scoped_lock lock{free_mutex};
-    const auto ready = std::ranges::find_if(free_queue, [](const Frame* frame) {
-        return frame->present_done.GetStatus() == VK_SUCCESS;
-    });
-    if (ready == free_queue.end()) {
-        return nullptr;
-    }
-    Frame* const frame = *ready;
-    free_queue.erase(ready);
-    frame->present_done.Reset();
     return frame;
 }
 

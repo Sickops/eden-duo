@@ -156,6 +156,9 @@ private:
 
     /// Read one render target back off the GPU and publish it to the second screen.
     void DSModCaptureRenderTarget(VideoCommon::ImageViewId view_id);
+    /// Eden Duo developer probes, run once per draw (vk_dsmod_rt_probe.cpp).
+    struct DSModProbeState;
+    void DSModProbeRenderTargets(DSModProbeState*& state);
 
     template <typename Func>
     void PrepareDraw(bool is_indexed, Func&&);

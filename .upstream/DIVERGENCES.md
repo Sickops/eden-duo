@@ -32,7 +32,7 @@ drop it as soon as upstream fixes the same problem.
 
 | # | Fix | Where | Sync risk |
 |---|---|---|---|
-| 5 | Screenshot request race: renderers claim a pending request via `RendererBase::TakePendingScreenshot` | `src/video_core/renderer_base.{h,cpp}`, `renderer_opengl.cpp`, `renderer_vulkan.cpp` (present path) | Medium; the aux window depends on it |
+| 5 | Screenshot request race: renderers claim a pending request via `RendererBase::TakePendingScreenshot` | `src/video_core/renderer_base.{h,cpp}`, `renderer_opengl.cpp`, `renderer_vulkan.cpp` (`RenderScreenshot`) | Medium; the aux window depends on it |
 | 6 | ThreadSanitizer fiber annotations (`EDEN_HAS_TSAN`) | `src/common/fiber.cpp` | Low |
 | 7 | Debugger `ConnectionState` constructs the Boost.Process signal pipe in place (copying the v1 pipe could assign invalid descriptors) | `src/core/debugger/debugger.cpp` (`ConnectionState`) | Medium |
 | 8 | `HostMemory::Unmap` range check as an overflow-safe `ASSERT_MSG` with the offending range | `src/common/host_memory.cpp` | Low |
@@ -44,9 +44,7 @@ drop it as soon as upstream fixes the same problem.
 Formatting-only differences with identical tokens. They have no purpose and cause
 conflicts; restore upstream's formatting the next time these files are edited.
 
-* `src/video_core/renderer_vulkan/renderer_vulkan.cpp` (~lines 189-219): the
-  `RendererVulkan` constructor initialiser list was reflowed; upstream uses
-  comma-leading layout.
+None currently known.
 
 Rule: format only Duo-owned paths; never run `clang-format` over whole upstream files.
 
