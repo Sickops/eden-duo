@@ -33,7 +33,9 @@ if (ENABLE_UPDATE_CHECKER)
     target_compile_definitions(yuzu-android PUBLIC ENABLE_UPDATE_CHECKER)
 endif()
 
-# Developer builds read EDEN_DSMOD_* switches from <user dir>/dsmod_env.txt (native.cpp).
+# Eden Duo: dual-screen session hooks and JNI entry points. Developer builds read EDEN_DSMOD_*
+# switches from <user dir>/dsmod_env.txt (dsmod_native.cpp).
+target_sources(yuzu-android PRIVATE dsmod_native.cpp dsmod_native.h)
 target_compile_definitions(yuzu-android PRIVATE
     EDEN_DSMOD_BUILD_DEV_TOOLS=$<BOOL:${EDEN_DSMOD_BUILD_DEV_TOOLS}>)
 

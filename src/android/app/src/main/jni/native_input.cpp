@@ -19,11 +19,6 @@
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/drivers/virtual_gamepad.h"
-#include <algorithm>
-#include <array>
-#include <span>
-
-#include "video_core/dsmod/aux_routing.h"
 #include "native.h"
 
 ::Common::unordered_map<std::string, std::unique_ptr<AndroidConfig>> map_profiles;
@@ -250,42 +245,6 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onTouchMoved(JNIEnv* env
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchMoved(j_id, j_x_axis, j_y_axis);
     }
-}
-
-void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onAuxTouchEvent(
-    JNIEnv* env, jobject j_obj, jintArray j_ids, jfloatArray j_xs, jfloatArray j_ys, jint j_count,
-    jint j_start_mask) {
-    auto& session = EmulationSession::GetInstance();
-    const size_t count = std::min<size_t>(static_cast<size_t>(std::max(j_count, 0)),
-                                          VideoCore::DSMod::AuxRouting::MaxTouch);
-    if (count == 0) {
-        session.SetAuxTouch({});
-        return;
-    }
-    // The arrays may be longer than `count` (the caller reuses fixed-size buffers).
-    if (env->GetArrayLength(j_ids) < static_cast<jsize>(count) ||
-        env->GetArrayLength(j_xs) < static_cast<jsize>(count) ||
-        env->GetArrayLength(j_ys) < static_cast<jsize>(count)) {
-        return;
-    }
-    std::array<jint, VideoCore::DSMod::AuxRouting::MaxTouch> ids{};
-    std::array<jfloat, VideoCore::DSMod::AuxRouting::MaxTouch> xs{};
-    std::array<jfloat, VideoCore::DSMod::AuxRouting::MaxTouch> ys{};
-    env->GetIntArrayRegion(j_ids, 0, static_cast<jsize>(count), ids.data());
-    env->GetFloatArrayRegion(j_xs, 0, static_cast<jsize>(count), xs.data());
-    env->GetFloatArrayRegion(j_ys, 0, static_cast<jsize>(count), ys.data());
-
-    std::array<VideoCore::DSMod::AuxTouchPoint, VideoCore::DSMod::AuxRouting::MaxTouch> points{};
-    for (size_t i = 0; i < count; ++i) {
-        points[i] = VideoCore::DSMod::AuxTouchPoint{
-            .finger_id = static_cast<u32>(ids[i]),
-            .x = static_cast<u32>(std::max(0.0f, xs[i])),
-            .y = static_cast<u32>(std::max(0.0f, ys[i])),
-            .attributes = (j_start_mask & (1 << i)) != 0 ? 1u : 0u,
-            .delta_ns = 0,
-        };
-    }
-    session.SetAuxTouch(std::span<const VideoCore::DSMod::AuxTouchPoint>{points.data(), count});
 }
 
 void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onTouchReleased(JNIEnv* env, jobject j_obj,

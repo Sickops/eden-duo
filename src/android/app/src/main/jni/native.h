@@ -4,8 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <mutex>
-#include <span>
 #include <optional>
 
 #include <android/native_window_jni.h>
@@ -16,7 +14,6 @@
 #include "core/perf_stats.h"
 #include "frontend_common/content_manager.h"
 #include "jni/emu_window/emu_window.h"
-#include "video_core/dsmod/aux_routing.h"
 #include "video_core/rasterizer_interface.h"
 
 #pragma once
@@ -37,17 +34,6 @@ public:
     ANativeWindow* NativeWindow() const;
     void SetNativeWindow(ANativeWindow* native_window);
     void SurfaceChanged();
-
-    // DSMod aux (second screen) surface, UI thread. Takes over the reference of `native_window`.
-    void AuxSurfaceChanged(ANativeWindow* native_window);
-    void AuxSurfaceDestroyed();
-    /// Forwards second-screen touch to the running game; false while no game renderer exists.
-    bool SetAuxTouch(std::span<const VideoCore::DSMod::AuxTouchPoint> points);
-    // Eden Duo: 1 when the running game shows the idle page (no usable companion package), 0
-    // when it does not, -1 when no game is loaded yet (ask again later).
-    int CompanionIsIdle();
-    // Eden Duo: hands the Second Screen settings to the renderer and the mod runtime.
-    static void ApplySecondScreenOptions();
 
     void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
                              const std::string& custom_driver_name,
@@ -88,15 +74,6 @@ private:
     // Window management
     std::unique_ptr<EmuWindow_Android> m_window;
     ANativeWindow* m_native_window{};
-    // DSMod aux surface: guarded by m_aux_mutex (lock order: m_mutex, then m_aux_mutex).
-    std::unique_ptr<EmuWindow_Android> m_aux_window;
-    ANativeWindow* m_aux_native_window{};
-    bool m_aux_renderer_ready{}; // the game's renderer and GPU exist
-    bool m_mod_runtime_live{};   // Eden Duo: Load succeeded; the mod runtime (if any) exists
-    std::mutex m_aux_mutex;
-    void AttachAuxWindowLocked();
-    void DetachAuxWindowLocked();
-    void ReleaseAuxNativeWindowLocked();
 
     // Core emulation
     Core::System m_system;
