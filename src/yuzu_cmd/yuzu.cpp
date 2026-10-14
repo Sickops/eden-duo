@@ -316,7 +316,7 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
         LOG_INFO(Frontend, "Reloading disk shader cache for {:016X}", changed_program_id);
 
-        void(state->system.Pause());
+        state->system.Pause();
         state->system.GPU().WaitForIdle();
         state->system.GPU().ObtainContext();
 
