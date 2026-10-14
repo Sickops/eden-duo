@@ -134,8 +134,8 @@ duo-only	A	-	38	0	src/android/app/src/main/res/layout/dialog_companion_app_picke
 duo-only	A	-	38	0	src/android/app/src/main/res/layout/list_item_companion_app.xml
 duo-only	A	-	385	0	src/tests/core/mods/ui_render.cpp
 duo-only	A	-	393	0	dist/frontends/es-de/es_systems.xml
-duo-only	A	-	396	0	.upstream/duo-touched.tsv
 duo-only	A	-	40	0	src/core/mods/mod_types_nav.h
+duo-only	A	-	405	0	.upstream/duo-touched.tsv
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_background.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_tint.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/drawable/dual_screen_badge_background.xml
@@ -169,7 +169,6 @@ duo-only	A	-	56	0	tools/duo/duo-touched-ledger.sh
 duo-only	A	-	57	0	src/core/mods/mod_yaz0.h
 duo-only	A	-	58	0	src/android/app/src/main/res/layout/dialog_dual_screen_mod_fetcher.xml
 duo-only	A	-	599	0	src/tests/video_core/aux_routing.cpp
-duo-only	A	-	61	0	.upstream/DIVERGENCES.md
 duo-only	A	-	615	0	src/core/mods/mod_load_plan.cpp
 duo-only	A	-	62	0	src/core/mods/mod_settings.h
 duo-only	A	-	62	0	tools/duo/README.md
@@ -200,6 +199,7 @@ duo-only	A	-	82	0	src/core/mods/mod_input_hold.h
 duo-only	A	-	834	0	src/tests/core/mods/runtime14.cpp
 duo-only	A	-	87	0	src/tests/core/mods/input_tokens.cpp
 duo-only	A	-	871	0	src/core/mods/mod_guest_bridge.cpp
+duo-only	A	-	89	0	.upstream/DIVERGENCES.md
 duo-only	A	-	9	0	src/android/app/src/main/res/drawable/ic_dual_screen.xml
 duo-only	A	-	91	0	src/core/mods/mod_types_guest.h
 duo-only	A	-	916	0	src/core/mods/mod_actions.cpp
@@ -275,7 +275,7 @@ upstream-hook	M	29	327	0	src/android/app/src/main/jni/native.cpp
 upstream-hook	M	27	1175	70	src/video_core/renderer_vulkan/renderer_vulkan.cpp
 upstream-hook	M	20	334	16	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/GameHelper.kt
 upstream-hook	M	18	251	10	src/android/app/src/main/java/org/yuzu/yuzu_emu/fragments/EmulationFragment.kt
-upstream-hook	M	18	34	14	src/yuzu_cmd/yuzu.cpp
+upstream-hook	M	17	33	13	src/yuzu_cmd/yuzu.cpp
 upstream-hook	M	17	53	29	src/android/app/src/main/java/org/yuzu/yuzu_emu/ui/GamesFragment.kt
 upstream-hook	M	15	65	6	src/android/app/src/main/java/org/yuzu/yuzu_emu/NativeLibrary.kt
 upstream-hook	M	15	76	39	src/common/fs/fs_android.cpp
