@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
                 .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
             if (!firstTimeSetup) {
-                checkKeys()
+                checkKeys(startup = true)
             }
             checkedDecryption = true
         }
@@ -299,8 +299,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         dialog.show()
     }
 
-    private fun checkKeys() {
-        if (!NativeLibrary.areKeysPresent()) {
+    private fun checkKeys(startup: Boolean = false) {
+        // Eden Duo: at startup the filesystem was just built, so skip areKeysPresent's rebuild
+        // (it rescans every external update/DLC container on the UI thread).
+        val present = if (startup) NativeLibrary.areKeysLoaded() else NativeLibrary.areKeysPresent()
+        if (!present) {
             MessageDialogFragment.newInstance(
                 titleId = R.string.keys_missing,
                 descriptionId = R.string.keys_missing_description,

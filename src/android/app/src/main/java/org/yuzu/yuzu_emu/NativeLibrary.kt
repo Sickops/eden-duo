@@ -724,6 +724,9 @@ object NativeLibrary {
     /** The dual-screen runtime version this build implements (a package's "min_runtime"). */
     external fun dualScreenRuntimeVersion(): Int
 
+    /** Eden Duo: whether the keys are loaded, without rebuilding the filesystem factories. */
+    external fun areKeysLoaded(): Boolean
+
     // DSMod second-screen surface
     external fun auxSurfaceChanged(surf: Surface)
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -317,7 +318,12 @@ private:
     void ScanDirectory(const VirtualDir& dir);
     void ProcessNSP(const VirtualFile& file);
     void ProcessXCI(const VirtualFile& file);
+    // Eden Duo: scan on first lookup instead of in the constructor, which runs on the Android UI
+    // thread at startup (hundreds of linked update/DLC containers took seconds).
+    void EnsureScanned() const;
 
+    mutable std::mutex scan_mutex;
+    mutable std::atomic_bool scanned{false};
     std::vector<VirtualDir> load_dirs;
     ::Common::unordered_map<std::tuple<u64, ContentRecordType, TitleType>, VirtualFile> entries;
     ::Common::unordered_map<u64, u32> versions;

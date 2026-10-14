@@ -792,6 +792,7 @@ void RegisteredCache::IterateAllMetadata(
 std::vector<ContentProviderEntry> RegisteredCache::ListEntriesFilter(
     std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
     std::optional<u64> title_id) const {
+    EnsureScanned();
     std::vector<ContentProviderEntry> out;
     IterateAllMetadata<ContentProviderEntry>(
         out,
@@ -1377,20 +1378,32 @@ VirtualFile ManualContentProvider::GetEntryForVersion(u64 title_id, ContentRecor
 }
 
 ExternalContentProvider::ExternalContentProvider(std::vector<VirtualDir> load_directories)
-    : load_dirs(std::move(load_directories)) {
-    ExternalContentProvider::Refresh();
+    : load_dirs(std::move(load_directories)) {}
+
+void ExternalContentProvider::EnsureScanned() const {
+    if (scanned.load(std::memory_order_acquire)) {
+        return;
+    }
+    std::scoped_lock lk{scan_mutex};
+    if (!scanned.load(std::memory_order_relaxed)) {
+        const_cast<ExternalContentProvider*>(this)->Refresh();
+    }
 }
 
 ExternalContentProvider::~ExternalContentProvider() = default;
 
 void ExternalContentProvider::AddDirectory(VirtualDir directory) {
     if (directory != nullptr) {
+        EnsureScanned();
+        std::scoped_lock lk{scan_mutex};
         load_dirs.push_back(std::move(directory));
         ScanDirectory(load_dirs.back());
     }
 }
 
 void ExternalContentProvider::ClearDirectories() {
+    std::scoped_lock lk{scan_mutex};
+    scanned.store(true, std::memory_order_release);
     load_dirs.clear();
     entries.clear();
     versions.clear();
@@ -1406,6 +1419,7 @@ void ExternalContentProvider::Refresh() {
             ScanDirectory(dir);
         }
     }
+    scanned.store(true, std::memory_order_release);
 }
 
 void ExternalContentProvider::ScanDirectory(const VirtualDir& dir) {
@@ -1455,10 +1469,12 @@ void ExternalContentProvider::ProcessXCI(const VirtualFile& file) {
 }
 
 bool ExternalContentProvider::HasEntry(u64 title_id, ContentRecordType type) const {
+    EnsureScanned();
     return GetEntryRaw(title_id, type) != nullptr;
 }
 
 std::optional<u32> ExternalContentProvider::GetEntryVersion(u64 title_id) const {
+    EnsureScanned();
     const auto it = versions.find(title_id);
     if (it != versions.end()) {
         return it->second;
@@ -1471,6 +1487,7 @@ VirtualFile ExternalContentProvider::GetEntryUnparsed(u64 title_id, ContentRecor
 }
 
 VirtualFile ExternalContentProvider::GetEntryRaw(u64 title_id, ContentRecordType type) const {
+    EnsureScanned();
     // Try to find in AOC (DLC) entries
     {
         const auto it = entries.find({title_id, type, TitleType::AOC});
@@ -1520,6 +1537,7 @@ std::vector<ContentProviderEntry> ExternalContentProvider::ListEntriesFilter(
 }
 
 std::vector<ExternalUpdateEntry> ExternalContentProvider::ListUpdateVersions(u64 title_id) const {
+    EnsureScanned();
     std::vector<ExternalUpdateEntry> out;
 
     for (const auto& entry : multi_version_entries) {
@@ -1536,6 +1554,7 @@ std::vector<ExternalUpdateEntry> ExternalContentProvider::ListUpdateVersions(u64
 }
 
 VirtualFile ExternalContentProvider::GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const {
+    EnsureScanned();
     for (const auto& entry : multi_version_entries)
         if (entry.title_id == title_id && entry.version == version)
             if (auto const p = entry.files[size_t(type)])

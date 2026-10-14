@@ -27,6 +27,7 @@
 #include "common/dynamic_library.h"
 #include "common/fs/path_util.h"
 #include "common/logging.h"
+#include "frontend_common/content_manager.h"
 #include "core/core.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
@@ -340,6 +341,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setDualScreenCodeDirectory(JNIEnv* en
                                                                       jobject instance,
                                                                       jstring directory) {
     Core::Mods::SetModuleCacheDirectory(Common::Android::GetJString(env, directory));
+}
+
+// Eden Duo: areKeysPresent without CreateFactories, which rescans every external content
+// container. MainActivity's startup check runs right after DirectoryInitialization built them.
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_areKeysLoaded(JNIEnv* env, jobject jobj) {
+    return static_cast<jboolean>(ContentManager::AreKeysPresent());
 }
 
 // Eden Duo: the base title ids a content container (an update/DLC NSP or XCI) carries content
