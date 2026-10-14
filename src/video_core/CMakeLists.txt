@@ -166,6 +166,7 @@ add_library(video_core STATIC
     renderer_vulkan/vk_descriptor_pool.h
     renderer_vulkan/vk_dsmod_aux.cpp
     renderer_vulkan/vk_dsmod_aux.h
+    renderer_vulkan/vk_dsmod_rt_probe.cpp
     renderer_vulkan/vk_fence_manager.cpp
     renderer_vulkan/vk_fence_manager.h
     renderer_vulkan/vk_graphics_pipeline.cpp
