@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fix stale sampled textures after GPU memory remapping, including character and environment texture corruption in **Trails through Daybreak II**.
+- Match Vulkan fragment-output numeric types to integer render targets.
+- Lower proven invocation-private compute shared memory to private scratch, avoiding oversized workgroup allocations without truncating shader data.
+
 ## 1.1.0
 
 **New**
