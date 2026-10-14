@@ -32,8 +32,8 @@ using AddEntry = std::function<void(const Record&, const VirtualFile&)>;
 /**
  * Eden Duo: a persistent index of parsed external content containers (NSP), so a launch does not
  * decrypt and parse hundreds of update/DLC packages again. A container is keyed by its full path
- * and size; the index keeps each content file's offset and size inside it and its ticket files,
- * so a hit only reads the tickets. Stored in the cache directory; delete the file to rebuild.
+ * and size; the index keeps each content file's offset and size inside it and its tickets, so a
+ * hit does not open the container at all (Android folder listings carry file sizes). Stored in the cache directory; delete the file to rebuild.
  */
 class Index {
 public:
@@ -54,7 +54,8 @@ private:
     };
     struct Container {
         u64 size{};
-        std::vector<Part> parts; // content files and tickets inside the container
+        std::vector<Part> parts; // content files inside the container
+        std::vector<std::vector<u8>> tickets; // raw ticket files, so a hit never opens the file
         std::vector<Record> records;
     };
 

@@ -364,8 +364,11 @@ std::vector<VirtualFile> RealVfsDirectory::IterateEntries<RealVfsFile, VfsFile>(
     std::vector<VirtualFile> out;
 #ifdef __ANDROID__
     if (FS::Android::IsContentUri(path)) {
-        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
-            if (!directory) out.emplace_back(base.OpenFileFromEntry(path + '/' + name, {}, path, perms));
+        for (const auto& entry : FS::Android::ListDocumentEntries(path)) {
+            if (!entry.directory) {
+                out.emplace_back(
+                    base.OpenFileFromEntry(path + '/' + entry.name, entry.size, path, perms));
+            }
         }
         return out;
     }
@@ -394,8 +397,8 @@ std::vector<VirtualDir> RealVfsDirectory::IterateEntries<RealVfsDirectory, VfsDi
     std::vector<VirtualDir> out;
 #ifdef __ANDROID__
     if (FS::Android::IsContentUri(path)) {
-        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
-            if (directory) out.emplace_back(base.OpenDirectory(path + '/' + name, perms));
+        for (const auto& entry : FS::Android::ListDocumentEntries(path)) {
+            if (entry.directory) out.emplace_back(base.OpenDirectory(path + '/' + entry.name, perms));
         }
         return out;
     }
@@ -560,8 +563,9 @@ std::map<std::string, VfsEntryType, std::less<>> RealVfsDirectory::GetEntries() 
     std::map<std::string, VfsEntryType, std::less<>> out;
 #ifdef __ANDROID__
     if (FS::Android::IsContentUri(path)) {
-        for (const auto& [name, directory] : FS::Android::ListDocumentEntries(path)) {
-            out.insert_or_assign(name, directory ? VfsEntryType::Directory : VfsEntryType::File);
+        for (const auto& entry : FS::Android::ListDocumentEntries(path)) {
+            out.insert_or_assign(entry.name,
+                                 entry.directory ? VfsEntryType::Directory : VfsEntryType::File);
         }
         return out;
     }

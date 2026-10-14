@@ -11,6 +11,7 @@
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/hex_util.h"
 #include "common/logging.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/partition_filesystem.h"
@@ -20,7 +21,7 @@
 namespace FileSys::DuoExternalIndex {
 namespace {
 
-constexpr int FormatVersion = 1;
+constexpr int FormatVersion = 2;
 
 std::filesystem::path IndexPath() {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "external_content_index.json";
@@ -65,6 +66,10 @@ void Index::Load() {
             for (const auto& part : value.at("parts")) {
                 container.parts.push_back({part.at(0).get<std::string>(), part.at(1).get<u64>(),
                                            part.at(2).get<u64>()});
+            }
+            for (const auto& ticket : value.at("tickets")) {
+                container.tickets.push_back(Common::HexStringToVector(ticket.get<std::string>(),
+                                                                      false));
             }
             for (const auto& record : value.at("records")) {
                 container.records.push_back({
@@ -121,9 +126,9 @@ bool Index::Restore(const VirtualFile& file, const AddEntry& add) {
     }
 
     auto& keys = Core::Crypto::KeyManager::Instance();
-    for (const auto& [name, part_file] : files) {
-        if (IsTicket(name) && !keys.AddTicket(Core::Crypto::Ticket::Read(part_file))) {
-            LOG_WARNING(Common_Filesystem, "Could not load NSP ticket {}", name);
+    for (const auto& ticket : container.tickets) {
+        if (!keys.AddTicket(Core::Crypto::Ticket::Read(ticket))) {
+            LOG_WARNING(Common_Filesystem, "Could not load a cached NSP ticket");
         }
     }
     for (const auto& record : container.records) {
@@ -133,8 +138,9 @@ bool Index::Restore(const VirtualFile& file, const AddEntry& add) {
 }
 
 void Index::Store(const VirtualFile& file, std::vector<Record> records) {
-    // A container without content entries (no keys yet, a base game) is parsed again next time.
-    if (file == nullptr || records.empty()) {
+    // Without the base keys nothing decrypts, so an empty result then is not cached.
+    if (file == nullptr ||
+        (records.empty() && Core::Crypto::KeyManager::Instance().BaseDeriveNecessary())) {
         return;
     }
     const PartitionFilesystem pfs(file);
@@ -147,10 +153,16 @@ void Index::Store(const VirtualFile& file, std::vector<Record> records) {
     Container container;
     container.size = file->GetSize();
     for (const auto& [name, offset] : offsets) {
-        const bool needed = IsTicket(name) || std::any_of(records.begin(), records.end(),
-                                                          [&name](const Record& record) {
-                                                              return record.nca_name == name;
-                                                          });
+        if (IsTicket(name)) {
+            if (const auto ticket = pfs.GetFile(name); ticket != nullptr) {
+                container.tickets.push_back(ticket->ReadAllBytes());
+            }
+            continue;
+        }
+        const bool needed = std::any_of(records.begin(), records.end(),
+                                        [&name](const Record& record) {
+                                            return record.nca_name == name;
+                                        });
         if (needed) {
             container.parts.push_back({name, offset, sizes.at(name)});
         }
@@ -209,7 +221,14 @@ void Index::Flush() {
                                    static_cast<u32>(record.content_type), record.version,
                                    record.version_string, record.nca_name});
         }
-        out_containers[key] = {{"size", container.size}, {"parts", parts}, {"records", out_records}};
+        nlohmann::json tickets = nlohmann::json::array();
+        for (const auto& ticket : container.tickets) {
+            tickets.push_back(Common::HexToString(ticket));
+        }
+        out_containers[key] = {{"size", container.size},
+                               {"parts", parts},
+                               {"tickets", tickets},
+                               {"records", out_records}};
     }
 
     const auto path = IndexPath();

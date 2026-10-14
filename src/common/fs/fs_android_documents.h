@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -15,6 +16,7 @@
 #include <jni.h>
 
 #include "common/android/android_common.h"
+#include "common/common_types.h"
 
 namespace Common::Android {
 JNIEnv* GetEnvForThread();
@@ -56,9 +58,15 @@ inline bool OperateDocument(const std::string& path, const std::string& other, i
     return result;
 }
 
-/// The entries of the document folder [path]: name and whether it is a folder.
-inline std::vector<std::pair<std::string, bool>> ListDocumentEntries(const std::string& path) {
-    std::vector<std::pair<std::string, bool>> entries;
+struct DocumentEntry {
+    std::string name;
+    bool directory{};
+    std::optional<u64> size; ///< a file's size from the folder listing, when the provider has it
+};
+
+/// The entries of the document folder [path], with file sizes from the same listing query.
+inline std::vector<DocumentEntry> ListDocumentEntries(const std::string& path) {
+    std::vector<DocumentEntry> entries;
     if (!DocumentCallbacks::list_document_entries) return entries;
     auto env = Common::Android::GetEnvForThread();
     const auto source = Common::Android::ToJString(env, path);
@@ -69,7 +77,20 @@ inline std::vector<std::pair<std::string, bool>> ListDocumentEntries(const std::
     for (jsize i = 0; i < env->GetArrayLength(array); ++i) {
         const auto item = static_cast<jstring>(env->GetObjectArrayElement(array, i));
         const auto text = Common::Android::GetJString(env, item);
-        if (text.size() > 2) entries.emplace_back(text.substr(2), text.starts_with("d:"));
+        if (text.starts_with("d:") && text.size() > 2) {
+            entries.push_back({text.substr(2), true, std::nullopt});
+        } else if (text.starts_with("f:")) {
+            const auto slash = text.find('/', 2);
+            if (slash == std::string::npos) {
+                if (text.size() > 2) entries.push_back({text.substr(2), false, std::nullopt});
+            } else if (slash + 1 < text.size()) {
+                std::optional<u64> size;
+                if (slash > 2) {
+                    size = std::stoull(text.substr(2, slash - 2));
+                }
+                entries.push_back({text.substr(slash + 1), false, size});
+            }
+        }
         env->DeleteLocalRef(item);
     }
     env->DeleteLocalRef(array);

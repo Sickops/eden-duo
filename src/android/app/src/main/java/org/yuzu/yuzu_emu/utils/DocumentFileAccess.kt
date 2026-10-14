@@ -13,8 +13,14 @@ object DocumentFileAccess {
     private const val ID = DocumentsContract.Document.COLUMN_DOCUMENT_ID
     private const val NAME = DocumentsContract.Document.COLUMN_DISPLAY_NAME
     private const val MIME = DocumentsContract.Document.COLUMN_MIME_TYPE
+    private const val SIZE = DocumentsContract.Document.COLUMN_SIZE
     private data class TreePath(val base: Uri, val names: List<String>)
-    private data class Child(val name: String, val uri: Uri, val directory: Boolean)
+    private data class Child(
+        val name: String,
+        val uri: Uri,
+        val directory: Boolean,
+        val size: Long = -1
+    )
     // Native VFS operations repeatedly resolve the same children. Cache document identities,
     // not file contents or existence, and invalidate after mutations.
     private val resolved = LruCache<String, Uri>(8192)
@@ -35,13 +41,21 @@ object DocumentFileAccess {
 
     private fun children(parent: Uri, prefix: String? = null): List<Child> {
         val childUri = DocumentsContract.buildChildDocumentsUriUsingTree(parent, DocumentsContract.getDocumentId(parent))
-        return resolver.query(childUri, arrayOf(ID, NAME, MIME), null, null, null)?.use { cursor ->
+        return resolver.query(childUri, arrayOf(ID, NAME, MIME, SIZE), null, null, null)?.use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
                     val name = cursor.getString(1)
                     val uri = DocumentsContract.buildDocumentUriUsingTree(parent, cursor.getString(0))
                     if (prefix != null) resolved.put("$prefix/${Uri.encode(name)}", uri)
-                    add(Child(name, uri, cursor.getString(2) == DocumentsContract.Document.MIME_TYPE_DIR))
+                    val size = if (cursor.isNull(3)) -1L else cursor.getLong(3)
+                    add(
+                        Child(
+                            name,
+                            uri,
+                            cursor.getString(2) == DocumentsContract.Document.MIME_TYPE_DIR,
+                            size
+                        )
+                    )
                 }
             }
         } ?: error("Cannot list folder")
@@ -106,8 +120,14 @@ object DocumentFileAccess {
     fun entries(path: String): Array<String> = runCatching {
         val uri = resolve(path) ?: return emptyArray()
         // Fill the cache so per-child lookups after a listing need no extra queries.
+        // "d:<name>" for folders, "f:<size>/<name>" for files ("f:/<name>" when the size is
+        // unknown), so native code learns file sizes without opening every file.
         children(uri, key(split(path))).map { child ->
-            (if (child.directory) "d:" else "f:") + child.name
+            if (child.directory) {
+                "d:" + child.name
+            } else {
+                "f:" + (if (child.size >= 0) child.size.toString() else "") + "/" + child.name
+            }
         }.toTypedArray()
     }.getOrDefault(emptyArray())
 
