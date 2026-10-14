@@ -1,8 +1,8 @@
 {
   "repository": "https://git.eden-emu.dev/eden-emu/eden",
   "channel": "nightly",
-  "source_commit": "4dc69c06f764a235bccd01afbfc765d9ddbebc9f",
+  "source_commit": "a594c8d60ef79280adc046760561912207e16e17",
   "original_base": "d9336ce6ce4c043a20862e567711c7b0bc1e11b6",
-  "release_tag": "v1791849564.4dc69c06f7",
-  "release_url": "https://git.eden-emu.dev/eden-ci/nightly/releases/tag/v1791849564.4dc69c06f7"
+  "release_tag": "v1791929232.a594c8d60e",
+  "release_url": "https://git.eden-emu.dev/eden-ci/nightly/releases/tag/v1791929232.a594c8d60e"
 }
