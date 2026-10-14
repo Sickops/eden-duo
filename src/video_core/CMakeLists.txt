@@ -61,7 +61,6 @@ add_library(video_core STATIC
     engines/puller.cpp
     engines/puller.h
     framebuffer_config.cpp
-    dsmod/aux_routing.h
     framebuffer_config.h
     fsr.cpp
     fsr.h
@@ -164,9 +163,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_descriptor_buffer.h
     renderer_vulkan/vk_descriptor_pool.cpp
     renderer_vulkan/vk_descriptor_pool.h
-    renderer_vulkan/vk_dsmod_aux.cpp
-    renderer_vulkan/vk_dsmod_aux.h
-    renderer_vulkan/vk_dsmod_rt_probe.cpp
     renderer_vulkan/vk_fence_manager.cpp
     renderer_vulkan/vk_fence_manager.h
     renderer_vulkan/vk_graphics_pipeline.cpp
@@ -485,5 +481,7 @@ endif()
 if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
+
+include(dsmod/duo_video_core.cmake) # Eden Duo: second-screen presenter sources
 
 create_target_directory_groups(video_core)

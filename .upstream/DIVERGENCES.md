@@ -131,6 +131,7 @@ of everything else.
 |---|---|
 | `src/core/CMakeLists.txt` | `src/core/mods/duo_core.cmake` |
 | `src/tests/CMakeLists.txt` | `src/tests/core/mods/duo_tests.cmake` |
+| `src/video_core/CMakeLists.txt` | `src/video_core/dsmod/duo_video_core.cmake` |
 | `src/video_core/host_shaders/CMakeLists.txt` | `src/video_core/host_shaders/duo_shaders.cmake` |
 | `src/yuzu_cmd/CMakeLists.txt` | `src/yuzu_cmd/duo_cmd.cmake` |
 
