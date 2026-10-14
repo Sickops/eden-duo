@@ -17,14 +17,12 @@ import androidx.annotation.Keep
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.libsdl.app.SDL
-import org.libsdl.app.EdenAudioContext
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
-import org.yuzu.yuzu_emu.views.AuxScreenHost
 import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
@@ -55,7 +53,7 @@ object NativeLibrary {
     init {
         try {
             System.loadLibrary("yuzu-android")
-            EdenAudioContext.initialize(YuzuApplication.appContext)
+            org.libsdl.app.EdenAudioContext.initialize(YuzuApplication.appContext)
             SDL.setupJNI()
             initJvm()
         } catch (ex: UnsatisfiedLinkError) {
@@ -136,22 +134,7 @@ object NativeLibrary {
         return FileUtil.getExtension(source.toUri())
     }
 
-    @Keep
-    @JvmStatic
-    fun operateDocument(path: String, other: String, operation: Int): Boolean =
-        org.yuzu.yuzu_emu.utils.DocumentFileAccess.operate(path, other, operation)
-
-    @Keep
-    @JvmStatic
-    fun listDocumentEntries(path: String): Array<String> =
-        org.yuzu.yuzu_emu.utils.DocumentFileAccess.entries(path)
-
     external fun setAppDirectory(directory: String)
-
-    external fun setDualScreenCodeDirectory(directory: String)
-
-    /** The dual-screen runtime version this build implements (a package's "min_runtime"). */
-    external fun dualScreenRuntimeVersion(): Int
 
     /**
      * Installs a nsp or xci file to nand
@@ -185,23 +168,6 @@ object NativeLibrary {
     external fun surfaceChanged(surf: Surface?)
 
     external fun surfaceDestroyed()
-
-    // DSMod second-screen surface
-    external fun auxSurfaceChanged(surf: Surface)
-
-    external fun auxSurfaceDestroyed()
-
-    /**
-     * Eden Duo: 1 when the running game shows the idle page (no usable companion package), 0
-     * when it does not, -1 when no game is loaded yet (ask again).
-     */
-    external fun isCompanionIdle(): Int
-
-    /**
-     * Eden Duo: the No Companion value (0 Icon, 1 Black, 2 Off) the next game boots with, in
-     * place of the global setting; -1 uses the global setting. Set before each boot.
-     */
-    external fun setNoCompanionOverride(value: Int)
 
     external fun getAppletCaptureBuffer(): ByteArray
     external fun getAppletCaptureWidth(): Int
@@ -492,17 +458,6 @@ object NativeLibrary {
     }
 
     /**
-     * DSMod: a haptic the dual-screen runtime asked for (strength 1 light, 2 click, 3 confirm,
-     * 4 heavy, 5 reject; kind = what raised it; flags bit 0 = honour the system's touch-feedback
-     * setting). Called on a native notifier thread; the second screen plays it on its UI thread.
-     */
-    @Keep
-    @JvmStatic
-    fun onAuxHaptic(strength: Int, kind: Int, flags: Int) {
-        AuxScreenHost.playHaptic(strength, kind, flags)
-    }
-
-    /**
      * Logs the Yuzu version, Android version and, CPU.
      */
     external fun logDeviceInfo()
@@ -633,13 +588,6 @@ object NativeLibrary {
     external fun getPatchesForFile(path: String, programId: String): Array<Patch>?
 
     /**
-     * The add-on directory the native scanner reads for [programId] (load/<TITLEID>), so
-     * installers write where the Add-ons list and the dual-screen runtime look. Empty when the
-     * title has no mod directory.
-     */
-    external fun getModLoadDirectory(programId: String): String
-
-    /**
      * Removes an update for a given [programId]
      * @param programId String representation of a game's program ID
      */
@@ -710,12 +658,6 @@ object NativeLibrary {
     external fun addGameFolderFileToFilesystemProvider(path: String)
 
     /**
-     * Eden Duo: base title ids of the content (update, DLC) inside an NSP/XCI container.
-     * Empty when the file can't be opened or parsed.
-     */
-    external fun getContainerBaseTitleIds(path: String): LongArray
-
-    /**
      * Clears all files added to the manual filesystem provider in our EmulationSession instance
      */
     external fun clearFilesystemProvider()
@@ -763,4 +705,63 @@ object NativeLibrary {
     external fun getFirmwareAvatarCount(): Int
     external fun getFirmwareAvatarImage(index: Int): ByteArray?
     external fun getDefaultAccountBackupJpeg(): ByteArray
+
+    // Eden Duo: dual-screen (DSMod) entry points. The C++ side is jni/dsmod_native.cpp, except
+    // operateDocument/listDocumentEntries, which common/fs/fs_android_documents.h calls.
+
+    @Keep
+    @JvmStatic
+    fun operateDocument(path: String, other: String, operation: Int): Boolean =
+        org.yuzu.yuzu_emu.utils.DocumentFileAccess.operate(path, other, operation)
+
+    @Keep
+    @JvmStatic
+    fun listDocumentEntries(path: String): Array<String> =
+        org.yuzu.yuzu_emu.utils.DocumentFileAccess.entries(path)
+
+    external fun setDualScreenCodeDirectory(directory: String)
+
+    /** The dual-screen runtime version this build implements (a package's "min_runtime"). */
+    external fun dualScreenRuntimeVersion(): Int
+
+    // DSMod second-screen surface
+    external fun auxSurfaceChanged(surf: Surface)
+
+    external fun auxSurfaceDestroyed()
+
+    /**
+     * Eden Duo: 1 when the running game shows the idle page (no usable companion package), 0
+     * when it does not, -1 when no game is loaded yet (ask again).
+     */
+    external fun isCompanionIdle(): Int
+
+    /**
+     * Eden Duo: the No Companion value (0 Icon, 1 Black, 2 Off) the next game boots with, in
+     * place of the global setting; -1 uses the global setting. Set before each boot.
+     */
+    external fun setNoCompanionOverride(value: Int)
+
+    /**
+     * DSMod: a haptic the dual-screen runtime asked for (strength 1 light, 2 click, 3 confirm,
+     * 4 heavy, 5 reject; kind = what raised it; flags bit 0 = honour the system's touch-feedback
+     * setting). Called on a native notifier thread; the second screen plays it on its UI thread.
+     */
+    @Keep
+    @JvmStatic
+    fun onAuxHaptic(strength: Int, kind: Int, flags: Int) {
+        org.yuzu.yuzu_emu.views.AuxScreenHost.playHaptic(strength, kind, flags)
+    }
+
+    /**
+     * The add-on directory the native scanner reads for [programId] (load/<TITLEID>), so
+     * installers write where the Add-ons list and the dual-screen runtime look. Empty when the
+     * title has no mod directory.
+     */
+    external fun getModLoadDirectory(programId: String): String
+
+    /**
+     * Eden Duo: base title ids of the content (update, DLC) inside an NSP/XCI container.
+     * Empty when the file can't be opened or parsed.
+     */
+    external fun getContainerBaseTitleIds(path: String): LongArray
 }
