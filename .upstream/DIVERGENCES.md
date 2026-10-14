@@ -21,7 +21,7 @@ stable reference.
 | # | Divergence | Where | Why | Sync risk |
 |---|---|---|---|---|
 | 1 | Upstream `STBI_WRITE_NO_STDIO` (#4282) not adopted; Duo defines `STBI_ONLY_PNG` there instead | `src/common/stb.h` (line ~10) | Duo still writes PNG files with `stbi_write_png` to files (`src/core/mods/`, eden-cli screenshots in `src/yuzu_cmd/yuzu.cpp`, golden tests) | Conflicts whenever upstream edits `stb.h` |
-| 2 | `unordered_dense` kept after upstream dropped it (#4326) | `cpmfile.json` (`unordered_dense` entry), `externals/CMakeLists.txt` (`AddJsonPackage(unordered-dense)`), `.patch/unordered-dense/`, `src/core/CMakeLists.txt` (`target_link_libraries(core ... unordered_dense::unordered_dense)`) | The dual-screen runtime's per-tick snapshots use the pinned dense map | Conflicts on the next sync: upstream edits the same `core` link line (`frozen::frozen-headers`) |
+| 2 | `unordered_dense` kept after upstream dropped it (#4326) | `cpmfile.json` (`unordered_dense` entry), `externals/CMakeLists.txt` (`AddJsonPackage(unordered-dense)`), `.patch/unordered-dense/`, `src/core/mods/duo_core.cmake` (`target_link_libraries(core PUBLIC unordered_dense::unordered_dense)`) | The dual-screen runtime's per-tick snapshots use the pinned dense map | Low for the link (no longer on upstream's `core` link line); `cpmfile.json` and `externals/CMakeLists.txt` are busy upstream files |
 | 3 | eden-cli keeps its own `getopt_long` table and `PrintHelp` instead of upstream's unified parser (#4424, `Core::ParseLaunchParams`); about 117 lines upstream removed are restored | `src/yuzu_cmd/yuzu.cpp` (`PrintHelp` ~91-117, option loop ~897-1104) | eden-cli needs Duo-only harness flags (dump, install, scripted input, aux window) | High: upstream parser changes and new flags never reach eden-cli. Planned fix: parse Duo flags first, pass the rest to `ParseLaunchParams` |
 | 4 | Kernel `application_process` guarded by a lock plus an epoch counter | `src/core/hle/kernel/kernel.{h,cpp}` (`SetApplicationProcess`, `RetainApplicationProcess`, `IsApplicationProcess`, `application_process_epoch`) | The companion runtime reads the application process from other threads and must detect a process swap; also closes an upstream race | Medium |
 
@@ -44,18 +44,36 @@ drop it as soon as upstream fixes the same problem.
 Formatting-only differences with identical tokens. They have no purpose and cause
 conflicts; restore upstream's formatting the next time these files are edited.
 
-* `src/dynarmic/src/dynarmic/backend/x64/emit_x64_memory.h` (~lines 97, 100): tabs
-  converted to spaces. Upstream edits this file often.
 * `src/video_core/renderer_vulkan/renderer_vulkan.cpp` (~lines 189-219): the
   `RendererVulkan` constructor initialiser list was reflowed; upstream uses
   comma-leading layout.
 
 Rule: format only Duo-owned paths; never run `clang-format` over whole upstream files.
 
+## Duo build lists live in Duo-owned CMake files
+
+Upstream CMake files carry one `include()` line each (commented "Eden Duo"); the
+source lists, test targets and Duo link libraries are in the included file. When a
+sync conflicts near one of these lines, keep the include and take upstream's side
+of everything else.
+
+| Upstream file | Duo file |
+|---|---|
+| `src/core/CMakeLists.txt` | `src/core/mods/duo_core.cmake` |
+| `src/tests/CMakeLists.txt` | `src/tests/core/mods/duo_tests.cmake` |
+| `src/video_core/host_shaders/CMakeLists.txt` | `src/video_core/host_shaders/duo_shaders.cmake` |
+| `src/yuzu_cmd/CMakeLists.txt` | `src/yuzu_cmd/duo_cmd.cmake` |
+
 ## Known upstream API changes to handle at the next sync
 
-* Upstream #4480 replaced `static const FunctionInfo functions[]` +
-  `RegisterHandlers(functions)` with `CreateStaticMap` / `FindRequest` overrides.
-  `src/core/hle/service/dsm/dsm.cpp` (Duo-only, so not in the conflict list) uses
-  the old form and must be converted when syncing past upstream `218c670`. Only the
-  build catches this.
+* Upstream #4480 (`218c670`, after base `4dc69c06`) replaced
+  `static const FunctionInfo functions[]` + `RegisterHandlers(functions)` with a
+  per-service `FindRequest` override over a `CreateStaticMap` table.
+  `src/core/hle/service/dsm/dsm.cpp` (Duo-only) carries both forms: the
+  `FindRequest` form is compiled when `DUO_HLE_STATIC_DISPATCH` is defined, which
+  `src/core/mods/duo_core.cmake` does for that one file when
+  `src/core/hle/service/service.h` contains `CreateStaticMap` (re-checked on every
+  configure after `service.h` changes). Verified: builds on the base and on a trial
+  merge of upstream `a594c8d`. Once `.upstream/eden.json` points at a nightly that
+  includes `218c670`, delete the `#else` `RegisterHandlers` branch in `dsm.cpp` and the
+  detection block in `duo_core.cmake` (define nothing, keep the `FindRequest` form).

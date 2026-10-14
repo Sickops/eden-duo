@@ -29,8 +29,6 @@ add_executable(yuzu-cmd
     emu_window/emu_window_sdl3.h
     emu_window/emu_window_sdl3_null.cpp
     emu_window/emu_window_sdl3_null.h
-    emu_window/emu_window_sdl3_aux.cpp
-    emu_window/emu_window_sdl3_aux.h
     emu_window/emu_window_sdl3_vk.cpp
     emu_window/emu_window_sdl3_vk.h
     sdl_config.cpp
@@ -75,13 +73,4 @@ if (NOT MSVC)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 endif()
 
-if (YUZU_TESTS)
-    # These return before the kernel exists; SDL still invokes the quit callback.
-    foreach(option IN ITEMS version help)
-        add_test(NAME cli_${option} COMMAND ${CMAKE_COMMAND} -E env
-            XDG_DATA_HOME=${CMAKE_CURRENT_BINARY_DIR}/cli-${option}-profile/data
-            XDG_CONFIG_HOME=${CMAKE_CURRENT_BINARY_DIR}/cli-${option}-profile/config
-            XDG_CACHE_HOME=${CMAKE_CURRENT_BINARY_DIR}/cli-${option}-profile/cache
-            $<TARGET_FILE:yuzu-cmd> --${option})
-    endforeach()
-endif()
+include(duo_cmd.cmake) # Eden Duo: second-screen window and CLI tests
