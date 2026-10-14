@@ -64,12 +64,10 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.igawa6.edenduo"
+        applicationId = "dev.eden.eden_emulator"
         minSdk = 24
         targetSdk = 36
-        // Eden Duo release version (shown to users); versionCode stays time-based so every new
-        // build installs as an update.
-        versionName = "1.3.0-beta.2"
+        versionName = getGitVersion()
         versionCode = autoVersion
 
         externalNativeBuild {
@@ -90,18 +88,13 @@ android {
                         "-DBUILD_TESTING=OFF",
                         "-DYUZU_TESTS=OFF",
                         "-DDYNARMIC_TESTS=OFF",
-                        *extraCMakeArgs.toTypedArray(),
-                        // Duo must never offer an upstream Eden APK as its own update.
-                        "-DENABLE_UPDATE_CHECKER=OFF"
+                        *extraCMakeArgs.toTypedArray()
                     )
                 )
 
                 if (isNightly) {
                     arguments.addAll(listOf(
-                        // Eden Duo: the checker asks upstream Eden's release feed and would offer
-                        // to install upstream Eden (another app). It stays off in every build
-                        // (the CMake default) until it can point at Eden Duo's own releases.
-                        "-DENABLE_UPDATE_CHECKER=OFF",
+                        "-DENABLE_UPDATE_CHECKER=ON",
                         "-DNIGHTLY_BUILD=ON",
                     ))
                 }
@@ -151,29 +144,6 @@ android {
 
             isMinifyEnabled = true
             isDebuggable = false
-
-            // The DSMod RE/heap-analysis developer toolkit (mod_re_tools.cpp's heap scan/diff/
-            // class-dump family and the mod_console.cpp EDEN_DSMOD_CMD console) is dead weight in
-            // a build a player installs -- see src/core/CMakeLists.txt's EDEN_DSMOD_BUILD_DEV_TOOLS
-            // comment. Only this signed, distributable build type turns it off;
-            // relWithDebInfo/debug keep the CMake default (ON) so it stays available for local/dev
-            // work.
-            externalNativeBuild {
-                cmake {
-                    arguments.add("-DEDEN_DSMOD_BUILD_DEV_TOOLS=OFF")
-                    // A published build ships no Vulkan validation layer (a debugging tool; the
-                    // renderer drops unavailable layers) and embeds no host build paths in
-                    // __FILE__-based assert/log strings.
-                    arguments.add("-DYUZU_DOWNLOAD_ANDROID_VVL=OFF")
-                    val prefixMap = listOf(
-                        "-ffile-prefix-map=${edenDir.absolutePath}/=",
-                        "-ffile-prefix-map=${System.getProperty("user.home")}/=~/"
-                    )
-                    cFlags.addAll(prefixMap)
-                    cppFlags.addAll(prefixMap)
-                }
-            }
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -191,11 +161,10 @@ android {
                 "proguard-rules.pro"
             )
 
-            // Local development build of Eden Duo; installs beside the published release.
-            manifestPlaceholders += mapOf("appNameSuffix" to " Dev")
+            manifestPlaceholders += mapOf("appNameSuffix" to " Debug Release")
 
             versionNameSuffix = "-relWithDebInfo"
-            applicationIdSuffix = ".dev"
+            applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
         }
 
@@ -221,8 +190,8 @@ android {
             isDefault = true
             minSdk = 33
 
-            manifestPlaceholders += mapOf("appNameBase" to "Eden Duo")
-            resValue("string", "app_name_suffixed", "Eden Duo")
+            manifestPlaceholders += mapOf("appNameBase" to "Eden")
+            resValue("string", "app_name_suffixed", "Eden")
 
             ndk {
                 abiFilters += listOf("arm64-v8a")
@@ -301,7 +270,7 @@ android {
 
         // apply nightly suffix I/A
         resValue("string", "app_name_suffixed", "$currentName$suffix")
-        resValue("string", "app_name", "$currentName$suffix")
+        resValue("string", "app_name", "Eden$suffix")
     }
 
     sourceSets {
@@ -362,8 +331,6 @@ play {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.json:json:20240303")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
@@ -454,10 +421,5 @@ afterEvaluate {
     }
 }
 
-// The validation layer can already sit in jniLibs from a development build (the CMake step copies
-// it there); keep it out of every release APK regardless.
-androidComponents {
-    onVariants(selector().withBuildType("release")) { variant ->
-        variant.packaging.jniLibs.excludes.add("**/libVkLayer_khronos_validation.so")
-    }
-}
+// Eden Duo: identity, version, build flags and resource overlay (see duo.gradle).
+apply(from = "duo.gradle")

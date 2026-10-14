@@ -24,6 +24,8 @@ duo-only	A	-	10	0	src/video_core/host_shaders/duo_shaders.cmake
 duo-only	A	-	102	0	src/core/mods/mod_clock.h
 duo-only	A	-	1025	0	src/tests/core/mods/tsan_redraw_harness.cpp
 duo-only	A	-	103	0	src/tests/core/mods/golden/Persona5Royal/render.txt
+duo-only	A	-	1038	0	src/yuzu_cmd/dsmod_harness.cpp
+duo-only	A	-	105	0	.upstream/DIVERGENCES.md
 duo-only	A	-	106	0	src/tests/core/mods/min_runtime.cpp
 duo-only	A	-	1074	0	src/core/mods/mod_console.cpp
 duo-only	A	-	109	0	src/core/mods/mod_user_source.cpp
@@ -103,13 +105,13 @@ duo-only	A	-	210	0	src/android/app/src/test/java/org/yuzu/yuzu_emu/utils/DualScr
 duo-only	A	-	217	0	src/core/mods/mod_romfs_sources.cpp
 duo-only	A	-	2177	0	src/core/mods/mod_re_tools.cpp
 duo-only	A	-	22	0	dist/frontends/README.md
-duo-only	A	-	22	0	src/yuzu_cmd/duo_cmd.cmake
 duo-only	A	-	223	0	src/core/mods/mod_ui_transitions.cpp
 duo-only	A	-	227	0	src/android/app/src/test/java/org/yuzu/yuzu_emu/utils/EmulatorDataImporterTest.kt
 duo-only	A	-	232	0	src/core/mods/dsmod_module_abi.h
 duo-only	A	-	233	0	src/tests/core/mods/runtime16_input.cpp
 duo-only	A	-	237	0	src/core/mods/mod_types_points.h
 duo-only	A	-	238	0	src/core/mods/mod_settings.cpp
+duo-only	A	-	24	0	src/yuzu_cmd/duo_cmd.cmake
 duo-only	A	-	242	0	src/core/mods/engine_ichigo.cpp
 duo-only	A	-	245	0	src/core/mods/mod_msbt.cpp
 duo-only	A	-	251	0	dist/frontends/es-de/es_find_rules.xml
@@ -142,7 +144,7 @@ duo-only	A	-	38	0	src/android/app/src/main/res/layout/list_item_companion_app.xm
 duo-only	A	-	385	0	src/tests/core/mods/ui_render.cpp
 duo-only	A	-	393	0	dist/frontends/es-de/es_systems.xml
 duo-only	A	-	40	0	src/core/mods/mod_types_nav.h
-duo-only	A	-	406	0	.upstream/duo-touched.tsv
+duo-only	A	-	409	0	.upstream/duo-touched.tsv
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_background.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_tint.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/drawable/dual_screen_badge_background.xml
@@ -183,6 +185,7 @@ duo-only	A	-	63	0	src/yuzu_cmd/emu_window/emu_window_sdl3_aux.h
 duo-only	A	-	637	0	src/tests/core/mods/widget_position.cpp
 duo-only	A	-	648	0	src/core/mods/mod_nav.cpp
 duo-only	A	-	66	0	src/core/mods/mod_font_epoch.h
+duo-only	A	-	67	0	src/yuzu_cmd/dsmod_harness.h
 duo-only	A	-	671	0	src/core/mods/mod_ui.h
 duo-only	A	-	682	0	src/core/mods/mod_module_services.cpp
 duo-only	A	-	683	0	src/tests/core/mods/runtime17_text.cpp
@@ -194,7 +197,6 @@ duo-only	A	-	75	0	src/tests/core/mods/fake_module.cpp
 duo-only	A	-	75	0	src/tests/core/mods/map_room_category.cpp
 duo-only	A	-	768	0	src/core/mods/mod_ui_text.cpp
 duo-only	A	-	77	0	src/tests/core/mods/asset_sources.cpp
-duo-only	A	-	77	0	.upstream/DIVERGENCES.md
 duo-only	A	-	772	0	src/core/mods/mod_module_host.cpp
 duo-only	A	-	78	0	src/core/mods/mod_types_text.h
 duo-only	A	-	786	0	src/core/mods/mod_runtime.cpp
@@ -277,9 +279,9 @@ duo-only	A	-	-	-	src/tests/core/mods/golden/Persona5Royal/social.png
 duo-only	A	-	-	-	src/tests/core/mods/golden/Persona5Royal/waiting.partial.png
 duo-only	A	-	-	-	src/tests/core/mods/golden/Persona5Royal/waiting.png
 upstream-hook	M	29	327	0	src/android/app/src/main/jni/native.cpp
-upstream-hook	M	23	999	15	src/yuzu_cmd/yuzu.cpp
 upstream-hook	M	20	334	16	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/GameHelper.kt
 upstream-hook	M	18	251	10	src/android/app/src/main/java/org/yuzu/yuzu_emu/fragments/EmulationFragment.kt
+upstream-hook	M	17	33	13	src/yuzu_cmd/yuzu.cpp
 upstream-hook	M	17	53	29	src/android/app/src/main/java/org/yuzu/yuzu_emu/ui/GamesFragment.kt
 upstream-hook	M	15	65	6	src/android/app/src/main/java/org/yuzu/yuzu_emu/NativeLibrary.kt
 upstream-hook	M	15	76	39	src/common/fs/fs_android.cpp

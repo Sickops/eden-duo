@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="emulator_import_setup_title">Import from Existing Emu</string>
     <string name="emulator_import_title">Import from another emulator</string>
     <string name="emulator_import_short_description">Copy settings, keys, firmware, saves, installed content, mods, and game folders from Eden or a compatible Yuzu-based emulator.</string>

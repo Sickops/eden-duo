@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- Published companions as of 2026-10-12, used before the first online catalog refresh. -->
     <string-array name="dual_screen_supported_title_ids" translatable="false">
         <item>01005CA01580E000</item>

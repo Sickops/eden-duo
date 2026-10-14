@@ -77,9 +77,10 @@ class EmulatorImportFragment : Fragment() {
                 orientation = RadioGroup.VERTICAL
                 setPadding(dp(24), dp(8), dp(24), dp(8))
             }
-            (sources + listOf(null)).forEachIndexed { index, source ->
-                group.addView(MaterialRadioButton(requireContext()).apply {
-                    id = index + 1
+            // One generated view id per row; row i is sources[i], the last row is "other folder".
+            val rowIds = (sources + listOf(null)).map { source ->
+                val row = MaterialRadioButton(requireContext()).apply {
+                    id = View.generateViewId()
                     text = source?.let { "${it.label}\n${it.packageName}" }
                         ?: getString(R.string.emulator_import_other_folder)
                     minHeight = dp(72)
@@ -90,14 +91,16 @@ class EmulatorImportFragment : Fragment() {
                     } ?: androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_folder_open)
                     icon?.setBounds(0, 0, dp(36), dp(36))
                     setCompoundDrawablesRelative(icon, null, null, null)
-                }, RadioGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                }
+                group.addView(row, RadioGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                row.id
             }
-            group.check(1)
+            group.check(rowIds.first())
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.emulator_import_choose_source)
                 .setView(ScrollView(requireContext()).apply { addView(group) })
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    val source = sources.getOrNull(group.checkedRadioButtonId - 1)
+                    val source = sources.getOrNull(rowIds.indexOf(group.checkedRadioButtonId))
                     model.pendingSource = source
                     model.pendingUseExisting = false
                     sourcePicker.launch(source?.initialUri)
