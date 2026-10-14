@@ -1,9 +1,9 @@
 category	status	hunks	added	deleted	path
+branding	M	29	56	143	docs/policies/AI.md
 branding	M	25	166	64	README.md
 branding	M	3	3	3	.github/ISSUE_TEMPLATE/bug_report.yml
-branding	M	2	2	2	docs/policies/AI.md
 branding	M	2	2	2	.github/ISSUE_TEMPLATE/feature_request.yml
-branding	M	1	15	83	CONTRIBUTING.md
+branding	M	1	15	78	CONTRIBUTING.md
 branding	M	1	2	2	.github/ISSUE_TEMPLATE/config.yml
 branding	M	1	2	3	.github/PULL_REQUEST_TEMPLATE.md
 duo-only	A	-	100	0	src/core/mods/mod_expr.h
@@ -14,6 +14,7 @@ duo-only	A	-	102	0	src/core/mods/mod_clock.h
 duo-only	A	-	1025	0	src/tests/core/mods/tsan_redraw_harness.cpp
 duo-only	A	-	103	0	src/tests/core/mods/golden/Persona5Royal/render.txt
 duo-only	A	-	1038	0	src/yuzu_cmd/dsmod_harness.cpp
+duo-only	A	-	104	0	src/core/mods/duo_core.cmake
 duo-only	A	-	106	0	src/tests/core/mods/min_runtime.cpp
 duo-only	A	-	1074	0	src/core/mods/mod_console.cpp
 duo-only	A	-	109	0	src/core/mods/mod_user_source.cpp
@@ -28,8 +29,6 @@ duo-only	A	-	11	0	src/tests/core/mods/golden/LinksAwakening/render.txt
 duo-only	A	-	111	0	src/core/mods/mod_types_action.h
 duo-only	A	-	113	0	src/android/app/src/main/res/layout/fragment_emulator_import.xml
 duo-only	A	-	1169	0	src/video_core/renderer_vulkan/vk_dsmod_aux.cpp
-duo-only	A	-	117	0	src/core/hle/service/dsm/dsm.cpp
-duo-only	A	-	118	0	src/core/mods/duo_core.cmake
 duo-only	A	-	119	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/NoCompanion.kt
 duo-only	A	-	119	0	src/core/mods/mod_sources.h
 duo-only	A	-	119	0	src/hid_core/resources/npad/dsmod_pad_gate.h
@@ -48,10 +47,10 @@ duo-only	A	-	138	0	src/tests/core/mods/runtime18.cpp
 duo-only	A	-	141	0	src/core/mods/mod_input_tokens.h
 duo-only	A	-	1417	0	src/tests/core/mods/manifest_digest.cpp
 duo-only	A	-	143	0	CHANGELOG.md
+duo-only	A	-	143	0	.upstream/DIVERGENCES.md
 duo-only	A	-	145	0	src/tests/core/mods/runtime15_persist.cpp
 duo-only	A	-	147	0	src/core/mods/mod_load_plan.h
 duo-only	A	-	1474	0	src/core/mods/mod_ui.cpp
-duo-only	A	-	150	0	.upstream/DIVERGENCES.md
 duo-only	A	-	15	0	.github/FUNDING.yml
 duo-only	A	-	15	0	src/android/app/src/duo/res/values/duo_branding.xml
 duo-only	A	-	1523	0	src/core/mods/mod_state.cpp
@@ -146,12 +145,12 @@ duo-only	A	-	40	0	src/core/mods/mod_types_nav.h
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_background.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/color/dual_screen_filter_tint.xml
 duo-only	A	-	4	0	src/android/app/src/main/res/drawable/dual_screen_badge_background.xml
-duo-only	A	-	413	0	.upstream/duo-touched.tsv
 duo-only	A	-	418	0	src/android/app/src/main/jni/dsmod_native.cpp
 duo-only	A	-	42	0	docs/dual-screen-input.txt
 duo-only	A	-	42	0	src/core/mods/mod_input_drag.h
 duo-only	A	-	42	0	src/core/mods/mod_user_source.h
 duo-only	A	-	422	0	src/tests/core/mods/scroll_list.cpp
+duo-only	A	-	424	0	.upstream/duo-touched.tsv
 duo-only	A	-	425	0	src/core/mods/mod_types_map.h
 duo-only	A	-	431	0	src/android/app/lint-baseline.xml
 duo-only	A	-	44	0	src/android/app/src/main/res/values/dual_screen_companions.xml
@@ -219,6 +218,7 @@ duo-only	A	-	91	0	src/core/mods/mod_types_guest.h
 duo-only	A	-	916	0	src/core/mods/mod_actions.cpp
 duo-only	A	-	94	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/duo/EmulatorImportSetupPage.kt
 duo-only	A	-	94	0	src/core/mods/mod_module.h
+duo-only	A	-	96	0	src/core/hle/service/dsm/dsm.cpp
 duo-only	A	-	96	0	src/core/mods/mod_ui_internal.h
 duo-only	A	-	968	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/DualScreenPackageInstaller.kt
 duo-only	A	-	97	0	src/android/app/duo.gradle
