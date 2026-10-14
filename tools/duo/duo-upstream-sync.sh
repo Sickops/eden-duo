@@ -26,12 +26,10 @@ git merge-base --is-ancestor "$old" "$new" || { echo "$new does not descend from
 echo "Upstream $old -> $new: $(git rev-list --count "$old..$new") commits"
 
 # Files Duo replaces wholesale: always keep Duo's side, and re-drop upstream files Duo deleted.
+# Android branding is an overlay in src/android/app/src/duo/res; the src/main/res copies are
+# upstream's again and must take upstream's changes.
 owned=(README.md CONTRIBUTING.md docs/policies/AI.md .github/PULL_REQUEST_TEMPLATE.md
-       '.github/ISSUE_TEMPLATE/*' 'src/android/app/src/main/res/mipmap-*/ic_launcher*.png'
-       src/android/app/src/main/res/drawable/ic_launcher_foreground.png
-       src/android/app/src/main/res/drawable/ic_yuzu.png
-       src/android/app/src/main/res/drawable/ic_yuzu_splash.png
-       src/android/app/src/main/res/values/colors.xml)
+       '.github/ISSUE_TEMPLATE/*')
 mapfile -t dropped < <(git diff --no-renames --name-only --diff-filter=D "$old" "$ref")
 
 echo "--- textual conflicts (explicit merge base $old)"
