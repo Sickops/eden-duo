@@ -137,14 +137,7 @@ of everything else.
 
 ## Known upstream API changes to handle at the next sync
 
-* Upstream #4480 (`218c670`, after base `4dc69c06`) replaced
-  `static const FunctionInfo functions[]` + `RegisterHandlers(functions)` with a
-  per-service `FindRequest` override over a `CreateStaticMap` table.
-  `src/core/hle/service/dsm/dsm.cpp` (Duo-only) carries both forms: the
-  `FindRequest` form is compiled when `DUO_HLE_STATIC_DISPATCH` is defined, which
-  `src/core/mods/duo_core.cmake` does for that one file when
-  `src/core/hle/service/service.h` contains `CreateStaticMap` (re-checked on every
-  configure after `service.h` changes). Verified: builds on the base and on a trial
-  merge of upstream `a594c8d`. Once `.upstream/eden.json` points at a nightly that
-  includes `218c670`, delete the `#else` `RegisterHandlers` branch in `dsm.cpp` and the
-  detection block in `duo_core.cmake` (define nothing, keep the `FindRequest` form).
+None pending. Upstream #4480 (`218c670`, constexpr handler maps) is in the recorded base
+(`a594c8d60e`); `src/core/hle/service/dsm/dsm.cpp` now uses only the `FindRequest` /
+`CreateStaticMap` form, and the `DUO_HLE_STATIC_DISPATCH` detection in
+`src/core/mods/duo_core.cmake` is gone.
