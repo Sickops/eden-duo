@@ -138,7 +138,7 @@ class EmulatorImportFragment : Fragment() {
             binding.apply.isEnabled = state.ready && !state.busy && state.folders.all { it.resolved }
             binding.addFolder.isVisible = state.ready && !state.complete
             binding.addFolder.isEnabled = !state.busy && !state.reviewLocked
-            binding.restore.isVisible = !state.busy && model.hasBackup()
+            binding.restore.isVisible = !state.busy && state.backupAvailable
             if (displayedFolders != state.folders || foldersWereBusy != state.busy) {
                 renderFolders(state)
             }

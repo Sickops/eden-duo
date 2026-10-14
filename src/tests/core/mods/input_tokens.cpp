@@ -70,3 +70,18 @@ TEST_CASE("Chords handle signed axes, vectors and buttons without ambiguity", "[
         CHECK_FALSE(ParseChord(text, valid));
     }
 }
+
+TEST_CASE("A positive axis before another token needs a doubled plus", "[dsmod][input]") {
+    const auto valid = [](std::string_view text) { return text == "A" || text == "B"; };
+    // The '+' right after "LX" is the axis sign, not a separator.
+    CHECK_FALSE(ParseChord("LX+A", valid));
+    CHECK_FALSE(ParseChord("LX+RX+", valid));
+    const auto doubled = ParseChord("LX++A", valid);
+    REQUIRE(doubled);
+    REQUIRE(doubled->size() == 2);
+    CHECK(doubled->at(0).name == "LX+");
+    CHECK(doubled->at(1).name == "A");
+    // Order matters only for a positive axis: a trailing one, or a negative one, separates.
+    CHECK(ParseChord("A+LX+", valid));
+    CHECK(ParseChord("RX-+LX+", valid));
+}

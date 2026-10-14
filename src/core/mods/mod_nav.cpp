@@ -472,15 +472,11 @@ void ModRuntime::UpdateNav(StateSnapshot& snapshot) {
         return;
     }
     // What the companion itself holds for the game (a tapped button action) goes through the
-    // gate and is not read as navigation.
+    // gate and is not read as navigation. Each held name is one button token (PressToken splits
+    // and validates the chord before holding its parts).
     u64 pass = 0;
     for (const auto& held : held_buttons) {
-        for (size_t at = 0; at <= held.name.size();) {
-            const size_t plus = held.name.find('+', at);
-            const size_t end = plus == std::string::npos ? held.name.size() : plus;
-            pass |= Nav::ButtonBit(std::string_view{held.name}.substr(at, end - at));
-            at = end + 1;
-        }
+        pass |= Nav::ButtonBit(held.name);
     }
     bool pass_left = false, pass_right = false;
     for (const auto& held : held_sticks) {

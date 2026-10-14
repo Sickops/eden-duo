@@ -47,6 +47,17 @@ object DocumentFileAccess {
         } ?: error("Cannot list folder")
     }
 
+    /** Cache key of a path, built exactly as [resolve] builds it while walking. */
+    private fun key(tree: TreePath): String =
+        tree.names.fold(tree.base.toString()) { prefix, name -> "$prefix/${Uri.encode(name)}" }
+
+    /** Drop a mutated path and everything cached below it; other identities stay valid. */
+    private fun evict(tree: TreePath) {
+        val key = key(tree)
+        resolved.remove(key)
+        resolved.snapshot().keys.forEach { if (it.startsWith("$key/")) resolved.remove(it) }
+    }
+
     private fun resolve(path: String, createDirectories: Boolean = false): Uri? {
         val tree = split(path)
         var current = tree.base
@@ -94,7 +105,8 @@ object DocumentFileAccess {
 
     fun entries(path: String): Array<String> = runCatching {
         val uri = resolve(path) ?: return emptyArray()
-        children(uri).map { child ->
+        // Fill the cache so per-child lookups after a listing need no extra queries.
+        children(uri, key(split(path))).map { child ->
             (if (child.directory) "d:" else "f:") + child.name
         }.toTypedArray()
     }.getOrDefault(emptyArray())
@@ -169,7 +181,10 @@ object DocumentFileAccess {
                 else -> false
             }
         } finally {
-            if (operation in 1..5) resolved.evictAll()
+            // Only positive identities are cached, so a mutation can stale just the touched path
+            // and its descendants (path-based providers change child IDs on rename).
+            if (operation in 1..5 && parts.names.isNotEmpty()) evict(parts)
+            if (operation == 5) runCatching { evict(split(other)) }
         }
     }.getOrDefault(false)
 }

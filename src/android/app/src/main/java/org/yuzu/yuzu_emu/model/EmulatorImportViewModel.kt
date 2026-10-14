@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -43,7 +44,8 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
         val message: String = "",
         val files: Long = 0,
         val bytes: Long = 0,
-        val folders: List<FolderChoice> = emptyList()
+        val folders: List<FolderChoice> = emptyList(),
+        val backupAvailable: Boolean = false
     )
 
     private val context get() = getApplication<Application>()
@@ -61,7 +63,16 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
     var pendingFolder: EmulatorImportConfig.Folder? = null
     var pendingAdditionalKind: EmulatorImportConfig.Kind? = null
 
-    fun hasBackup(): Boolean = EmulatorDataImporter.latestBackup(userDirectory) != null
+    init {
+        viewModelScope.launch(Dispatchers.IO) { refreshBackupAvailable() }
+    }
+
+    /** Disk I/O: call off the main thread. */
+    private fun refreshBackupAvailable() {
+        val available = runCatching { EmulatorDataImporter.latestBackup(userDirectory) != null }
+            .getOrDefault(false)
+        _state.update { it.copy(backupAvailable = available) }
+    }
 
     fun prepare(tree: Uri, isZip: Boolean) {
         if (_state.value.busy) return
@@ -222,11 +233,14 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
                         if (restore) {
                             val backup = EmulatorDataImporter.latestBackup(userDirectory)
                                 ?: throw IOException("The previous data backup is unavailable")
-                            session = EmulatorDataImporter.restore(
+                            val restored = EmulatorDataImporter.restore(
                                 backup,
                                 userDirectory,
                                 ::reloadNative
                             )
+                            // A staged import still under review is replaced by the restore.
+                            session?.discard()
+                            session = restored
                         } else {
                             EmulatorDataImporter.apply(
                                 requireNotNull(session),
@@ -241,6 +255,8 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
                     GameHelper.invalidateAfterDataImport()
                 }
             }
+            // Only the backup made by this replacement can be restored; drop older sessions.
+            runCatching { EmulatorDataImporter.prune(userDirectory, session?.directory) }
             val preferences = PreferenceManager.getDefaultSharedPreferences(context)
             preferences.edit().putLong(IMPORT_GENERATION, System.currentTimeMillis()).apply()
             _state.value = _state.value.copy(
@@ -294,6 +310,7 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
                 )
             } finally {
                 if (cleared.get()) session?.discard()
+                refreshBackupAvailable()
             }
         }
     }

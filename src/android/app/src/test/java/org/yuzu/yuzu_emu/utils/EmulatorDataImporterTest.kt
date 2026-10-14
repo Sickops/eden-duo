@@ -96,7 +96,8 @@ class EmulatorDataImporterTest {
         assertTrue(session.payload.renameTo(user))
         EmulatorDataImporter.recover(user)
         assertEquals("previous save", File(user, "save/current").readText())
-        assertEquals("recovered", File(session.directory, "state").readText())
+        // The interrupted import is unreachable after a restart, so recovery drops its staging.
+        assertFalse(session.directory.exists())
         EmulatorDataImporter.recover(user)
         assertEquals("previous save", File(user, "save/current").readText())
     }
@@ -110,7 +111,45 @@ class EmulatorDataImporterTest {
         assertTrue(user.mkdir())
         EmulatorDataImporter.recover(user)
         assertEquals("previous save", File(user, "save/current").readText())
-        assertTrue(File(session.payload, "config/config.ini").isFile)
+        assertFalse(session.directory.exists())
+    }
+
+    @Test fun pruneKeepsOnlyNewestBackupAndLiveSessions() {
+        val user = user()
+        val first = candidate(user)
+        EmulatorDataImporter.apply(first, user) {}
+        File(first.directory, "state").setLastModified(1_000)
+        val second = candidate(user)
+        EmulatorDataImporter.apply(second, user) {}
+        val staged = candidate(user)
+        val applying = EmulatorDataImporter.create(user).also {
+            File(it.directory, "state").writeText("applying")
+        }
+        EmulatorDataImporter.prune(user, second.directory)
+        assertFalse(first.directory.exists())
+        assertTrue(second.previous.isDirectory)
+        assertTrue(staged.payload.isDirectory)
+        assertTrue(applying.directory.exists())
+
+        // Restoring consumes the backup; the new session holds the replaced data.
+        val restored = EmulatorDataImporter.restore(second, user) {}
+        EmulatorDataImporter.prune(user, restored.directory)
+        assertFalse(second.directory.exists())
+        assertEquals(restored.directory, EmulatorDataImporter.latestBackup(user)!!.directory)
+        assertTrue(staged.payload.isDirectory)
+    }
+
+    @Test fun recoverDropsAbandonedStagingButKeepsNewestBackup() {
+        val user = user()
+        val applied = candidate(user)
+        EmulatorDataImporter.apply(applied, user) {}
+        val abandoned = candidate(user)
+        val failed = candidate(user).also { File(it.directory, "state").writeText("ready") }
+        EmulatorDataImporter.recover(user)
+        assertFalse(abandoned.directory.exists())
+        assertFalse(failed.directory.exists())
+        assertTrue(applied.previous.isDirectory)
+        assertEquals(applied.directory, EmulatorDataImporter.latestBackup(user)!!.directory)
     }
 
     @Test fun invalidOrCancelledCopyLeavesOriginalUntouched() {

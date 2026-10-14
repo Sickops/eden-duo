@@ -840,15 +840,11 @@ void ModRuntime::DriveLiveInput() {
     dev.live_held_button = -1;
     dev.live_held_stick = false;
     dev.live_held_x = dev.live_held_y = 0.0f;
-    if (name.size() >= 3 && (name[0] == 'L' || name[0] == 'R') &&
-        (name[1] == 'X' || name[1] == 'Y') && (name.back() == '+' || name.back() == '-')) {
+    if (const auto stick = InputTokens::ParseStick(name)) {
         dev.live_held_stick = true;
-        dev.live_stick_right = name[0] == 'R';
-        const float v = name.back() == '+' ? 1.0f : -1.0f;
-        if (name[1] == 'X')
-            dev.live_held_x = v;
-        else
-            dev.live_held_y = v;
+        dev.live_stick_right = stick->right;
+        dev.live_held_x = stick->x;
+        dev.live_held_y = stick->y;
     } else {
         bool ok{};
         const auto button = ParseButton(name, ok);
@@ -889,17 +885,13 @@ void ModRuntime::DriveInputScript() {
     const u64 phase = dev.input_step_tick;
     const bool pressed = phase < hold;
 
-    auto set_stick = [&](float x, float y) {
+    if (const auto stick = InputTokens::ParseStick(name)) {
+        const auto which = stick->right ? InputCommon::VirtualGamepad::VirtualStick::Right
+                                        : InputCommon::VirtualGamepad::VirtualStick::Left;
         for (const std::size_t pl : {std::size_t{0}, std::size_t{8}}) {
-            pad->SetStickPosition(pl, InputCommon::VirtualGamepad::VirtualStick::Left, x, y);
+            pad->SetStickPosition(pl, which, pressed ? stick->x : 0.0f,
+                                  pressed ? stick->y : 0.0f);
         }
-    };
-    if (name == "LX+" || name == "LX-" || name == "LY+" || name == "LY-") {
-        const float v = pressed ? (name.back() == '+' ? 1.0f : -1.0f) : 0.0f;
-        if (name[1] == 'X')
-            set_stick(v, 0.0f);
-        else
-            set_stick(0.0f, v);
     } else if (name == "wait") {
         // hold nothing; just let time pass (use the colon for how long)
     } else {

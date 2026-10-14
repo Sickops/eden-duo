@@ -37,9 +37,11 @@ std::optional<u32> DynarmicCallbacks32::MemoryReadCode(u32 vaddr) {
     if (!m_memory.IsValidVirtualAddressRange(vaddr, sizeof(u32)))
         return std::nullopt;
     auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
-    if (last_code_addr != aligned_vaddr) {
+    const u64 gen = code_gen.load(std::memory_order_acquire); // Eden Duo
+    if (last_code_addr != aligned_vaddr || cached_code_gen != gen) {
         m_memory.ReadBlock(aligned_vaddr, &cached_code_page, sizeof(cached_code_page));
         last_code_addr = aligned_vaddr;
+        cached_code_gen = gen;
     }
     return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
 }
@@ -411,12 +413,12 @@ void ArmDynarmic32::SignalInterrupt(Kernel::KThread* thread) {
 }
 
 void ArmDynarmic32::ClearInstructionCache() {
-    m_cb->last_code_addr = u64(-1);
+    m_cb->code_gen.fetch_add(1, std::memory_order_release); // Eden Duo: may be another thread
     m_jit->ClearCache();
 }
 
 void ArmDynarmic32::InvalidateCacheRange(u64 addr, std::size_t size) {
-    m_cb->last_code_addr = u64(-1);
+    m_cb->code_gen.fetch_add(1, std::memory_order_release); // Eden Duo: may be another thread
     m_jit->InvalidateCacheRange(static_cast<u32>(addr), size);
 }
 

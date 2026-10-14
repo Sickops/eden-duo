@@ -475,6 +475,8 @@ std::string R(const Widget& o) {
     F(on_swipe_up);
     F(on_swipe_down);
     F(swipe_px);
+    F(on_pan);
+    F(on_pinch);
     F(id);
     F(repeat);
     F(repeat_bind);
@@ -1225,7 +1227,7 @@ void CheckLayouts() {
     const Size sizes[] = {
         {"Manifest", sizeof(Manifest), 2448},
         {"Page", sizeof(Page), 160},
-        {"Widget", sizeof(Widget), 2208},
+        {"Widget", sizeof(Widget), 2272},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
         {"ScrollRegion", sizeof(ScrollRegion), 256},

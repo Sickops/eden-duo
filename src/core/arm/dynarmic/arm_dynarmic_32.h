@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include <dynarmic/interface/A32/a32.h>
 #include <dynarmic/interface/code_page.h>
 
@@ -49,6 +51,10 @@ public:
     //
     Dynarmic::CodePage cached_code_page;
     u64 last_code_addr = u64(-1);
+    // Eden Duo: other threads (CoreTiming patching guest code without stopping the guest) bump
+    // code_gen instead of writing last_code_addr, which only this core's JIT thread touches.
+    std::atomic<u64> code_gen{0};
+    u64 cached_code_gen{0};
     ArmDynarmic32& m_parent;
     Core::Memory::Memory& m_memory;
     Kernel::KProcess* m_process{};

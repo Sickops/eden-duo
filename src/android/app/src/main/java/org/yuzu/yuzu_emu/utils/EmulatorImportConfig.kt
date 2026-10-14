@@ -227,7 +227,7 @@ object EmulatorImportConfig {
     private fun configs(payload: File) = File(payload, "config").walkTopDown()
         .filter { it.isFile && it.extension.equals("ini", ignoreCase = true) }
         .onEach {
-            if (it.length() > 8L * 1024 * 1024) {
+            if (it.length() > EmulatorDataImporter.MAX_CONFIG_BYTES) {
                 throw IOException(
                     "Emulator settings file is too large"
                 )

@@ -49,17 +49,21 @@ class DualScreenModRepositoryTest {
         )
     )
 
+    // Single-page responses (fewer than 100 releases), served without network access.
+    private fun parse(json: String) = DualScreenModRepository.fetchAll { json }
+    private fun parse(json: String, titleId: String) = DualScreenModRepository.fetch(titleId) { json }
+
     @Test
     fun editionsMatchByExactTitleIdAndKeepReleaseNotes() {
         val json = mapper.writeValueAsString(listOf(release(), release(titleId = pearl)))
-        val matches = DualScreenModRepository.parseReleases(json, diamond.lowercase())
+        val matches = parse(json, diamond.lowercase())
         assertEquals(1, matches.size)
         assertTrue(matches.single().assetName.startsWith(diamond))
         assertEquals("Supports game update 1.3.0", matches.single().notes)
         assertEquals("a".repeat(64), matches.single().sha256)
-        assertEquals(1, DualScreenModRepository.parseReleases(json, pearl).size)
-        assertTrue(DualScreenModRepository.parseReleases(json, "01007EF00011E000").isEmpty())
-        assertTrue(DualScreenModRepository.parseReleases(json, "0000000000000000").isEmpty())
+        assertEquals(1, parse(json, pearl).size)
+        assertTrue(parse(json, "01007EF00011E000").isEmpty())
+        assertTrue(parse(json, "0000000000000000").isEmpty())
     }
 
     @Test
@@ -77,7 +81,7 @@ class DualScreenModRepositoryTest {
         )
         assertEquals(
             listOf("$diamond.dsmod.zip"),
-            DualScreenModRepository.parseReleases(json, diamond).map { it.assetName }
+            parse(json, diamond).map { it.assetName }
         )
     }
 
@@ -91,7 +95,7 @@ class DualScreenModRepositoryTest {
         )
         assertEquals(
             listOf("companion-1.1.0", "companion-1.0.0"),
-            DualScreenModRepository.parseReleases(json, diamond).map { it.tag }
+            parse(json, diamond).map { it.tag }
         )
     }
 
@@ -106,7 +110,7 @@ class DualScreenModRepositoryTest {
                 release(titleId = "0000000000000000")
             )
         )
-        val ids = DualScreenModRepository.parseReleases(json).mapNotNull {
+        val ids = parse(json).mapNotNull {
             DualScreenModRepository.titleIdForAsset(it.assetName)
         }.toSet()
         assertEquals(setOf(diamond, pearl), ids)
@@ -128,7 +132,7 @@ class DualScreenModRepositoryTest {
     @Test
     fun apiErrorObjectIsNotReportedAsNoCompanion() {
         assertThrows(IOException::class.java) {
-            DualScreenModRepository.parseReleases("""{"message":"rate limit exceeded"}""", diamond)
+            parse("""{"message":"rate limit exceeded"}""", diamond)
         }
     }
 

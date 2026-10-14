@@ -163,8 +163,8 @@ bool ModRuntime::CallbackValid(const CallbackTarget& target, const std::vector<W
     if (target.index < 0 || target.page != current_page ||
         static_cast<size_t>(target.index) >= expanded.size()) return false;
     const Widget& w = expanded[static_cast<size_t>(target.index)];
-    return !WidgetHidden(w, snapshot) && w.rect == target.widget.rect && w.id == target.widget.id &&
-           w.on_pan == target.widget.on_pan && w.on_pinch == target.widget.on_pinch;
+    return !WidgetHidden(w, snapshot) && w.rect == target.rect && w.id == target.id &&
+           w.on_pan == target.on_pan && w.on_pinch == target.on_pinch;
 }
 
 void ModRuntime::QueueGesture(const std::string& action, s64 payload, s32 x, s32 y) {
@@ -196,7 +196,7 @@ void ModRuntime::UpdateNativePinch(const StateSnapshot& snapshot,
     s32 anchor_x{}, anchor_y{};
     const auto flush = [&] {
         if (scale_product != 1.0 && budget != 0 && native_pinch_target.index >= 0) {
-            const auto& w = native_pinch_target.widget;
+            const auto& w = native_pinch_target;
             if (const auto payload = VideoCore::DSMod::PackPinchPayload(
                     scale_product, anchor_x - w.rect[0], anchor_y - w.rect[1])) {
                 QueueGesture(w.on_pinch, *payload, anchor_x, anchor_y);
@@ -226,7 +226,7 @@ void ModRuntime::UpdateNativePinch(const StateSnapshot& snapshot,
             if (hit >= 0 && !expanded[static_cast<size_t>(hit)].on_pinch.empty()) {
                 native_pinch_target.index = hit;
                 native_pinch_target.page = current_page;
-                native_pinch_target.widget = expanded[static_cast<size_t>(hit)];
+                native_pinch_target.SetWidget(expanded[static_cast<size_t>(hit)]);
             }
             continue;
         }
@@ -434,7 +434,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                 if (callback >= 0) {
                     callback_target.index = callback;
                     callback_target.page = current_page;
-                    callback_target.widget = expanded[static_cast<size_t>(callback)];
+                    callback_target.SetWidget(expanded[static_cast<size_t>(callback)]);
                     callback_target.pan.Reset(gesture_down_x, gesture_down_y);
                     callback_target.fingers = 1;
                     gesture_target.clear();
@@ -564,21 +564,21 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
             if (callback_target.fingers != 1) {
                 callback_target.pan.Reset(now[0].x, now[0].y);
                 callback_target.span = 0.0f;
-            } else if (!callback_target.widget.on_pan.empty()) {
+            } else if (!callback_target.on_pan.empty()) {
                 if (const auto payload = callback_target.pan.Move(now[0].x, now[0].y)) {
-                    QueueGesture(callback_target.widget.on_pan, *payload, now[0].x, now[0].y);
+                    QueueGesture(callback_target.on_pan, *payload, now[0].x, now[0].y);
                     gesture_moved = true;
                 }
             }
             callback_target.fingers = 1;
         } else {
-            const auto& rect = callback_target.widget.rect;
+            const auto& rect = callback_target.rect;
             const auto inside = [&](const TrackedFinger& finger) {
                 return finger.x >= rect[0] && finger.y >= rect[1] &&
                        finger.x - rect[0] < rect[2] && finger.y - rect[1] < rect[3];
             };
             gesture_moved = true;
-            if (!inside(now[0]) || !inside(now[1]) || callback_target.widget.on_pinch.empty() ||
+            if (!inside(now[0]) || !inside(now[1]) || callback_target.on_pinch.empty() ||
                 CallbackAt(expanded, snapshot, now[0].x, now[0].y) != callback_target.index ||
                 CallbackAt(expanded, snapshot, now[1].x, now[1].y) != callback_target.index) {
                 cancel();
@@ -592,7 +592,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                     span != callback_target.span) {
                     if (const auto payload = VideoCore::DSMod::PackPinchPayload(
                             span / callback_target.span, cx - rect[0], cy - rect[1])) {
-                        QueueGesture(callback_target.widget.on_pinch, *payload, cx, cy);
+                        QueueGesture(callback_target.on_pinch, *payload, cx, cy);
                     }
                 }
                 callback_target.span = span;

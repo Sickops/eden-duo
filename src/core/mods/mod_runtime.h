@@ -170,7 +170,10 @@ namespace Core::Mods {
 ///          Ready/page/auxiliary helper lifecycle; exact bounded package metadata and transactional
 ///          reload validation. Metadata is 4 MiB, plans 1 MiB, native modules 64 MiB; ABI 1 stays.
 ///          This boundary does not implement a controller binding router or guest viewport API.
-///   20     arbitrary analog stick vectors, normalized diagonal aliases and atomic input chords.
+///   20     arbitrary analog stick vectors, normalized diagonal aliases and atomic input chords;
+///          write-extension batches of up to 32 ops (EDEN_DSMOD_WRITE_BATCH_MAX_OPS, 16 before).
+///          In a chord a '+' right after an axis name ("LX") is its sign, so a positive axis
+///          followed by another token needs "++" ("LX++A"; "LX+A" does not parse, "A+LX+" does).
 inline constexpr u32 DualScreenRuntimeVersion = 20;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
@@ -1680,7 +1683,18 @@ private:
     struct CallbackTarget {
         s64 index{-1};
         size_t page{};
-        Widget widget;
+        // Only these fields of the target widget are read (CallbackValid, pan/pinch dispatch);
+        // keeping them instead of a whole Widget copy makes a gesture start and a reset cheap.
+        std::array<s32, 4> rect{};
+        std::string id;
+        std::string on_pan;
+        std::string on_pinch;
+        void SetWidget(const Widget& w) {
+            rect = w.rect;
+            id = w.id;
+            on_pan = w.on_pan;
+            on_pinch = w.on_pinch;
+        }
         VideoCore::DSMod::AuxPanTracker pan;
         float span{};
         size_t fingers{};

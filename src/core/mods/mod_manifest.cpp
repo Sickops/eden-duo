@@ -39,6 +39,7 @@
 #include "core/core.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/mods/mod_input_tokens.h"
 #include "core/mods/mod_nx_assets.h"
 #include "core/mods/mod_package_io.h"
 #include "core/mods/mod_runtime.h"
@@ -2088,6 +2089,24 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                 action.frames = a.value("frames", 4u);
                 action.repeat = a.value("repeat", 1u);
                 action.button_neg = a.value("button_neg", std::string{});
+                // RunAction skips a chord that does not parse; say so once, here, rather than on
+                // every tap or enforce tick.
+                const auto valid_chord = [](std::string_view chord) {
+                    return InputTokens::ParseChord(chord, [](std::string_view button) {
+                               bool ok{};
+                               ParseButton(std::string{button}, ok);
+                               return ok;
+                           }).has_value();
+                };
+                for (const auto* chord : {&action.button, &action.button_neg}) {
+                    if ((chord == &action.button || !chord->empty()) && !valid_chord(*chord)) {
+                        LOG_WARNING(Core,
+                                    "DSMod: action '{}': input chord '{}' not understood; the "
+                                    "action is skipped (a positive axis before another token "
+                                    "needs \"++\", e.g. \"LX++A\")",
+                                    name, *chord);
+                    }
+                }
                 action.counter = a.value("counter", std::string{});
                 action.target = a.contains("target") ? ParseNumber(a.at("target")) : 0;
                 action.modulo = a.contains("modulo") ? ParseNumber(a.at("modulo")) : 0;

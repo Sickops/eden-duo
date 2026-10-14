@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 #include <SDL3/SDL.h>
 
@@ -43,6 +44,11 @@ public:
 private:
     void OnResize();
     void PublishTouch(bool down, bool started);
+    /// Drops every held finger, the mouse button and an open native pinch, and publishes no
+    /// touch: the matching release may never reach a hidden or unfocused window.
+    void ResetInput();
+    /// Window coordinates (SDL logical units) to aux pixels, clamped at 0.
+    std::pair<u32, u32> ToPixels(float x, float y) const;
 
     Core::System& system;
     SDL_Window* window{};

@@ -966,6 +966,7 @@
     <string name="dual_screen_mod_check_not_listed">The package was unpacked to %1$s, but the add-on scanner (reading %2$s) does not list it, so the second screen will not use it. Please report this with the log file.</string>
     <string name="dual_screen_mod_install_cancelled">Dual screen mod installation cancelled</string>
     <string name="dual_screen_mod_install_failed">Dual screen mod installation failed</string>
+    <string name="dual_screen_mod_linked_folder">Dual screen mods cannot be installed into a linked (SAF) add-on folder. Install them into the internal add-on folder, or copy the package into the linked folder with a file manager.</string>
     <string name="dual_screen_mod_title_mismatch">This package is for a different game.</string>
     <string name="dual_screen_mod_archive_too_large">The dual screen package is too large.</string>
     <string name="dual_screen_mod_malformed_archive">The selected file is not a valid ZIP archive.</string>

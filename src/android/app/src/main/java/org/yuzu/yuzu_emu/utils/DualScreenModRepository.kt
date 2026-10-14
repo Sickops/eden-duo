@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
 import java.io.IOException
@@ -26,20 +27,22 @@ object DualScreenModRepository {
     private val assetPattern = Regex("^([0-9a-fA-F]{16})(?:-[A-Za-z0-9._-]+)?\\.dsmod\\.zip$")
 
     /** Fetch every page: releases for different games share one repository. Call on an IO thread. */
-    fun fetch(gameTitleId: String): List<DualScreenModRelease> =
-        fetchAll().filter { titleIdForAsset(it.assetName).equals(gameTitleId, ignoreCase = true) }
+    fun fetch(gameTitleId: String): List<DualScreenModRelease> = fetch(gameTitleId, ::readPage)
 
-    fun fetchAll(): List<DualScreenModRelease> = fetchAll { page ->
+    fun fetchAll(): List<DualScreenModRelease> = fetchAll(::readPage)
+
+    private fun readPage(page: Int): String {
         val request = Request.Builder()
             .url("https://api.github.com/repos/$REPOSITORY/releases?per_page=$PAGE_SIZE&page=$page")
             .header("Accept", "application/vnd.github+json")
             .build()
-        client.newCall(request).execute().use { response ->
+        return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("GitHub: HTTP ${response.code}")
             response.body?.string() ?: throw IOException("GitHub returned an empty response")
         }
     }
 
+    /** Invalid or all-zero title IDs match nothing: [titleIdForAsset] never returns them. */
     internal fun fetch(gameTitleId: String, readPage: (Int) -> String): List<DualScreenModRelease> =
         fetchAll(readPage).filter {
             titleIdForAsset(it.assetName).equals(
@@ -52,10 +55,8 @@ object DualScreenModRepository {
         val releases = mutableListOf<DualScreenModRelease>()
         var page = 1
         do {
-            val json = readPage(page)
-            val entries = mapper.readTree(json)
-            if (!entries.isArray) throw IOException("GitHub returned an invalid release list")
-            releases += parseReleases(json)
+            val entries = mapper.readTree(readPage(page))
+            releases += parseReleases(entries)
             page++
         } while (entries.size() == PAGE_SIZE)
         return releases.distinctBy { it.downloadUrl }.sortedByDescending { it.publishedAt }
@@ -64,13 +65,7 @@ object DualScreenModRepository {
     fun titleIdForAsset(name: String): String? = assetPattern.matchEntire(name)?.groupValues?.get(1)
         ?.uppercase()?.takeUnless { titleId -> titleId.all { it == '0' } }
 
-    internal fun parseReleases(json: String, gameTitleId: String? = null): List<DualScreenModRelease> {
-        if (gameTitleId != null &&
-            (!gameTitleId.matches(Regex("[0-9a-fA-F]{16}")) || gameTitleId.all { it == '0' })
-        ) {
-            return emptyList()
-        }
-        val entries = mapper.readTree(json)
+    private fun parseReleases(entries: JsonNode): List<DualScreenModRelease> {
         if (!entries.isArray) throw IOException("GitHub returned an invalid release list")
         return entries.flatMap { release ->
             if (release.path("draft").asBoolean() || release.path("prerelease").asBoolean()) {
@@ -81,7 +76,6 @@ object DualScreenModRepository {
                 val titleId = titleIdForAsset(name)
                 val url = asset.path("browser_download_url").asText()
                 if (titleId == null ||
-                    (gameTitleId != null && !gameTitleId.equals(titleId, ignoreCase = true)) ||
                     !url.startsWith("https://github.com/$REPOSITORY/releases/download/")
                 ) {
                     return@mapNotNull null

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <span>
+#include <tuple>
 
 #include "common/logging.h"
 #include "core/core.h"
@@ -82,7 +83,10 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
         return OnResize();
     case SDL_EVENT_WINDOW_MINIMIZED:
         is_shown = false;
-        return;
+        return ResetInput();
+    case SDL_EVENT_WINDOW_HIDDEN:
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+        return ResetInput();
     case SDL_EVENT_WINDOW_EXPOSED:
         is_shown = true;
         return OnResize();
@@ -90,7 +94,7 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
         // Closing the aux window just hides it; the emulator keeps running.
         SDL_HideWindow(window);
         is_shown = false;
-        return;
+        return ResetInput();
     case SDL_EVENT_MOUSE_MOTION:
         if (event.motion.which == SDL_TOUCH_MOUSEID || !fingers.Empty()) {
             return;
@@ -135,14 +139,8 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
             dx = -dy;
             dy = 0.0f;
         }
-        int ww = 1, wh = 1, pw = 1, ph = 1;
-        SDL_GetWindowSize(window, &ww, &wh);
-        SDL_GetWindowSizeInPixels(window, &pw, &ph);
-        const float sx = static_cast<float>(pw) / static_cast<float>(std::max(ww, 1));
-        const float sy = static_cast<float>(ph) / static_cast<float>(std::max(wh, 1));
-        system.GPU().DSModAux().PushWheel({
-            static_cast<u32>(std::max(0.0f, event.wheel.mouse_x * sx)),
-            static_cast<u32>(std::max(0.0f, event.wheel.mouse_y * sy)), dx, dy});
+        const auto [px, py] = ToPixels(event.wheel.mouse_x, event.wheel.mouse_y);
+        system.GPU().DSModAux().PushWheel({px, py, dx, dy});
         return;
     }
     case SDL_EVENT_FINGER_DOWN:
@@ -169,12 +167,8 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
 #if SDL_VERSION_ATLEAST(3, 4, 0)
     case SDL_EVENT_PINCH_BEGIN: {
         if (mouse_down || !fingers.Empty()) return;
-        int ww = 1, wh = 1, pw = 1, ph = 1;
-        SDL_GetWindowSize(window, &ww, &wh);
-        SDL_GetWindowSizeInPixels(window, &pw, &ph);
         SDL_GetMouseState(&mouse_x, &mouse_y);
-        native_pinch_x = static_cast<u32>(std::max(0.0f, mouse_x * pw / std::max(ww, 1)));
-        native_pinch_y = static_cast<u32>(std::max(0.0f, mouse_y * ph / std::max(wh, 1)));
+        std::tie(native_pinch_x, native_pinch_y) = ToPixels(mouse_x, mouse_y);
         native_pinch_active = true;
         system.GPU().DSModAux().PushPinch({VideoCore::DSMod::AuxPinchEvent::Phase::Begin,
                                           native_pinch_x, native_pinch_y, 1.0f});
@@ -182,12 +176,8 @@ void AuxWindow_SDL3::OnEvent(SDL_Event& event) {
     }
     case SDL_EVENT_PINCH_UPDATE:
         if (native_pinch_active && !mouse_down && fingers.Empty()) {
-            int ww = 1, wh = 1, pw = 1, ph = 1;
-            SDL_GetWindowSize(window, &ww, &wh);
-            SDL_GetWindowSizeInPixels(window, &pw, &ph);
             SDL_GetMouseState(&mouse_x, &mouse_y);
-            native_pinch_x = static_cast<u32>(std::max(0.0f, mouse_x * pw / std::max(ww, 1)));
-            native_pinch_y = static_cast<u32>(std::max(0.0f, mouse_y * ph / std::max(wh, 1)));
+            std::tie(native_pinch_x, native_pinch_y) = ToPixels(mouse_x, mouse_y);
             system.GPU().DSModAux().PushPinch({VideoCore::DSMod::AuxPinchEvent::Phase::Update,
                                               native_pinch_x, native_pinch_y, event.pinch.scale});
         }
@@ -232,17 +222,36 @@ void AuxWindow_SDL3::PublishTouch(bool down, bool started) {
         aux.SetTouch({});
         return;
     }
+    const auto [x, y] = ToPixels(mouse_x, mouse_y);
+    const VideoCore::DSMod::AuxTouchPoint point{
+        .finger_id = 0,
+        .x = x,
+        .y = y,
+        .attributes = started ? 1u : 0u,
+        .delta_ns = 0,
+    };
+    aux.SetTouch(std::span{&point, 1});
+}
+
+void AuxWindow_SDL3::ResetInput() {
+    auto& aux = system.GPU().DSModAux();
+    if (native_pinch_active) {
+        aux.PushPinch(
+            {VideoCore::DSMod::AuxPinchEvent::Phase::End, native_pinch_x, native_pinch_y, 1.0f});
+        native_pinch_active = false;
+    }
+    if (mouse_down || !fingers.Empty()) {
+        fingers.Clear();
+        mouse_down = false;
+        aux.SetTouch({});
+    }
+}
+
+std::pair<u32, u32> AuxWindow_SDL3::ToPixels(float x, float y) const {
     int ww = 1, wh = 1, pw = 1, ph = 1;
     SDL_GetWindowSize(window, &ww, &wh);
     SDL_GetWindowSizeInPixels(window, &pw, &ph);
     const float sx = static_cast<float>(pw) / static_cast<float>(std::max(ww, 1));
     const float sy = static_cast<float>(ph) / static_cast<float>(std::max(wh, 1));
-    const VideoCore::DSMod::AuxTouchPoint point{
-        .finger_id = 0,
-        .x = static_cast<u32>(std::max(0.0f, mouse_x * sx)),
-        .y = static_cast<u32>(std::max(0.0f, mouse_y * sy)),
-        .attributes = started ? 1u : 0u,
-        .delta_ns = 0,
-    };
-    aux.SetTouch(std::span{&point, 1});
+    return {static_cast<u32>(std::max(0.0f, x * sx)), static_cast<u32>(std::max(0.0f, y * sy))};
 }

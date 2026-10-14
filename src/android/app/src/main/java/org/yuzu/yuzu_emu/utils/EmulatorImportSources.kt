@@ -79,16 +79,7 @@ object EmulatorImportSources {
                     val relative = if (path.isEmpty()) name else "$path/$name"
                     EmulatorDataImporter.checkedPath(relative)
                     // Skip generated caches before walking them, rather than reading them all.
-                    if (path.isEmpty() && name in setOf(
-                            "cache",
-                            "log",
-                            "crash_dumps",
-                            "shader",
-                            "import-backups"
-                        )
-                    ) {
-                        continue
-                    }
+                    if (path.isEmpty() && name in EmulatorDataImporter.ignoredRoots) continue
                     if (cursor.getString(2) == DocumentsContract.Document.MIME_TYPE_DIR) {
                         walk(childId, relative, depth + 1)
                     } else {

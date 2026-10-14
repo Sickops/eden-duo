@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstring>
 #include <chrono>
@@ -258,8 +259,17 @@ void ModRuntime::InitializeModuleWriteExtensions() {
     module_write_api.write_batch = [](void* p, const EdenDsmodWriteOp* ops,
                                       u32 count) -> EdenDsmodBool {
         auto& rt = *static_cast<ModRuntime*>(p);
-        if (!ops || count == 0 || count > EDEN_DSMOD_WRITE_BATCH_MAX_OPS)
+        if (!ops || count == 0)
             return EDEN_DSMOD_FALSE;
+        if (count > EDEN_DSMOD_WRITE_BATCH_MAX_OPS) {
+            // Never applied, however often the module retries: say so once per process.
+            static std::atomic<bool> warned{false};
+            if (!warned.exchange(true, std::memory_order_relaxed)) {
+                LOG_WARNING(Core, "DSMod: write batch of {} ops rejected (max {})", count,
+                            EDEN_DSMOD_WRITE_BATCH_MAX_OPS);
+            }
+            return EDEN_DSMOD_FALSE;
+        }
         for (u32 i = 0; i < count; ++i) {
             const auto& op = ops[i];
             if (!op.value || op.reserved != 0 || op.size == 0 ||

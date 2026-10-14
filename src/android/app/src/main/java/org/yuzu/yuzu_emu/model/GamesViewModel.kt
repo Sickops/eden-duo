@@ -71,10 +71,13 @@ class GamesViewModel : ViewModel() {
                         val state = runCatching {
                             val path = game.addonDir
                             if (path.startsWith("content://")) {
+                                // The installer cannot write to a linked folder, so never offer a
+                                // download/update there; an installed current companion still shows.
                                 DualScreenModStatus.evaluate(
                                     org.yuzu.yuzu_emu.utils.DocumentFileAccess.companionPackages(path),
                                     game.programIdHex, versions[game.programIdHex]
-                                )
+                                ).takeIf { it == DualScreenModStatus.State.CURRENT }
+                                    ?: DualScreenModStatus.State.UNKNOWN
                             } else DualScreenModStatus.scan(File(path), game.programIdHex, versions[game.programIdHex])
                         }.getOrDefault(DualScreenModStatus.State.UNKNOWN)
                         game.programIdHex to state

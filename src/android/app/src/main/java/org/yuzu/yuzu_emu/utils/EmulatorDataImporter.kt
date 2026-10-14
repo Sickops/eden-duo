@@ -13,9 +13,10 @@ import java.util.zip.ZipInputStream
 /** File-only staging and replacement; reading Android documents and reloading native state are separate. */
 object EmulatorDataImporter {
     private const val PREFIX = ".eden-import-"
-    private const val MAX_CONFIG_BYTES = 8L * 1024 * 1024
+    internal const val MAX_CONFIG_BYTES = 8L * 1024 * 1024
     private const val FREE_SPACE_RESERVE = 32L * 1024 * 1024
-    private val ignoredRoots = setOf("cache", "log", "crash_dumps", "shader", "import-backups")
+    /** Generated root folders that are never imported (also skipped by the SAF walker). */
+    internal val ignoredRoots = setOf("cache", "log", "crash_dumps", "shader", "import-backups")
 
     class Cancelled : IOException()
 
@@ -220,6 +221,26 @@ object EmulatorDataImporter {
                 interrupted.deleteRecursively()
             }
             journal(Session(dir), "recovered")
+        }
+        // Startup: no import is being reviewed yet, so unfinished staging is unreachable too.
+        prune(userDirectory, includeStaging = true)
+    }
+
+    /**
+     * Deletes import sessions that can no longer be used: everything except the newest restorable
+     * backup and [keep]. Finished sessions ("complete"/"recovered") are always eligible; staging
+     * without a finished state only when [includeStaging] (nothing can be under review). A session
+     * that is mid-replacement ("applying") is never touched.
+     */
+    fun prune(userDirectory: File, keep: File? = null, includeStaging: Boolean = false) {
+        val newest = latestBackup(userDirectory)?.directory?.name
+        sessions(userDirectory).forEach { dir ->
+            if (dir.name == newest || dir.name == keep?.name) return@forEach
+            val state = File(dir, "state").readTextOrEmpty()
+            if (state == "applying") return@forEach
+            if (state == "complete" || state == "recovered" || includeStaging) {
+                dir.deleteRecursively()
+            }
         }
     }
 

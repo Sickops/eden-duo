@@ -189,7 +189,10 @@ const EdenDsmodModuleSaveExtensions* eden_dsmod_get_save_extensions(uint32_t ver
 // observe a half-applied batch. All ops are validated before the first store: bounded, mapped,
 // and still holding `expect`; if any check fails nothing is written. Returns false when the
 // batch was not applied, including when the application could not be stalled right now (a user
-// pause/resume in progress) -- the module may simply retry on a later sample.
+// pause/resume in progress) -- the module may simply retry on a later sample. A batch longer
+// than EDEN_DSMOD_WRITE_BATCH_MAX_OPS is never applied, so retrying it is pointless.
+// EDEN_DSMOD_WRITE_BATCH_MAX_OPS is 16 on hosts before runtime 20 (Eden Duo 1.2.x); a package
+// whose module sends more than 16 ops in one batch must declare "min_runtime": 20.
 #define EDEN_DSMOD_WRITE_EXT_VERSION 1u
 #define EDEN_DSMOD_WRITE_EXT_HASH UINT64_C(0x5e3b9d17a2c4f680)
 #define EDEN_DSMOD_WRITE_BATCH_MAX_OPS 32u

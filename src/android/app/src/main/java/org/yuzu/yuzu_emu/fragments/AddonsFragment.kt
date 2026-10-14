@@ -245,6 +245,15 @@ class AddonsFragment : Fragment() {
     private fun installDualScreenPackage(uri: Uri? = null, release: DualScreenModRelease? = null) {
         val activity = requireActivity()
         val game = args.game
+        // The installer writes through java.io.File; a linked (SAF) load folder cannot be written.
+        if (game.addonDir.startsWith("content://")) {
+            MessageDialogFragment.newInstance(
+                activity,
+                titleId = R.string.dual_screen_mod_install_failed,
+                descriptionId = R.string.dual_screen_mod_linked_folder
+            ).show(parentFragmentManager, MessageDialogFragment.TAG)
+            return
+        }
         ProgressDialogFragment.newInstance(
             activity,
             R.string.installing_dual_screen_mod,

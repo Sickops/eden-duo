@@ -269,9 +269,9 @@ class GamesFragment : Fragment() {
     private fun submitGameList(games: List<Game>) {
         binding.noticeText.setText(
             when {
+                gamesViewModel.games.value.isEmpty() -> R.string.empty_gamelist
                 dualScreenOnly -> R.string.dual_screen_filter_empty
-                gamesViewModel.games.value.isNotEmpty() -> R.string.game_filter_empty
-                else -> R.string.empty_gamelist
+                else -> R.string.game_filter_empty
             }
         )
         binding.noticeText.setVisible(
