@@ -66,6 +66,81 @@ struct PatchCollection {
         return static_cast<s32>(patchers.size()) - 1;
     }
 
+    // Patch space the layout pass added after the module it just laid out (LoadModule adds the
+    // running section size of the current patcher there).
+    size_t GetLayoutPatchSize() const {
+#ifdef HAS_NCE
+        if (UsesPatchers()) {
+            const auto& patcher = patchers[GetLastIndex()];
+            switch (patcher.GetPatchMode()) {
+            case Core::NCE::PatchMode::Split:
+                return patcher.GetPreSectionSize() + patcher.GetSectionSize();
+            case Core::NCE::PatchMode::PreText:
+            case Core::NCE::PatchMode::PostData:
+                return patcher.GetSectionSize();
+            default:
+                break;
+            }
+        }
+#endif
+        return 0;
+    }
+
+    // Where a module will start in the load pass, relative to the code base, from each laid-out
+    // module's size without patch space. The layout pass spaces modules by running patch section
+    // sizes, but the load pass puts the patch space where RelocateAndCopy does: pre-text space in
+    // front of the module, post-data space only after the last module of a patcher.
+    u64 GetLoadPassOffset(size_t module, const std::array<u64, 13>& layout_sizes) const {
+        u64 offset{};
+        for (size_t i = 0; i < module; i++) {
+            if (module_patcher_indices[i] >= 0) {
+                offset += GetPreSpace(i) + layout_sizes[i] + GetPostSpace(i);
+            }
+        }
+        return offset + GetPreSpace(module);
+    }
+
+private:
+    bool UsesPatchers() const {
+        return is_application && Settings::IsNceEnabled();
+    }
+
+    // NCE patch space LoadModule puts in front of / RelocateAndCopy appends after a module in
+    // the load pass.
+    size_t GetPreSpace([[maybe_unused]] size_t module) const {
+#ifdef HAS_NCE
+        if (UsesPatchers()) {
+            const auto& patcher = patchers[module_patcher_indices[module]];
+            if (patcher.GetPatchMode() == Core::NCE::PatchMode::PreText) {
+                return patcher.GetSectionSize();
+            } else if (patcher.GetPatchMode() == Core::NCE::PatchMode::Split) {
+                return patcher.GetPreSectionSize();
+            }
+        }
+#endif
+        return 0;
+    }
+
+    size_t GetPostSpace([[maybe_unused]] size_t module) const {
+#ifdef HAS_NCE
+        if (UsesPatchers()) {
+            const s32 index = module_patcher_indices[module];
+            for (size_t later = module + 1; later < module_patcher_indices.size(); later++) {
+                if (module_patcher_indices[later] == index) {
+                    return 0;
+                }
+            }
+            const auto& patcher = patchers[index];
+            if (patcher.GetPatchMode() == Core::NCE::PatchMode::PostData ||
+                patcher.GetPatchMode() == Core::NCE::PatchMode::Split) {
+                return patcher.GetSectionSize();
+            }
+        }
+#endif
+        return 0;
+    }
+
+public:
     bool is_application;
     std::vector<Core::NCE::Patcher> patchers;
     std::array<s32, 13> module_patcher_indices{};
@@ -197,7 +272,34 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // Define an nce patch context for each potential module.
     PatchCollection patch_ctx{is_application};
 
+    // A dual-screen load plan gets its mailbox after the last module (see DualScreenMailboxSlot).
+    // Only the module the plan targets is given the title ID, so the package manifest is parsed
+    // for it alone.
+    const auto load_plan_target =
+        AppLoader_NSO::LoadPlanTargetModule(system, metadata.GetTitleID());
+    const auto load_plan_title_id = [&](const char* module) -> std::optional<u64> {
+        if (load_plan_target && *load_plan_target == module) {
+            return metadata.GetTitleID();
+        }
+        return std::nullopt;
+    };
+    AppLoader_NSO::DualScreenMailboxSlot mailbox_slot;
+    size_t mailbox_host_index{};
+    for (size_t i = 0; i < static_modules.size(); i++) {
+        if (dir->GetFile(static_modules[i])) {
+            mailbox_slot.host = static_modules[i];
+            mailbox_host_index = i;
+        }
+    }
+    if (load_plan_target && mailbox_slot.host != *load_plan_target) {
+        if (const auto target_file = dir->GetFile(*load_plan_target)) {
+            mailbox_slot.size = AppLoader_NSO::PeekLoadPlanMailboxSize(system, *target_file,
+                                                                       metadata.GetTitleID());
+        }
+    }
+
     // Use the NSO module loader to figure out the code layout
+    std::array<u64, 13> layout_sizes{}; // per module, without NCE patch space
     for (size_t i = 0; i < static_modules.size(); i++) {
         const auto& module = static_modules[i];
         const FileSys::VirtualFile module_file{dir->GetFile(module)};
@@ -208,14 +310,22 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
         const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
             process, system, *module_file, code_size, should_pass_arguments, false, {},
-            patch_ctx.GetPatchers(), patch_ctx.GetLastIndex(), metadata.GetTitleID());
+            patch_ctx.GetPatchers(), patch_ctx.GetLastIndex(), load_plan_title_id(module),
+            &mailbox_slot);
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
 
+        layout_sizes[i] = *tentative_next_load_addr - code_size - patch_ctx.GetLayoutPatchSize();
         patch_ctx.SaveIndex(i);
         code_size = *tentative_next_load_addr;
     }
+    // The load pass places NCE patch space differently from the layout pass, so the mailbox
+    // address comes from the host's load-pass offset, not from the layout pass.
+    const u64 mailbox_offset = mailbox_slot.size != 0
+                                   ? patch_ctx.GetLoadPassOffset(mailbox_host_index, layout_sizes) +
+                                         mailbox_slot.layout_end
+                                   : 0;
 
     // Enable direct memory mapping in case of NCE.
     const u64 fastmem_base = [&]() -> size_t {
@@ -242,6 +352,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // Load NSO modules
     modules.clear();
     const VAddr base_address{GetInteger(process.GetEntryPoint())};
+    mailbox_slot.address = mailbox_slot.size != 0 ? base_address + mailbox_offset : 0;
     VAddr next_load_addr{base_address};
     const FileSys::PatchManager pm{metadata.GetTitleID(), system.GetFileSystemController(),
                                    system.GetContentProvider()};
@@ -256,7 +367,8 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
         const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
             process, system, *module_file, load_addr, should_pass_arguments, true, pm,
-            patch_ctx.GetPatchers(), patch_ctx.GetIndex(i), metadata.GetTitleID());
+            patch_ctx.GetPatchers(), patch_ctx.GetIndex(i), load_plan_title_id(module),
+            &mailbox_slot);
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }

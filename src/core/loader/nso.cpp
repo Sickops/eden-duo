@@ -8,12 +8,14 @@
 #include <cinttypes>
 #include <cstring>
 #include <limits>
+#include <span>
 #include <vector>
 
 #include "common/common_funcs.h"
 #include "common/hex_util.h"
 #include "common/logging.h"
 #include "common/lz4_compression.h"
+#include "common/zbic_compression.h"
 #include "common/settings.h"
 #include "common/swap.h"
 #include "core/core.h"
@@ -68,12 +70,36 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& in_file) {
     return FileType::NSO;
 }
 
+std::optional<std::string> AppLoader_NSO::LoadPlanTargetModule(Core::System& system,
+                                                               u64 title_id) {
+    return Core::Mods::LoadPlanTargetModule(system, title_id);
+}
+
+u64 AppLoader_NSO::PeekLoadPlanMailboxSize(Core::System& system, const FileSys::VfsFile& nso_file,
+                                           u64 title_id) {
+    NSOHeader nso_header{};
+    if (nso_file.GetSize() < sizeof(NSOHeader) ||
+        sizeof(NSOHeader) != nso_file.ReadObject(&nso_header) ||
+        nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0')) {
+        return 0;
+    }
+    Core::Mods::LoadPlanLayout layout;
+    for (size_t i = 0; i < layout.segments.size(); ++i) {
+        layout.segments[i] = {nso_header.segments[i].location, nso_header.segments[i].size};
+    }
+    layout.bss_size = nso_header.segments[2].bss_size;
+    const auto discovery = Core::Mods::DiscoverModLoadPlan(system, title_id, nso_header.build_id,
+                                                           nso_file.GetName(), layout);
+    return discovery.plan ? discovery.plan->MailboxSize() : 0;
+}
+
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::System& system,
                                                const FileSys::VfsFile& nso_file, VAddr load_base,
                                                bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm,
                                                std::vector<Core::NCE::Patcher>* patches,
-                                               s32 patch_index, std::optional<u64> title_id) {
+                                               s32 patch_index, std::optional<u64> title_id,
+                                               DualScreenMailboxSlot* mailbox_slot) {
     if (nso_file.GetSize() < sizeof(NSOHeader))
         return std::nullopt;
     NSOHeader nso_header{};
@@ -111,11 +137,36 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
             nso_file.Read(compressed_data.data(), nso_header.segments_compressed_size[i], nso_header.segments[i].offset);
             if (nso_header.IsSegmentCompressed(i)) {
-                int r = Common::Compression::DecompressDataLZ4(decompressed_size.data(), nso_header.segments[i].size, compressed_data.data(), nso_header.segments_compressed_size[i]);
-                ASSERT(r == int(nso_header.segments[i].size));
-                std::memcpy(codeset.memory.data() + module_start + nso_header.segments[i].location, decompressed_size.data(), nso_header.segments[i].size);
+                if (nso_header.IsZBICCompressed()) {
+                    // ZBIC compression
+                    const int r = Common::Compression::DecompressDataZBIC(
+                        std::span<u8>{decompressed_size}.first(nso_header.segments[i].size),
+                        std::span<const u8>{compressed_data}.first(nso_header.segments_compressed_size[i])
+                    );
+                    ASSERT(r > 0);
+                } else {
+                    // LZ4 compression
+                    int r = Common::Compression::DecompressDataLZ4(
+                        decompressed_size.data(),
+                        nso_header.segments[i].size,
+                        compressed_data.data(),
+                        nso_header.segments_compressed_size[i]
+                    );
+                    ASSERT(r == int(nso_header.segments[i].size));
+                }
+
+                std::memcpy(
+                    codeset.memory.data() + module_start + nso_header.segments[i].location,
+                    decompressed_size.data(),
+                    nso_header.segments[i].size
+                );
             } else {
-                std::memcpy(codeset.memory.data() + module_start + nso_header.segments[i].location, compressed_data.data(), nso_header.segments[i].size);
+                // Not compressed
+                std::memcpy(
+                    codeset.memory.data() + module_start + nso_header.segments[i].location,
+                    compressed_data.data(),
+                    nso_header.segments[i].size
+                );
             }
             codeset.segments[i].addr = module_start + nso_header.segments[i].location;
             codeset.segments[i].offset = module_start + nso_header.segments[i].location;
@@ -138,6 +189,29 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     u32 image_size = PageAlignSize(u32(codeset.memory.size()) + nso_header.segments[2].bss_size);
     codeset.memory.resize(image_size);
 
+    const bool mailbox_host =
+        mailbox_slot && mailbox_slot->size != 0 && nso_file.GetName() == mailbox_slot->host;
+    if (mailbox_host) {
+        if (mailbox_slot->size > std::numeric_limits<u32>::max() - image_size) {
+            LOG_ERROR(Loader, "Dual-screen mailbox is too large for {}", nso_file.GetName());
+            return std::nullopt;
+        }
+        if (!load_into_process) {
+            // Relative to this module: under NCE the layout pass spaces modules differently from
+            // the load pass, so the loader turns it into an address itself.
+            mailbox_slot->layout_end = image_size;
+        } else if (mailbox_slot->address != load_base + image_size) {
+            LOG_ERROR(Loader, "Dual-screen mailbox moved: planned {:#x}, {} ends at {:#x}",
+                      mailbox_slot->address, nso_file.GetName(), load_base + image_size);
+            return std::nullopt;
+        }
+        // Data segment and image end are page aligned here, so the mailbox starts on a page.
+        codeset.DataSegment().size = image_size - static_cast<u32>(GetInteger(codeset.DataSegment().addr));
+        codeset.memory.resize(image_size + mailbox_slot->size);
+        codeset.DataSegment().size += static_cast<u32>(mailbox_slot->size);
+        image_size += static_cast<u32>(mailbox_slot->size);
+    }
+
     for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
         codeset.segments[i].size = PageAlignSize(codeset.segments[i].size);
     }
@@ -158,6 +232,19 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
     std::optional<Core::Mods::ModLoadPlan> load_plan;
     VAddr mailbox_address{};
+    // Set when the plan's bytes do not match the loaded executable (another game version, or an
+    // ExeFS patch that changes the same code). Its pages stay reserved so this pass keeps the
+    // layout pass's addresses, but nothing is written and no mailbox is published.
+    bool plan_skipped = false;
+    std::string plan_package;
+    std::string plan_build;
+    const auto skip_plan = [&](std::string_view reason) {
+        LOG_WARNING(Loader,
+                    "Dual-screen package '{}' load plan not applied to {} (build {}): {}. "
+                    "Starting the game without it; companion guest actions are off",
+                    plan_package, name, plan_build, reason);
+        plan_skipped = true;
+    };
     if (title_id) {
         Core::Mods::LoadPlanLayout layout;
         for (size_t i = 0; i < layout.segments.size(); ++i) {
@@ -166,9 +253,23 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         layout.bss_size = nso_header.segments[2].bss_size;
         auto discovery =
             Core::Mods::DiscoverModLoadPlan(system, *title_id, nso_header.build_id, name, layout);
-        if (discovery.status == Core::Mods::LoadPlanDiscovery::Status::Invalid) {
-            LOG_ERROR(Loader, "Rejected dual-screen load plan for {}: {}", name, discovery.error);
-            return std::nullopt;
+        plan_package = discovery.package;
+        plan_build = discovery.build;
+        if (discovery.status == Core::Mods::LoadPlanDiscovery::Status::Unsupported ||
+            discovery.status == Core::Mods::LoadPlanDiscovery::Status::Invalid) {
+            // A companion's load plan is optional for the game: start it without the plan (no
+            // guest helper, no mailbox) rather than failing to load the executable. The
+            // companion still runs and sees no mailbox. Logged on the load pass only.
+            if (load_into_process) {
+                LOG_WARNING(Loader,
+                            "Dual-screen package '{}' {} load plan for {} (build {}): {}. "
+                            "Starting the game without it; companion guest actions are off",
+                            discovery.package,
+                            discovery.status == Core::Mods::LoadPlanDiscovery::Status::Invalid
+                                ? "has an invalid"
+                                : "has no matching",
+                            name, discovery.build, discovery.error);
+            }
         }
         if (discovery.plan) {
             load_plan = std::move(discovery.plan);
@@ -179,17 +280,24 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
                 LOG_ERROR(Loader, "Dual-screen mailbox is too large for {}", name);
                 return std::nullopt;
             }
-            mailbox_address = load_base + image_size;
-            if (load_into_process) {
+            const bool reserved = mailbox_slot && mailbox_slot->size != 0;
+            if (reserved && load_into_process &&
+                (mailbox_slot->address == 0 || mailbox_slot->size < load_plan->MailboxSize())) {
+                skip_plan("its mailbox was not reserved");
+            }
+            mailbox_address = reserved ? mailbox_slot->address : load_base + image_size;
+            if (load_into_process && !plan_skipped && load_plan->GuestCodeSize() == 0) {
                 auto module_image = std::span<u8>{codeset.memory}.subspan(module_start);
                 if (!load_plan->Apply(module_image, load_base + module_start, mailbox_address)) {
-                    LOG_ERROR(Loader, "Dual-screen load plan byte validation failed for {}", name);
-                    return std::nullopt;
+                    skip_plan("the executable's bytes differ from the plan (another game "
+                              "version or an ExeFS patch)");
                 }
             }
-            codeset.memory.resize(codeset.memory.size() + load_plan->MailboxSize());
-            codeset.DataSegment().size += static_cast<u32>(load_plan->MailboxSize());
-            image_size += static_cast<u32>(load_plan->MailboxSize());
+            if (!reserved) {
+                codeset.memory.resize(codeset.memory.size() + load_plan->MailboxSize());
+                codeset.DataSegment().size += static_cast<u32>(load_plan->MailboxSize());
+                image_size += static_cast<u32>(load_plan->MailboxSize());
+            }
         }
     }
 
@@ -234,6 +342,33 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     }
 #endif
 
+    if (load_plan && load_plan->GuestCodeSize() != 0) {
+        const u64 code_size = load_plan->GuestCodeSize();
+        if (code_size > std::numeric_limits<u32>::max() - image_size ||
+            load_base > std::numeric_limits<VAddr>::max() - image_size - code_size) {
+            LOG_ERROR(Loader, "Dual-screen guest code is too large for {}", name);
+            return std::nullopt;
+        }
+        if (load_into_process) {
+            const auto offset = codeset.memory.size();
+            if (offset % Core::Memory::YUZU_PAGESIZE != 0) {
+                LOG_ERROR(Loader, "Dual-screen guest code placement is unaligned for {}", name);
+                return std::nullopt;
+            }
+            codeset.memory.resize(offset + code_size);
+            auto& segment = codeset.CompanionCodeSegment();
+            segment = {offset, offset, static_cast<u32>(code_size)};
+            auto module_image = std::span<u8>{codeset.memory}.subspan(module_start);
+            if (!plan_skipped &&
+                !load_plan->Apply(module_image, load_base + module_start, mailbox_address,
+                                  load_base + offset)) {
+                skip_plan("the executable's bytes differ from the plan (another game version "
+                          "or an ExeFS patch)");
+            }
+        }
+        image_size += static_cast<u32>(code_size);
+    }
+
     // If we aren't actually loading (i.e. just computing the process code layout), we are done
     if (!load_into_process) {
 #ifdef HAS_NCE
@@ -253,7 +388,10 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
     // Apply cheats if they exist and the program has a valid title ID
     if (pm) {
-        system.SetApplicationProcessBuildID(nso_header.build_id);
+        // TODO(Maufeat): Check if there is a better way to check
+        if (name == "main")
+            system.SetApplicationProcessBuildID(nso_header.build_id);
+
         const auto cheats = pm->CreateCheatList(nso_header.build_id);
         if (!cheats.empty()) {
             system.RegisterCheatList(cheats, nso_header.build_id, load_base, image_size);
@@ -266,8 +404,9 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         }
     }
 
-    if (load_plan) {
-        system.SetDualScreenGuestMailbox(mailbox_address, load_plan->MailboxSize());
+    if (load_plan && !plan_skipped) {
+        system.SetDualScreenGuestMailbox(mailbox_address, load_plan->MailboxSize(),
+                                         load_plan->MailboxEpochOffset());
     }
 
     // Load codeset for current process
