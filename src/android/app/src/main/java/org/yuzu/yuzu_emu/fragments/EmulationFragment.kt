@@ -16,7 +16,6 @@ import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.hardware.display.DisplayManager
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.BatteryManager.*
@@ -26,7 +25,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Rational
-import android.view.Display
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -102,11 +100,6 @@ import org.yuzu.yuzu_emu.utils.ViewUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
 import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
-import org.yuzu.yuzu_emu.activities.AuxCompanionActivity
-import org.yuzu.yuzu_emu.views.AuxPresentation
-import org.yuzu.yuzu_emu.utils.NoCompanion
-import org.yuzu.yuzu_emu.utils.CompanionApp
-import org.yuzu.yuzu_emu.utils.SecondScreenPerGame
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -141,62 +134,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var isInFoldableLayout = false
     private var emulationStarted = false
 
-    // DSMod: second-screen Presentation (AYN Thor bottom panel, AYANEO Pocket DS, ...). It
-    // lives from onStart to onStop, so it stays up while the activity is only paused (PiP, a
-    // dialog on top), and a DisplayListener brings it back when a panel appears or turns on.
-    private var auxPresentation: AuxPresentation? = null
-    private var auxWanted = false
-    // Eden Duo "No Companion: Off": this game gets no second-screen window (see NoCompanion).
-    // Icon and Black need nothing here: the runtime builds the idle page when the game boots.
-    // A change made in the in-game settings applies on return (reapplyNoCompanion), except
-    // Icon <-> Black, which shows from the next game start. Known limitation: a ROM swap inside a
-    // swapped session (game on the second display) into a game without a companion, with Off,
-    // closes the companion window and may leave the main display showing the Eden UI.
-    private var auxOff = false
-    private var auxOffChecked = false
-    // Eden Duo "No Companion: App": this boot already tried the chosen app (CompanionApp).
-    private var companionAppTried = false
-    // No Companion and its app as this game session last applied them (null before boot).
-    private var noCompanionApplied: Pair<Int, String?>? = null
-    // The title whose per-game Second Screen values apply; null for global (a "launch with
-    // global settings", as for the per-game .ini in finishGameSetup).
-    private val secondScreenTitle: String?
-        get() = game?.programId?.takeIf { !(game == args.game && !args.custom) }
-    // dropIdleCompanion asked before the game finished loading: ask again a little later.
-    private var idleRecheckLeft = 0
-    private val idleRecheck = Runnable { dropIdleCompanion() }
-    private val auxHandler = Handler(Looper.getMainLooper())
-    private val auxRetry = Runnable { if (auxWanted) showAuxPresentation() }
-    private val auxDisplayStates = HashMap<Int, Int>()
-    private val auxDisplayListener = object : DisplayManager.DisplayListener {
-        override fun onDisplayAdded(displayId: Int) {
-            displayState(displayId)?.let { auxDisplayStates[displayId] = it }
-            scheduleAuxRetry()
-        }
-
-        override fun onDisplayRemoved(displayId: Int) {
-            auxDisplayStates.remove(displayId)
-            if (auxPresentation?.displayId == displayId) {
-                Log.info("[EmulationFragment] DSMod: second-screen display $displayId removed")
-                dismissAuxPresentation()
-                scheduleAuxRetry()
-            } else if (AuxCompanionActivity.isUpOrPending()) {
-                // The game's own display may be the one gone, moving it under the companion.
-                scheduleAuxRetry()
-            }
-        }
-
-        override fun onDisplayChanged(displayId: Int) {
-            val state = displayState(displayId) ?: return
-            val previous = auxDisplayStates.put(displayId, state)
-            // Only a display turning on matters: it may be the second panel coming back.
-            if (auxPresentation == null && state != Display.STATE_OFF &&
-                (previous == null || previous == Display.STATE_OFF)
-            ) {
-                scheduleAuxRetry()
-            }
-        }
-    }
+    // Eden Duo: second screen and No Companion (DualScreenEmulationController).
+    private val dualScreen = org.yuzu.yuzu_emu.duo.DualScreenEmulationController(
+        this,
+        { emulationActivity },
+        { game?.programId },
+        { game?.programId?.takeIf { !(game == args.game && !args.custom) } },
+        { emulationViewModel.emulationStarted.value }
+    )
 
     private lateinit var gpuModel: String
     private lateinit var fwVersion: String
@@ -352,9 +297,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             return
         }
 
-        // Eden Duo: Companion Ratio is per-game; drop a previous game's override first (the
-        // per-game load below sets it again when this game has one).
-        IntSetting.COMPANION_RATIO.global = true
+        dualScreen.onGameConfigLoading()
         try {
             when {
                 // Game launched via intent (check for existing custom config)
@@ -409,7 +352,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 throw fallbackException
             }
         }
-        SecondScreenPerGame.runningConfigGame = game.takeIf { shouldUseCustom }
+        dualScreen.onGameConfigLoaded(game.takeIf { shouldUseCustom })
         try {
             if (GpuDriverHelper.isAdrenoGpu()) {
                 val programIdHex = game!!.programIdHex
@@ -422,9 +365,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         } catch (e: Exception) {
             Log.warning("[EmulationFragment] Failed to load Freedreno config: ${e.message}")
         }
-
-        // Eden Duo: this game's No Companion for the idle page the runtime builds at boot.
-        NativeLibrary.setNoCompanionOverride(NoCompanion.perGameValue(secondScreenTitle) ?: -1)
 
         emulationState = EmulationState(game!!.path, game!!.programId) {
             return@EmulationState driverViewModel.isInteractionAllowed.value &&
@@ -1027,9 +967,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 ViewUtils.hideView(binding.loadingIndicator)
 
                 emulationState.updateSurface()
-                idleRecheckLeft = IDLE_RECHECK_ATTEMPTS
-                noCompanionApplied = noCompanionNow()
-                dropIdleCompanion()
+                dualScreen.onEmulationStarted()
 
                 updateShowStatsOverlay()
                 updateSocOverlay()
@@ -1078,12 +1016,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
         emulationViewModel.programChanged.collect(viewLifecycleOwner) {
             if (it != 0) {
-                // A multi-program title's next program decides No Companion afresh.
-                auxOff = false
-                auxOffChecked = false
-                companionAppTried = false
-                // A second screen the previous program dropped comes back if this one wants it.
-                scheduleAuxRetry()
+                dualScreen.onProgramChanged()
                 emulationViewModel.setEmulationStarted(false)
                 binding.drawerLayout.close()
                 binding.drawerLayout
@@ -1536,22 +1469,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onStart() {
         super.onStart()
-        auxWanted = true
-        displayManager()?.let { dm ->
-            auxDisplayStates.clear()
-            for (display in dm.displays) auxDisplayStates[display.displayId] = display.state
-            dm.registerDisplayListener(auxDisplayListener, auxHandler)
-        }
-        showAuxPresentation()
+        dualScreen.onStart()
     }
 
     override fun onStop() {
-        auxWanted = false
-        auxHandler.removeCallbacks(auxRetry)
-        auxHandler.removeCallbacks(idleRecheck)
-        displayManager()?.unregisterDisplayListener(auxDisplayListener)
-        dismissAuxPresentation()
-        AuxCompanionActivity.dismiss(this)
+        dualScreen.onStop()
         super.onStop()
     }
 
@@ -1568,11 +1490,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        auxWanted = false
-        auxHandler.removeCallbacks(auxRetry)
-        auxHandler.removeCallbacks(idleRecheck)
-        dismissAuxPresentation()
-        AuxCompanionActivity.dismiss(this)
+        dualScreen.onDestroyView()
         amiiboLoadJob?.cancel()
         amiiboLoadJob = null
         perfStatsRunnable?.let { perfStatsUpdateHandler.removeCallbacks(it) }
@@ -1611,134 +1529,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         initializeOverlayAutoHide()
 
         addQuickSettings()
-        reapplyNoCompanion()
-    }
-
-    private fun displayManager(): DisplayManager? =
-        context?.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
-
-    private fun displayState(displayId: Int): Int? = displayManager()?.getDisplay(displayId)?.state
-
-    /** Coalesces bursts of display events into one attempt. */
-    private fun scheduleAuxRetry() {
-        if (!auxWanted) return
-        auxHandler.removeCallbacks(auxRetry)
-        auxHandler.postDelayed(auxRetry, AUX_RETRY_DELAY_MS)
-    }
-
-    /** True when No Companion is Off and this game has no companion: decided once per game. */
-    private fun isAuxOff(): Boolean {
-        if (!auxOffChecked) {
-            val programId = game?.programId ?: return false
-            auxOffChecked = true
-            auxOff = !NoCompanion.wantsWindow(programId, secondScreenTitle)
-        }
-        return auxOff
-    }
-
-    /**
-     * After boot: with No Companion Off, a game whose package the runtime did not take (it is on
-     * the idle page) gives its second screen back as well. With App, the chosen app opens there.
-     */
-    private fun dropIdleCompanion() {
-        auxHandler.removeCallbacks(idleRecheck)
-        if (!emulationViewModel.emulationStarted.value) return
-        if (auxOff) {
-            launchCompanionApp()
-            return
-        }
-        // App that fell back to the Icon page keeps it for this boot.
-        if (companionAppTried || !NoCompanion.hidesWindow(secondScreenTitle)) return
-        when (NativeLibrary.isCompanionIdle()) {
-            1 -> Unit
-            0 -> return
-            else -> {
-                // No game loaded yet (inconclusive): ask again shortly, a bounded number of times.
-                if (idleRecheckLeft-- > 0) {
-                    auxHandler.postDelayed(idleRecheck, AUX_RETRY_DELAY_MS)
-                }
-                return
-            }
-        }
-        Log.info("[EmulationFragment] DSMod: no companion in use; closing the second screen")
-        auxOff = true
-        auxOffChecked = true
-        dismissAuxPresentation()
-        AuxCompanionActivity.dismiss(this)
-        launchCompanionApp()
-    }
-
-    private fun noCompanionNow(): Pair<Int, String?> =
-        NoCompanion.value(secondScreenTitle) to CompanionApp.flattened(secondScreenTitle)
-
-    /**
-     * No Companion or its app changed in the in-game settings: decided again without a restart.
-     * Off / App close the second-screen window (App opens the newly chosen app), Icon / Black
-     * bring it back.
-     */
-    private fun reapplyNoCompanion() {
-        val before = noCompanionApplied ?: return
-        if (!emulationViewModel.emulationStarted.value) return
-        val now = noCompanionNow()
-        if (now == before) return
-        noCompanionApplied = now
-        Log.info("[EmulationFragment] No Companion changed in game: ${now.first} ${now.second ?: ""}")
-        NativeLibrary.setNoCompanionOverride(NoCompanion.perGameValue(secondScreenTitle) ?: -1)
-        auxOff = false
-        auxOffChecked = false
-        companionAppTried = false
-        if (NoCompanion.hidesWindow(secondScreenTitle)) {
-            idleRecheckLeft = IDLE_RECHECK_ATTEMPTS
-            dropIdleCompanion()
-        } else {
-            scheduleAuxRetry()
-        }
-    }
-
-    /** No Companion App: opens the chosen app, once per boot; on failure, the Icon page. */
-    private fun launchCompanionApp() {
-        if (companionAppTried) return
-        val game = emulationActivity ?: return
-        companionAppTried = true
-        if (CompanionApp.launchForBoot(game, secondScreenTitle) != CompanionApp.Result.FAILED) {
-            return
-        }
-        auxOff = false
-        auxOffChecked = true
-        if (auxWanted) showAuxPresentation()
-    }
-
-    private fun showAuxPresentation() {
-        if (isAuxOff()) return
-        // Eden Duo: with the game on a secondary display the second screen is the default one,
-        // where a Presentation cannot go; AuxCompanionActivity hosts it there instead.
-        val game = emulationActivity ?: activity ?: return
-        if (AuxCompanionActivity.isWantedFor(game)) {
-            dismissAuxPresentation()
-            AuxCompanionActivity.launch(game, this)
-            return
-        }
-        AuxCompanionActivity.dismiss(this) // the game is back on the default display
-        if (auxPresentation != null) return
-        val presentation = AuxPresentation.showOnBestDisplay(game) ?: return
-        auxPresentation = presentation
-        // Presentation cancels itself when its display goes away; drop it and look again.
-        presentation.setOnDismissListener {
-            if (auxPresentation === presentation) {
-                auxPresentation = null
-                scheduleAuxRetry()
-            }
-        }
-    }
-
-    private fun dismissAuxPresentation() {
-        val presentation = auxPresentation ?: return
-        auxPresentation = null
-        try {
-            presentation.dismiss()
-        } catch (e: Exception) {
-            Log.error("[EmulationFragment] DSMod: dismiss failed: ${e.message}")
-        }
+        dualScreen.onResume()
     }
 
     private fun resetInputOverlay() {
@@ -2723,8 +2514,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             arrayOf("application/octet-stream", "application/x-binary", "*/*")
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
         private val socUpdateHandler = Handler(Looper.myLooper()!!)
-        private const val AUX_RETRY_DELAY_MS = 300L
-        private const val IDLE_RECHECK_ATTEMPTS = 20 // x AUX_RETRY_DELAY_MS
     }
 
     private fun startOverlayAutoHideTimer(seconds: Int) {

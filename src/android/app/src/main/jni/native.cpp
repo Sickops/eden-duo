@@ -8,13 +8,10 @@
 #include "video_core/vulkan_common/vma.h"
 
 #include <codecvt>
-#include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <locale>
 #include <map>
-#include <mutex>
 #include <set>
 #include <sstream>
 #include <span>
@@ -58,12 +55,9 @@ extern "C" {
 #include "frontend_common/play_time_manager.h"
 #include "core/constants.h"
 #include "core/core.h"
-#include "core/mods/mod_module.h"
-#include "core/mods/mod_runtime.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
-#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/fs_filesystem.h"
@@ -97,14 +91,12 @@ extern "C" {
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
 #include "input_common/drivers/virtual_amiibo.h"
-#include "jni/android_settings.h"
+#include "jni/dsmod_native.h"
 #include "jni/native.h"
 #include "video_core/frame_gen/lossless_dll.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/capture.h"
-#include "video_core/dsmod/aux_routing.h"
-#include "video_core/gpu.h"
 #include "video_core/textures/decoders.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
@@ -131,40 +123,6 @@ std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
 EmulationSession::EmulationSession() {
     m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
 }
-
-namespace {
-/// DSMod haptics: runs on AuxRouting's notifier thread (never the emulation thread) and hands the
-/// event to Kotlin, which plays it on the second screen's view from the UI thread.
-void PlayAuxHaptic(const VideoCore::DSMod::AuxRouting::HapticEvent& event) {
-    JNIEnv* const env = Common::Android::GetEnvForThread();
-    if (env == nullptr) {
-        return;
-    }
-    static jmethodID method = nullptr;
-    static std::once_flag looked_up;
-    std::call_once(looked_up, [env] {
-        method = env->GetStaticMethodID(Common::Android::GetNativeLibraryClass(), "onAuxHaptic",
-                                        "(III)V");
-        if (env->ExceptionCheck()) {
-            env->ExceptionClear();
-            method = nullptr;
-        }
-        if (method == nullptr) {
-            LOG_ERROR(Frontend, "DSMod haptics: NativeLibrary.onAuxHaptic not found");
-        }
-    });
-    if (method == nullptr) {
-        return;
-    }
-    env->CallStaticVoidMethod(Common::Android::GetNativeLibraryClass(), method,
-                              static_cast<jint>(event.strength), static_cast<jint>(event.kind),
-                              static_cast<jint>(event.flags));
-    if (env->ExceptionCheck()) {
-        env->ExceptionDescribe();
-        env->ExceptionClear();
-    }
-}
-} // namespace
 
 EmulationSession& EmulationSession::GetInstance() {
     return s_instance;
@@ -244,32 +202,7 @@ bool EmulationSession::IsPaused() const {
 
 const Core::PerfStatsResults& EmulationSession::PerfStats() {
     m_perf_stats = m_system.GetAndResetPerfStats();
-    // Reuse the result requested by the Android FPS overlay. Do not make another resetting query:
-    // other frontends and overlays own the cadence of these cumulative counters.
-#if EDEN_DSMOD_BUILD_DEV_TOOLS
-    if (m_system.ModRuntime()) {
-        // EDEN_DSMOD_PROFILE turns the 5 s line on or off; unset means on in developer builds
-        // (dsmod_env.txt) and off in a published build, which writes no periodic log lines.
-        static const bool profile = [] {
-            const char* value = std::getenv("EDEN_DSMOD_PROFILE");
-            if (value == nullptr) {
-                return EDEN_DSMOD_BUILD_DEV_TOOLS != 0;
-            }
-            return std::strcmp(value, "0") != 0 && std::strcmp(value, "false") != 0 &&
-                   std::strcmp(value, "FALSE") != 0;
-        }();
-        static auto report_at = std::chrono::steady_clock::now();
-        const auto now = std::chrono::steady_clock::now();
-        if (profile && now - report_at >= std::chrono::seconds{5}) {
-            LOG_INFO(Frontend,
-                     "DSMod performance (existing Android stats, 5s): game={:.1f} FPS, "
-                     "system={:.1f} FPS, frame={:.2f}ms, speed={:.1f}%",
-                     m_perf_stats.average_game_fps, m_perf_stats.system_fps,
-                     m_perf_stats.frametime * 1000.0, m_perf_stats.emulation_speed * 100.0);
-            report_at = now;
-        }
-    }
-#endif
+    DSModSession::OnPerfStats(m_perf_stats);
     return m_perf_stats;
 }
 
@@ -284,99 +217,6 @@ void EmulationSession::SurfaceChanged() {
         return;
     }
     m_window->OnSurfaceChanged(m_native_window);
-}
-
-void EmulationSession::AttachAuxWindowLocked() {
-    // m_aux_mutex held. Attaches only while the game's renderer exists.
-    if (!m_aux_native_window || !m_aux_renderer_ready) {
-        return;
-    }
-    if (m_aux_window) {
-        m_system.Renderer().SetAuxWindow(nullptr);
-        m_aux_window->OnSurfaceChanged(m_aux_native_window);
-    } else {
-        m_aux_window = std::make_unique<EmuWindow_Android>(m_aux_native_window, m_vulkan_library, true);
-    }
-    m_system.Renderer().SetAuxWindow(m_aux_window.get());
-    m_system.GPU().DSModAux().SetHapticSink(PlayAuxHaptic);
-    LOG_INFO(Frontend, "DSMod aux surface attached");
-}
-
-void EmulationSession::DetachAuxWindowLocked() {
-    // m_aux_mutex held. Synchronous: the renderer lets go of the surface before this returns.
-    if (m_aux_window && m_aux_renderer_ready) {
-        m_system.Renderer().SetAuxWindow(nullptr);
-    }
-    m_aux_window.reset();
-}
-
-void EmulationSession::ReleaseAuxNativeWindowLocked() {
-    if (m_aux_native_window) {
-        ANativeWindow_release(m_aux_native_window);
-        m_aux_native_window = nullptr;
-    }
-}
-
-// The aux surface calls come from the UI thread. They take only m_aux_mutex, never m_mutex:
-// InitializeEmulation holds m_mutex for the whole game load, and waiting on it here froze the UI
-// (ANR risk) while a game booted. A surface that arrives before the renderer exists is kept and
-// attached by InitializeEmulation as soon as the renderer is up; one that arrives later is
-// attached right here, whether or not RunEmulation has started yet.
-void EmulationSession::AuxSurfaceChanged(ANativeWindow* native_window) {
-    std::scoped_lock lock(m_aux_mutex);
-    DetachAuxWindowLocked();
-    ReleaseAuxNativeWindowLocked();
-    m_aux_native_window = native_window;
-    AttachAuxWindowLocked();
-}
-
-void EmulationSession::AuxSurfaceDestroyed() {
-    std::scoped_lock lock(m_aux_mutex);
-    DetachAuxWindowLocked();
-    ReleaseAuxNativeWindowLocked();
-}
-
-bool EmulationSession::SetAuxTouch(std::span<const VideoCore::DSMod::AuxTouchPoint> points) {
-    // Under m_aux_mutex the GPU cannot be torn down (ShutdownEmulation clears
-    // m_aux_renderer_ready under the same lock before ShutdownMainProcess).
-    std::scoped_lock lock(m_aux_mutex);
-    if (!m_aux_renderer_ready) {
-        return false;
-    }
-    m_system.GPU().DSModAux().SetTouch(points);
-    return true;
-}
-
-int EmulationSession::CompanionIsIdle() {
-    // m_mod_runtime_live guards the runtime's lifetime only (it is cleared under m_aux_mutex
-    // before ShutdownMainProcess destroys the runtime); the aux surface plays no part.
-    std::scoped_lock lock(m_aux_mutex);
-    if (!m_mod_runtime_live) {
-        return -1;
-    }
-    const auto* const runtime = m_system.ModRuntime();
-    return runtime != nullptr && runtime->IsIdlePage() ? 1 : 0;
-}
-
-namespace {
-// Eden Duo: the running (or next) game's own No Companion value, -1 for the global setting.
-// Kept in the Kotlin per-game store, since Off must be known before the game window opens.
-std::atomic<s32> g_no_companion_override{-1};
-} // namespace
-
-void EmulationSession::ApplySecondScreenOptions() {
-    using Options = VideoCore::DSMod::SecondScreenOptions;
-    // companion_ratio is a SwitchableSetting: GetValue() is the game's own value when its
-    // per-game config was applied before boot.
-    Options::companion_ratio.store(
-        static_cast<u32>(std::max(0, AndroidSettings::values.companion_ratio.GetValue())));
-    const s32 no_companion_override = g_no_companion_override.load();
-    const s32 no_companion = no_companion_override >= 0
-                                 ? no_companion_override
-                                 : std::max(0, AndroidSettings::values.no_companion.GetValue());
-    // Eden Duo: "App" (3) is Off for the runtime; the app itself is opened by the frontend.
-    Options::no_companion.store(static_cast<u32>(
-        no_companion == 3 ? static_cast<s32>(VideoCore::DSMod::NoCompanion::Off) : no_companion));
 }
 
 void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) {
@@ -443,50 +283,6 @@ void EmulationSession::SetAppletId(int applet_id) {
         static_cast<Service::AM::AppletId>(m_applet_id));
 }
 
-namespace {
-// Developer builds only: an Android app inherits no shell environment, so the EDEN_DSMOD_*
-// switches the desktop takes from the environment (profiling, self-checks, kill switches) are read from
-// <user dir>/dsmod_env.txt instead -- one KEY=VALUE per line, '#' starts a comment. Applied once,
-// when the app directory is set and before any emulation thread exists (setenv is not safe against
-// a concurrent getenv); edits take effect after the app restarts.
-void ApplyDsmodEnvFile() {
-#if EDEN_DSMOD_BUILD_DEV_TOOLS
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir) / "dsmod_env.txt";
-    std::FILE* const file = std::fopen(path.string().c_str(), "r");
-    if (file == nullptr) {
-        return;
-    }
-    const auto trim = [](std::string text) {
-        constexpr const char* space = " \t\r\n";
-        const auto first = text.find_first_not_of(space);
-        if (first == std::string::npos) {
-            return std::string{};
-        }
-        return text.substr(first, text.find_last_not_of(space) - first + 1);
-    };
-    char line[512];
-    while (std::fgets(line, sizeof(line), file) != nullptr) {
-        const std::string text = trim(line);
-        if (text.empty() || text[0] == '#') {
-            continue;
-        }
-        const auto eq = text.find('=');
-        if (eq == std::string::npos) {
-            continue;
-        }
-        const std::string key = trim(text.substr(0, eq));
-        const std::string value = trim(text.substr(eq + 1));
-        if (key.empty()) {
-            continue;
-        }
-        setenv(key.c_str(), value.c_str(), 1);
-        LOG_INFO(Frontend, "DSMod env file: {}={}", key, value);
-    }
-    std::fclose(file);
-#endif
-}
-} // namespace
-
 Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string& filepath,
                                                                const std::size_t program_index,
                                                                const bool frontend_initiated) {
@@ -503,7 +299,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     m_software_keyboard = android_keyboard.get();
     m_system.SetShuttingDown(false);
     m_system.ApplySettings();
-    ApplySecondScreenOptions(); // DSMod: before Load, which builds the idle page
+    DSModSession::ApplySecondScreenOptions(); // DSMod: before Load, which builds the idle page
     Settings::LogSettings();
     m_system.HIDCore().ReloadInputDevices();
     m_system.SetFrontendAppletSet({
@@ -546,22 +342,14 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     if (m_load_result != Core::SystemResultStatus::Success) {
         return m_load_result;
     }
-    {
-        std::scoped_lock aux_lock(m_aux_mutex);
-        m_mod_runtime_live = true; // Load built the mod runtime (Eden Duo CompanionIsIdle)
-    }
+    DSModSession::OnEmulationLoaded();
 
     // Complete initialization.
     m_system.GPU().Start();
     m_system.GetCpuManager().OnGpuReady();
     m_system.RegisterExitCallback([&] { HaltEmulation(); });
+    DSModSession::OnRendererReady(m_vulkan_library); // a second-screen surface may be waiting
 
-    // DSMod: the renderer exists from here on; a second-screen surface may already be waiting.
-    {
-        std::scoped_lock aux_lock(m_aux_mutex);
-        m_aux_renderer_ready = true;
-        AttachAuxWindowLocked();
-    }
     m_system.RegisterApplicationChangedCallback(
         [&](u64 changed_program_id) { RequestDiskShaderCacheReload(changed_program_id); });
 
@@ -580,13 +368,11 @@ void EmulationSession::ShutdownEmulation() {
     std::scoped_lock lock(m_mutex);
 
     m_pending_shader_cache_title.reset();
+    DSModSession::OnShutdownEmulation(m_next_program_index != -1);
 
     if (m_next_program_index != -1) {
         ChangeProgram(m_next_program_index);
         m_next_program_index = -1;
-    } else {
-        // Eden Duo: the game is gone; a later applySettings must not use its No Companion.
-        g_no_companion_override.store(-1);
     }
 
     m_is_running = false;
@@ -599,13 +385,7 @@ void EmulationSession::ShutdownEmulation() {
 
     // Shutdown the main emulated process
     if (m_load_result == Core::SystemResultStatus::Success) {
-        {
-            // The aux surface itself stays cached for the next game.
-            std::scoped_lock aux_lock(m_aux_mutex);
-            DetachAuxWindowLocked();
-            m_aux_renderer_ready = false;
-            m_mod_runtime_live = false;
-        }
+        DSModSession::OnBeforeShutdownMainProcess();
         m_system.DetachDebugger();
         m_system.ShutdownMainProcess();
         m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
@@ -615,12 +395,7 @@ void EmulationSession::ShutdownEmulation() {
     }
 
     // Tear down the render window.
-    {
-        std::scoped_lock aux_lock(m_aux_mutex);
-        m_aux_window.reset();
-        m_aux_renderer_ready = false;
-        m_mod_runtime_live = false;
-    }
+    DSModSession::OnRenderWindowTeardown();
     m_window.reset();
 }
 
@@ -1011,46 +786,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceDestroyed(JNIEnv* env, jobject
     EmulationSession::GetInstance().SetNativeWindow(nullptr);
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_auxSurfaceChanged(JNIEnv* env, jobject instance,
-                                                             jobject surf) {
-    auto& session = EmulationSession::GetInstance();
-    ANativeWindow* const window = surf != nullptr ? ANativeWindow_fromSurface(env, surf) : nullptr;
-    if (window == nullptr) {
-        session.AuxSurfaceDestroyed();
-        return;
-    }
-    // Detach + release of any previous aux surface, the swap and the attach are one locked step.
-    session.AuxSurfaceChanged(window);
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_auxSurfaceDestroyed(JNIEnv* env, jobject instance) {
-    EmulationSession::GetInstance().AuxSurfaceDestroyed();
-}
-
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_isCompanionIdle(JNIEnv* env, jobject instance) {
-    return static_cast<jint>(EmulationSession::GetInstance().CompanionIsIdle());
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_setNoCompanionOverride(JNIEnv* env, jobject instance,
-                                                                  jint value) {
-    g_no_companion_override.store(value >= 0 && value <= 3 ? static_cast<s32>(value) : -1);
-}
-
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_dualScreenRuntimeVersion(JNIEnv* env,
-                                                                     jobject instance) {
-    return static_cast<jint>(Core::Mods::DualScreenRuntimeVersion);
-}
-
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env, jobject instance,
                                                            [[maybe_unused]] jstring j_directory) {
     Common::FS::SetAppDirectory(Common::Android::GetJString(env, j_directory));
-    static std::once_flag dsmod_env_applied;
-    std::call_once(dsmod_env_applied, ApplyDsmodEnvFile);
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_setDualScreenCodeDirectory(
-    JNIEnv* env, jobject instance, jstring directory) {
-    Core::Mods::SetModuleCacheDirectory(Common::Android::GetJString(env, directory));
+    DSModSession::OnAppDirectorySet();
 }
 
 int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject instance,
@@ -1090,34 +829,6 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_doesUpdateMatchProgram(JNIEnv* en
         }
     }
     return false;
-}
-
-// Eden Duo: the base title ids a content container (an update/DLC NSP or XCI) carries content
-// for, so the library scan can remember which containers a game needs registered at boot.
-jlongArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getContainerBaseTitleIds(JNIEnv* env,
-                                                                         jobject jobj,
-                                                                         jstring jpath) {
-    std::set<u64> base_title_ids;
-    const auto file = EmulationSession::GetInstance().System().GetFilesystem()->OpenFile(
-        Common::Android::GetJString(env, jpath), FileSys::OpenMode::Read);
-    if (file) {
-        auto nsp = std::make_shared<FileSys::NSP>(file);
-        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
-            FileSys::XCI xci{file};
-            nsp = xci.GetStatus() == Loader::ResultStatus::Success ? xci.GetSecurePartitionNSP()
-                                                                   : nullptr;
-        }
-        if (nsp) {
-            for (const auto& [title_id, ncas] : nsp->GetNCAs()) {
-                base_title_ids.insert(FileSys::GetBaseTitleID(title_id));
-            }
-        }
-    }
-
-    const std::vector<jlong> ids(base_title_ids.begin(), base_title_ids.end());
-    jlongArray result = env->NewLongArray(static_cast<jsize>(ids.size()));
-    env->SetLongArrayRegion(result, 0, static_cast<jsize>(ids.size()), ids.data());
-    return result;
 }
 
 void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(JNIEnv* env,
@@ -1607,7 +1318,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuModel(JNIEnv* env, jobject j
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jobj) {
     EmulationSession::GetInstance().System().ApplySettings();
-    EmulationSession::ApplySecondScreenOptions();
+    DSModSession::ApplySecondScreenOptions();
     EmulationSession::GetInstance().System().HIDCore().ReloadInputDevices();
 }
 
@@ -1890,18 +1601,6 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env
         ++i;
     }
     return jpatchArray;
-}
-
-// DSMod: the directory the add-on scanner (PatchManager and the dual-screen runtime) reads for
-// this title, so the Android installers write exactly where the scan looks. Empty when the
-// title has no mod root (id 0, or an update id).
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getModLoadDirectory(JNIEnv* env, jobject jobj,
-                                                                  jstring jprogramId) {
-    const auto program_id = EmulationSession::GetProgramId(env, jprogramId);
-    const auto dir =
-        EmulationSession::GetInstance().System().GetFileSystemController().GetModificationLoadRoot(
-            program_id);
-    return Common::Android::ToJString(env, dir ? dir->GetFullPath() : std::string{});
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeUpdate(JNIEnv* env, jobject jobj,

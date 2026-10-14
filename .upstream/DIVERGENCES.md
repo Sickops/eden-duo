@@ -66,6 +66,8 @@ drop it as soon as upstream fixes the same problem.
 | 9 | Test fixes | `src/tests/core/core_timing.cpp`, `src/tests/video_core/memory_tracker.cpp` | Low |
 | 10 | Dynarmic code-page cache invalidated through an atomic `code_gen` counter (bumped by `ClearInstructionCache`/`InvalidateCacheRange`, possibly from another thread) instead of a cross-thread write to `last_code_addr` | `src/core/arm/dynarmic/arm_dynarmic_{32,64}.{h,cpp}` (`DynarmicCallbacks*::MemoryReadCode`) | Medium; regenerate the ledger, the headers become upstream hooks |
 | 11 | SDL frontend lifetime fixes: `*appstate = state`, `SDL_APP_CONTINUE` from `SDL_AppInit`/`SDL_AppEvent`, the input subsystem kept in `SdlState` (upstream's is a local that dies when `SDL_AppInit` returns) and passed to `System::SetInputSubsystem`, the shader-reload callback capturing `state` by value, and `SDL_AppQuit` tolerating early exits (`IsPoweredOn` guard) | `src/yuzu_cmd/yuzu.cpp` (`SdlState`, `SDL_AppInit`, `SDL_AppEvent`, `SDL_AppQuit`) | Low; drop each part once upstream fixes it |
+| 12 | Android `EmulationSession` shader-cache reload race: `m_pending_shader_cache_title` cleared on init/shutdown/halt, `RequestDiskShaderCacheReload` ignored while not running; "Emulation stopped" log line | `src/android/app/src/main/jni/native.cpp` | Low |
+| 13 | Android SAF callbacks release their JNI local references; `GetParentDirectory`/`GetFilename` return `{}` instead of constructing a string from `0` | `src/common/fs/fs_android.cpp` | Low |
 
 ## eden-cli option parser
 
@@ -93,6 +95,21 @@ Fixing those means editing upstream's `src/core/launch_params.cpp`, which is sha
 frontend; that is a separate upstream fix, not a Duo change. Revisit when upstream's parser
 handles the cases above; then `ParseCommandLine` can strip the Duo-only flags (`-a`, `-V`,
 `-D`, `-R`, `-I`, `-S`) and pass the rest to `ParseLaunchParams`.
+
+## Android hook layout
+
+Upstream Android files keep one-line hooks; the Duo logic sits in Duo-owned files:
+
+* JNI: `jni/dsmod_native.{h,cpp}` (`DSModSession::*` hooks called from `native.cpp`, and the
+  Duo `Java_..._NativeLibrary_*` / `NativeInput_onAuxTouchEvent` entry points). The Kotlin
+  declarations stay in `NativeLibrary.kt` (one block at the end), so JNI names are unchanged.
+* SAF document operations: `src/common/fs/fs_android_documents.h` (header-only, included by
+  `fs_android.h`, registered from `RegisterCallbacks`).
+* Kotlin: `org.yuzu.yuzu_emu.duo.*` controllers, owned by the upstream fragment, view model or
+  helper that calls them.
+
+When a sync conflicts in one of these upstream files, keep the hook line and re-check that it
+still runs at the same point of the upstream flow.
 
 ## Accidental drift (to revert in a source change)
 

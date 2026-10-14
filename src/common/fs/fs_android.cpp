@@ -22,15 +22,11 @@ void RegisterCallbacks(JNIEnv* env, jclass clazz) {
     s_file_exists = env->GetStaticMethodID(native_library, "exists", "(Ljava/lang/String;)Z");
     s_open_content_uri = env->GetStaticMethodID(native_library, "openContentUri",
                                                 "(Ljava/lang/String;Ljava/lang/String;)I");
-    s_operate_document = env->GetStaticMethodID(native_library, "operateDocument",
-        "(Ljava/lang/String;Ljava/lang/String;I)Z");
-    s_list_document_entries = env->GetStaticMethodID(native_library, "listDocumentEntries",
-        "(Ljava/lang/String;)[Ljava/lang/String;");
+    RegisterDocumentCallbacks(env, native_library); // Eden Duo: fs_android_documents.h
 }
 
 void UnRegisterCallbacks() {
-    s_operate_document = nullptr;
-    s_list_document_entries = nullptr;
+    UnRegisterDocumentCallbacks(); // Eden Duo
     s_get_parent_directory = nullptr;
     s_get_filename = nullptr;
 
@@ -77,7 +73,9 @@ s32 OpenContentUri(const std::string& filepath, OpenMode openmode) {
 }
 
 u64 GetSize(const std::string& filepath) {
-    if (!s_get_size) return 0;
+    if (s_get_size == nullptr) {
+        return 0;
+    }
     auto env = Common::Android::GetEnvForThread();
     const auto path = Common::Android::ToJString(env, filepath);
     const auto result = env->CallStaticLongMethod(native_library, s_get_size, path);
@@ -86,7 +84,9 @@ u64 GetSize(const std::string& filepath) {
 }
 
 bool IsDirectory(const std::string& filepath) {
-    if (!s_is_directory) return false;
+    if (s_is_directory == nullptr) {
+        return 0;
+    }
     auto env = Common::Android::GetEnvForThread();
     const auto path = Common::Android::ToJString(env, filepath);
     const auto result = env->CallStaticBooleanMethod(native_library, s_is_directory, path);
@@ -95,7 +95,9 @@ bool IsDirectory(const std::string& filepath) {
 }
 
 bool Exists(const std::string& filepath) {
-    if (!s_file_exists) return false;
+    if (s_file_exists == nullptr) {
+        return 0;
+    }
     auto env = Common::Android::GetEnvForThread();
     const auto path = Common::Android::ToJString(env, filepath);
     const auto result = env->CallStaticBooleanMethod(native_library, s_file_exists, path);
@@ -125,35 +127,6 @@ std::string GetFilename(const std::string& filepath) {
     const auto result = Common::Android::GetJString(env, value);
     env->DeleteLocalRef(value);
     return result;
-}
-
-bool OperateDocument(const std::string& path, const std::string& other, int operation) {
-    if (!s_operate_document) return false;
-    auto env = Common::Android::GetEnvForThread();
-    const auto source = Common::Android::ToJString(env, path);
-    const auto target = Common::Android::ToJString(env, other);
-    const bool result = env->CallStaticBooleanMethod(native_library, s_operate_document, source, target, operation);
-    env->DeleteLocalRef(source);
-    env->DeleteLocalRef(target);
-    return result;
-}
-
-std::vector<std::pair<std::string, bool>> ListDocumentEntries(const std::string& path) {
-    std::vector<std::pair<std::string, bool>> entries;
-    if (!s_list_document_entries) return entries;
-    auto env = Common::Android::GetEnvForThread();
-    const auto source = Common::Android::ToJString(env, path);
-    const auto array = static_cast<jobjectArray>(env->CallStaticObjectMethod(native_library, s_list_document_entries, source));
-    env->DeleteLocalRef(source);
-    if (!array) return entries;
-    for (jsize i = 0; i < env->GetArrayLength(array); ++i) {
-        const auto item = static_cast<jstring>(env->GetObjectArrayElement(array, i));
-        const auto text = Common::Android::GetJString(env, item);
-        if (text.size() > 2) entries.emplace_back(text.substr(2), text.starts_with("d:"));
-        env->DeleteLocalRef(item);
-    }
-    env->DeleteLocalRef(array);
-    return entries;
 }
 
 } // namespace Common::FS::Android

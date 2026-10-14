@@ -33,11 +33,13 @@ import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 import androidx.core.net.toUri
-import androidx.core.view.isVisible
 import androidx.core.content.edit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.databinding.CardGameGridCompactBinding
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
+
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
 
@@ -46,37 +48,14 @@ class GameAdapter(private val activity: AppCompatActivity) :
         const val VIEW_TYPE_GRID_COMPACT = 1
         const val VIEW_TYPE_LIST = 2
         const val VIEW_TYPE_CAROUSEL = 3
-        private const val SUPPORT_CHANGED = "DualScreenSupportChanged"
     }
 
     private var viewType = 0
-    private var companionStates = emptyMap<String, org.yuzu.yuzu_emu.utils.DualScreenModStatus.State>()
-
-    fun setDualScreenInstallStates(states: Map<String, org.yuzu.yuzu_emu.utils.DualScreenModStatus.State>) {
-        val previous = companionStates
-        companionStates = states
-        currentList.forEachIndexed { index, game ->
-            if (previous[game.programIdHex] != states[game.programIdHex]) notifyItemChanged(index, SUPPORT_CHANGED)
-        }
-    }
-
-    private var dualScreenTitleIds = emptySet<String>()
-
-    fun setDualScreenTitleIds(titleIds: Set<String>) {
-        if (dualScreenTitleIds == titleIds) return
-        val previous = dualScreenTitleIds
-        dualScreenTitleIds = titleIds
-        currentList.forEachIndexed { index, game ->
-            if ((game.programIdHex in previous) != (game.programIdHex in titleIds)) {
-                notifyItemChanged(index, SUPPORT_CHANGED)
-            }
-        }
-    }
+    // Eden Duo: companion badges on the cards (DualScreenBadges).
+    val dualScreenBadges = org.yuzu.yuzu_emu.duo.DualScreenBadges(this, activity)
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int, payloads: MutableList<Any>) {
-        if (payloads.isNotEmpty() && payloads.all { it == SUPPORT_CHANGED }) {
-            holder.bindDualScreenBadge(currentList[position])
-        } else {
+        if (!dualScreenBadges.bindPayload(holder.binding.root, position, payloads)) {
             super.onBindViewHolder(holder, position, payloads)
         }
     }
@@ -183,26 +162,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 VIEW_TYPE_CAROUSEL -> bindCarouselView(model)
                 VIEW_TYPE_GRID_COMPACT -> bindGridCompactView(model)
             }
-            bindDualScreenBadge(model)
-        }
-
-        fun bindDualScreenBadge(model: Game) {
-            val state = companionStates[model.programIdHex]
-            val missing = state == org.yuzu.yuzu_emu.utils.DualScreenModStatus.State.MISSING
-            val outdated = state == org.yuzu.yuzu_emu.utils.DualScreenModStatus.State.UPDATE_AVAILABLE
-            binding.root.findViewById<ImageView>(R.id.dual_screen_download).isVisible =
-                model.programIdHex in dualScreenTitleIds && (missing || outdated)
-            binding.root.findViewById<ImageView>(R.id.dual_screen_badge).apply {
-                isVisible = model.programIdHex in dualScreenTitleIds
-                contentDescription = activity.getString(
-                    when {
-                        missing -> R.string.dual_screen_download_available
-                        outdated -> R.string.dual_screen_update_available
-                        else -> R.string.dual_screen_companion_available
-                    },
-                    model.title
-                )
-            }
+            dualScreenBadges.bind(binding.root, model)
         }
 
         private fun bindListView(model: Game) {

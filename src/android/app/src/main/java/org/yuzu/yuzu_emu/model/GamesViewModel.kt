@@ -17,116 +17,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
-import org.yuzu.yuzu_emu.utils.DualScreenModRepository
-import org.yuzu.yuzu_emu.utils.DualScreenModStatus
-import java.io.File
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.util.concurrent.atomic.AtomicBoolean
 
 class GamesViewModel : ViewModel() {
-    private val preferences =
-        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
-    private var lastImportGeneration = preferences.getLong(
-        EmulatorImportViewModel.IMPORT_GENERATION,
-        0
-    )
-
-    fun refreshAfterEmulatorImport() {
-        val generation = preferences.getLong(EmulatorImportViewModel.IMPORT_GENERATION, 0)
-        if (generation != lastImportGeneration && !reloading.get()) {
-            lastImportGeneration = generation
+    // Eden Duo: companion catalog and install states (DualScreenLibraryState).
+    val dualScreen = org.yuzu.yuzu_emu.duo.DualScreenLibraryState(
+        viewModelScope,
+        { _games.value },
+        { reloading.get() },
+        {
             getGameDirsAndExternalContent()
             reloadGames(directoriesChanged = true)
         }
-    }
-
-    private val _dualScreenTitleIds = MutableStateFlow(
-        preferences.getStringSet(DUAL_SCREEN_TITLE_IDS, null)?.toSet()
-            ?: YuzuApplication.appContext.resources
-                .getStringArray(R.array.dual_screen_supported_title_ids).toSet()
     )
-    val dualScreenTitleIds = _dualScreenTitleIds.asStateFlow()
-    private val _dualScreenInstallStates = MutableStateFlow(emptyMap<String, DualScreenModStatus.State>())
-    val dualScreenInstallStates = _dualScreenInstallStates.asStateFlow()
-    private var statusJob: kotlinx.coroutines.Job? = null
-    private var latestVersions: Map<String, String> = runCatching {
-        Json.decodeFromString<Map<String, String>>(preferences.getString("DualScreenVersions", "{}")!!)
-    }.getOrDefault(emptyMap())
-
-    private fun refreshInstalledCompanions() {
-        viewModelScope.launch {
-            statusJob?.cancel()
-            statusJob = viewModelScope.launch {
-                val supported = _dualScreenTitleIds.value
-                val versions = latestVersions
-                val library = _games.value.toList()
-                val states = withContext(Dispatchers.IO) {
-                    library.filter { it.programIdHex in supported }.associate { game ->
-                        val state = runCatching {
-                            val path = game.addonDir
-                            if (path.startsWith("content://")) {
-                                // The installer cannot write to a linked folder, so never offer a
-                                // download/update there; an installed current companion still shows.
-                                DualScreenModStatus.evaluate(
-                                    org.yuzu.yuzu_emu.utils.DocumentFileAccess.companionPackages(path),
-                                    game.programIdHex, versions[game.programIdHex]
-                                ).takeIf { it == DualScreenModStatus.State.CURRENT }
-                                    ?: DualScreenModStatus.State.UNKNOWN
-                            } else DualScreenModStatus.scan(File(path), game.programIdHex, versions[game.programIdHex])
-                        }.getOrDefault(DualScreenModStatus.State.UNKNOWN)
-                        game.programIdHex to state
-                    }
-                }
-                _dualScreenInstallStates.value = states
-            }
-        }
-    }
-
-    private val catalogRefreshing = AtomicBoolean(false)
-    private var lastCatalogAttempt = 0L
-
-    /** Show cached support immediately and refresh once per minute when the library opens. */
-    fun refreshDualScreenSupport(force: Boolean = false) {
-        refreshInstalledCompanions()
-        val now = android.os.SystemClock.elapsedRealtime()
-        if ((!force && lastCatalogAttempt != 0L && now - lastCatalogAttempt < 60_000L) ||
-            !catalogRefreshing.compareAndSet(false, true)
-        ) {
-            return
-        }
-        lastCatalogAttempt = now
-        viewModelScope.launch {
-            try {
-                val releases = withContext(Dispatchers.IO) { DualScreenModRepository.fetchAll() }
-                val latest = releases.groupBy { DualScreenModRepository.titleIdForAsset(it.assetName) }
-                    .filterKeys { it != null }.mapValues { it.value.first() }
-                val ids = latest.keys.filterNotNull().toSet()
-                latestVersions = latest.entries.mapNotNull { (id, release) ->
-                    DualScreenModStatus.releaseVersion(release)?.let { id!! to it }
-                }.toMap()
-                preferences.edit().putStringSet(DUAL_SCREEN_TITLE_IDS, ids)
-                    .putString("DualScreenVersions", Json.encodeToString(latestVersions)).apply()
-                _dualScreenTitleIds.value = ids
-                refreshInstalledCompanions()
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                // Keep the last successful catalog when offline or GitHub is unavailable.
-            } finally {
-                catalogRefreshing.set(false)
-            }
-        }
-    }
-
-    private companion object {
-        const val DUAL_SCREEN_TITLE_IDS = "DualScreenCompanionTitleIds"
-    }
 
     val games: StateFlow<List<Game>> get() = _games
     private val _games = MutableStateFlow(emptyList<Game>())
@@ -172,7 +80,7 @@ class GamesViewModel : ViewModel() {
         )
 
         _games.value = sortedList
-        refreshInstalledCompanions()
+        dualScreen.refreshInstalledCompanions()
     }
 
     fun setShouldSwapData(shouldSwap: Boolean) {
