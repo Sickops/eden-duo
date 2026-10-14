@@ -79,9 +79,6 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_easu_fp32.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_rcas_fp16.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_fidelityfx_fsr_rcas_fp32.frag
-    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_dsmod_quad.frag
-    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_dsmod_map_fade.frag
-    ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_dsmod_quad.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_present_scaleforce_fp16.frag
@@ -95,6 +92,8 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader_mobile.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader_mobile_edge_direction.frag
 )
+
+include(duo_shaders.cmake) # Eden Duo: second-screen compositor shaders
 
 if (HAIKUOS)
     # glslangValidator WILL crash, glslang will not
