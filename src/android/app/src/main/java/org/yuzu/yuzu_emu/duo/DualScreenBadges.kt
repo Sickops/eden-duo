@@ -4,10 +4,14 @@
 package org.yuzu.yuzu_emu.duo
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.View
 import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ListAdapter
+import com.google.android.material.R as MaterialR
+import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.DualScreenModStatus
@@ -61,14 +65,36 @@ class DualScreenBadges(
         return false
     }
 
+    /**
+     * Green: the latest companion is installed. Blue: a companion or an update is available but
+     * not installed. Neutral: support is known but the install state is not (still scanning, a
+     * linked add-on folder, or a package without version metadata). No companion: no badge.
+     */
     fun bind(root: View, model: Game) {
+        val supported = model.programIdHex in dualScreenTitleIds
         val state = companionStates[model.programIdHex]
         val missing = state == DualScreenModStatus.State.MISSING
         val outdated = state == DualScreenModStatus.State.UPDATE_AVAILABLE
         root.findViewById<ImageView>(R.id.dual_screen_download).isVisible =
-            model.programIdHex in dualScreenTitleIds && (missing || outdated)
+            supported && (missing || outdated)
         root.findViewById<ImageView>(R.id.dual_screen_badge).apply {
-            isVisible = model.programIdHex in dualScreenTitleIds
+            isVisible = supported
+            if (!supported) return@apply
+            val background = when (state) {
+                DualScreenModStatus.State.CURRENT -> R.drawable.dual_screen_badge_background_current
+                DualScreenModStatus.State.MISSING,
+                DualScreenModStatus.State.UPDATE_AVAILABLE ->
+                    R.drawable.dual_screen_badge_background_available
+                else -> R.drawable.dual_screen_badge_background
+            }
+            setBackgroundResource(background)
+            imageTintList = if (background == R.drawable.dual_screen_badge_background) {
+                ColorStateList.valueOf(
+                    MaterialColors.getColor(this, MaterialR.attr.colorOnPrimaryContainer)
+                )
+            } else {
+                ColorStateList.valueOf(Color.WHITE)
+            }
             contentDescription = context.getString(
                 when {
                     missing -> R.string.dual_screen_download_available

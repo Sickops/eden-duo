@@ -36,9 +36,12 @@
         <item name="android:padding">2dp</item>
         <item name="android:background">@drawable/dual_screen_download_background</item>
         <item name="android:src">@drawable/ic_companion_download</item>
-        <item name="android:tint">?attr/colorOnPrimary</item>
+        <item name="android:tint">@android:color/white</item>
         <item name="android:visibility">gone</item>
         <item name="android:importantForAccessibility">no</item>
         <item name="android:elevation">3dp</item>
     </style>
+    <color name="dual_screen_badge_current">#2E7D32</color>
+    <color name="dual_screen_badge_available">#1565C0</color>
+    <dimen name="dual_screen_fetch_option_spacing">8dp</dimen>
 </resources>

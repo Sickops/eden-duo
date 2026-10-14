@@ -2,4 +2,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="dual_screen_fetch_show_release_notes">Show release notes</string>
     <string name="dual_screen_fetch_latest">Latest</string>
+    <string name="dual_screen_fetch_game_version">Requires game version %1$s</string>
 </resources>

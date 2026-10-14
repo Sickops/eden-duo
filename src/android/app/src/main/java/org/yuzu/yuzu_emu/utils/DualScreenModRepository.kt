@@ -62,6 +62,13 @@ object DualScreenModRepository {
         return releases.distinctBy { it.downloadUrl }.sortedByDescending { it.publishedAt }
     }
 
+    private val gameVersionPattern =
+        Regex("""\bgame versions? (.+?)\.(?=\s|$)""", RegexOption.IGNORE_CASE)
+
+    /** The "game version ..." clause of a companion's release notes, e.g. "1.2.1". */
+    fun requiredGameVersion(notes: String): String? =
+        gameVersionPattern.find(notes)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+
     fun titleIdForAsset(name: String): String? = assetPattern.matchEntire(name)?.groupValues?.get(1)
         ?.uppercase()?.takeUnless { titleId -> titleId.all { it == '0' } }
 

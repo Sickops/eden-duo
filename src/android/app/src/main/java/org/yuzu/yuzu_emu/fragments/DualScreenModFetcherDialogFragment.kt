@@ -16,6 +16,7 @@ import android.text.method.LinkMovementMethod
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import android.view.View
+import android.widget.RadioGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -87,6 +88,7 @@ class DualScreenModFetcherDialogFragment : DialogFragment() {
         binding.releases.removeAllViews()
         binding.notes.text = ""
         binding.notes.isVisible = false
+        binding.gameVersion.isVisible = false
         binding.showReleaseNotes.isVisible = false
         binding.loading.isVisible = true
         binding.status.isVisible = true
@@ -102,9 +104,12 @@ class DualScreenModFetcherDialogFragment : DialogFragment() {
                 binding.status.isVisible = releases.isEmpty()
                 binding.status.setText(R.string.dual_screen_mod_fetch_empty)
                 binding.showReleaseNotes.isVisible = releases.isNotEmpty()
+                val spacing =
+                    resources.getDimensionPixelSize(R.dimen.dual_screen_fetch_option_spacing)
                 for ((index, release) in releases.withIndex()) {
                     val button = MaterialRadioButton(requireContext()).apply {
                         id = View.generateViewId()
+                        setPadding(paddingLeft, spacing / 2, paddingRight, spacing / 2)
                         val label = getString(
                             R.string.dual_screen_mod_fetch_release,
                             release.title,
@@ -116,6 +121,12 @@ class DualScreenModFetcherDialogFragment : DialogFragment() {
                             if (checked) {
                                 selected = release
                                 selectedUrl = release.downloadUrl
+                                val gameVersion =
+                                    DualScreenModRepository.requiredGameVersion(release.notes)
+                                binding.gameVersion.isVisible = gameVersion != null
+                                binding.gameVersion.text = gameVersion?.let {
+                                    getString(R.string.dual_screen_fetch_game_version, it)
+                                }
                                 binding.notes.isVisible = showReleaseNotes
                                 val notes = release.notes.ifBlank {
                                     getString(R.string.dual_screen_mod_fetch_no_notes)
@@ -130,7 +141,13 @@ class DualScreenModFetcherDialogFragment : DialogFragment() {
                             }
                         }
                     }
-                    binding.releases.addView(button)
+                    binding.releases.addView(
+                        button,
+                        RadioGroup.LayoutParams(
+                            RadioGroup.LayoutParams.MATCH_PARENT,
+                            RadioGroup.LayoutParams.WRAP_CONTENT
+                        ).apply { if (index > 0) topMargin = spacing }
+                    )
                 }
                 val selectedIndex = releases.indexOfFirst { it.downloadUrl == selectedUrl }
                     .coerceAtLeast(0)
@@ -141,6 +158,7 @@ class DualScreenModFetcherDialogFragment : DialogFragment() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                binding.gameVersion.isVisible = false
                 binding.showReleaseNotes.isVisible = false
                 binding.notes.isVisible = false
                 binding.status.isVisible = true

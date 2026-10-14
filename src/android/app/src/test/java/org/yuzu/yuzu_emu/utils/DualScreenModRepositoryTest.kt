@@ -207,4 +207,22 @@ class DualScreenModRepositoryTest {
         }
         assertTrue(cache.listFiles().orEmpty().isEmpty())
     }
+
+    @Test
+    fun requiredGameVersionReadsTheReleaseNotesClause() {
+        val wonder = "Super Mario Bros. Wonder (010015100B514000), game version 1.2.1.\n\nInstall: ..."
+        assertEquals("1.2.1", DualScreenModRepository.requiredGameVersion(wonder))
+        assertEquals(
+            "4.0.0 or 3.0.3 (also with CTGP-DX v1.1.1)",
+            DualScreenModRepository.requiredGameVersion(
+                "Mario Kart 8 Deluxe (0100152000022000), game version 4.0.0 or 3.0.3 " +
+                    "(also with CTGP-DX v1.1.1).\n- more"
+            )
+        )
+        assertEquals(
+            "1.1.0.0",
+            DualScreenModRepository.requiredGameVersion("DQ3 (01003E601E324000), game version 1.1.0.0.")
+        )
+        assertEquals(null, DualScreenModRepository.requiredGameVersion("No version here."))
+    }
 }
