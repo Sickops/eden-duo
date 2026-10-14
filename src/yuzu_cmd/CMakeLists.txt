@@ -31,6 +31,8 @@ add_executable(yuzu-cmd
     emu_window/emu_window_sdl3_null.h
     emu_window/emu_window_sdl3_aux.cpp
     emu_window/emu_window_sdl3_aux.h
+    dsmod_harness.cpp
+    dsmod_harness.h
     emu_window/emu_window_sdl3_vk.cpp
     emu_window/emu_window_sdl3_vk.h
     sdl_config.cpp
