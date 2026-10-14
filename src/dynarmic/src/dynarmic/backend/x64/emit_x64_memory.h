@@ -94,10 +94,10 @@ template<>
     }
 
     // check for marked bit, use as unmapped if marked
-    if (ctx.conf.page_table_marked_bit) {
+	if (ctx.conf.page_table_marked_bit) {
         code.bt(page, *ctx.conf.page_table_marked_bit);
         code.jc(abort, code.T_NEAR);
-    }
+	}
     // mask away attributes
     if (ctx.conf.page_table_pointer_mask == 0) {
         code.test(page, page);
