@@ -792,7 +792,6 @@ void RegisteredCache::IterateAllMetadata(
 std::vector<ContentProviderEntry> RegisteredCache::ListEntriesFilter(
     std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
     std::optional<u64> title_id) const {
-    EnsureScanned();
     std::vector<ContentProviderEntry> out;
     IterateAllMetadata<ContentProviderEntry>(
         out,
@@ -1519,6 +1518,7 @@ std::unique_ptr<NCA> ExternalContentProvider::GetEntry(u64 title_id,
 std::vector<ContentProviderEntry> ExternalContentProvider::ListEntriesFilter(
     std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
     std::optional<u64> title_id) const {
+    EnsureScanned();
     std::vector<ContentProviderEntry> out;
 
     for (const auto& [key, file] : entries) {
