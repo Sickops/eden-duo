@@ -6,6 +6,8 @@
 # relative paths below resolve against src/core.
 
 target_sources(core PRIVATE
+    file_sys/duo_external_content_index.cpp
+    file_sys/duo_external_content_index.h
     mods/mod_runtime.cpp
     mods/mod_manifest.cpp
     mods/mod_persist.cpp

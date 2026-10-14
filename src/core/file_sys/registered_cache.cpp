@@ -22,6 +22,7 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/duo_external_content_index.h" // Eden Duo
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs_concat.h"
@@ -1418,6 +1419,7 @@ void ExternalContentProvider::Refresh() {
             ScanDirectory(dir);
         }
     }
+    DuoExternalIndex::Index::Instance().Flush(); // Eden Duo
     scanned.store(true, std::memory_order_release);
 }
 
@@ -1449,13 +1451,38 @@ void ExternalContentProvider::ScanDirectory(const VirtualDir& dir) {
 }
 
 void ExternalContentProvider::ProcessNSP(const VirtualFile& file) {
+    // Eden Duo: replay an unchanged container from the persistent index instead of decrypting
+    // and parsing it again (duo_external_content_index.h). Adds what
+    // AddExternalEntriesFromContainer adds.
+    const auto add = [this](const DuoExternalIndex::Record& record, const VirtualFile& entry_file) {
+        entries[{record.title_id, record.content_type, record.title_type}] = entry_file;
+        if (record.title_type == TitleType::Update) {
+            versions[record.title_id] = record.version;
+            UpsertExternalVersionEntry(multi_version_entries, record.title_id, record.version,
+                                       record.version_string, record.content_type, entry_file);
+        }
+    };
+    auto& index = DuoExternalIndex::Index::Instance();
+    if (index.Restore(file, add)) {
+        return;
+    }
+
     const auto nsp = OpenContainerAsNsp(file, Loader::FileType::NSP);
     if (!nsp) {
         return;
     }
 
     LOG_DEBUG(Service_FS, "Processing NSP file: {}", file->GetName());
-    AddExternalEntriesFromContainer(nsp, entries, versions, multi_version_entries);
+    std::vector<DuoExternalIndex::Record> records;
+    ForEachContainerEntry(nsp, true, std::nullopt,
+                          [&](TitleType title_type, ContentRecordType content_type, u64 title_id,
+                              const VirtualFile& entry_file, u32 version,
+                              const std::string& version_string) {
+                              records.push_back({title_id, title_type, content_type, version,
+                                                 version_string, entry_file->GetName()});
+                              add(records.back(), entry_file);
+                          });
+    index.Store(file, std::move(records));
 }
 
 void ExternalContentProvider::ProcessXCI(const VirtualFile& file) {
