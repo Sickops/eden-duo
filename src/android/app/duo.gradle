@@ -1,0 +1,92 @@
+// SPDX-FileCopyrightText: Copyright 2026 igawa6
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// Eden Duo overlay for build.gradle.kts, applied by its last line. Everything Eden Duo
+// changes about the upstream Android build lives here, so upstream's build.gradle.kts
+// merges from each Eden nightly with a single added line.
+//
+// Groovy on purpose: a Kotlin script plugin does not see the Android Gradle plugin's classes
+// (they load in the app project's plugins block), while Groovy resolves android {} and
+// androidComponents {} dynamically.
+
+def edenDir = project(':Eden').projectDir
+// Same rule as build.gradle.kts (Kotlin toBooleanStrictOrNull): only "true" turns it on.
+def isNightly = providers.gradleProperty('nightly').getOrNull() == 'true'
+
+android {
+    defaultConfig {
+        applicationId = 'dev.igawa6.edenduo'
+        // Eden Duo release version (shown to users); versionCode stays upstream's time-based
+        // value so every new build installs as an update.
+        versionName = '1.3.0-beta.2'
+
+        externalNativeBuild {
+            cmake {
+                // The update checker asks upstream Eden's release feed and would offer to
+                // install upstream Eden (another app). It stays off in every build, nightly
+                // included, until it can point at Eden Duo's own releases.
+                arguments.removeAll { it.startsWith('-DENABLE_UPDATE_CHECKER=') }
+                arguments.add('-DENABLE_UPDATE_CHECKER=OFF')
+            }
+        }
+    }
+
+    buildTypes.getByName('release') {
+        // The DSMod RE/heap-analysis developer toolkit (mod_re_tools.cpp's heap scan/diff/
+        // class-dump family and the mod_console.cpp EDEN_DSMOD_CMD console) is dead weight in a
+        // build a player installs -- see src/core/CMakeLists.txt's EDEN_DSMOD_BUILD_DEV_TOOLS
+        // comment. Only this signed, distributable build type turns it off; relWithDebInfo/debug
+        // keep the CMake default (ON) so it stays available for local/dev work.
+        externalNativeBuild {
+            cmake {
+                arguments.add('-DEDEN_DSMOD_BUILD_DEV_TOOLS=OFF')
+                // A published build ships no Vulkan validation layer (a debugging tool; the
+                // renderer drops unavailable layers) and embeds no host build paths in
+                // __FILE__-based assert/log strings.
+                arguments.add('-DYUZU_DOWNLOAD_ANDROID_VVL=OFF')
+                def prefixMap = [
+                    "-ffile-prefix-map=${edenDir.absolutePath}/=".toString(),
+                    "-ffile-prefix-map=${System.getProperty('user.home')}/=~/".toString()
+                ]
+                cFlags.addAll(prefixMap)
+                cppFlags.addAll(prefixMap)
+            }
+        }
+    }
+
+    buildTypes.getByName('relWithDebInfo') {
+        // Local development build of Eden Duo; installs beside the published release.
+        manifestPlaceholders['appNameSuffix'] = ' Dev'
+        applicationIdSuffix = '.dev'
+    }
+
+    productFlavors.getByName('mainline') {
+        manifestPlaceholders['appNameBase'] = 'Eden Duo'
+    }
+
+    productFlavors.all { flavor ->
+        // Upstream's productFlavors.all block again, after the appNameBase change above;
+        // app_name follows the flavor name instead of upstream's fixed "Eden".
+        def currentName = flavor.manifestPlaceholders['appNameBase'] ?: 'Eden'
+        def suffix = isNightly ? ' Nightly' : ''
+        flavor.resValue('string', 'app_name_suffixed', "$currentName$suffix".toString())
+        flavor.resValue('string', 'app_name', "$currentName$suffix".toString())
+
+        // Branding overlay (launcher icons, about page, reworded upstream strings). A flavor
+        // source set overrides src/main/res, so upstream's resource files stay untouched.
+        android.sourceSets.getByName(flavor.name).res.srcDir('src/duo/res')
+    }
+}
+
+// The validation layer can already sit in jniLibs from a development build (the CMake step
+// copies it there); keep it out of every release APK regardless.
+androidComponents {
+    onVariants(selector().withBuildType('release')) { variant ->
+        variant.packaging.jniLibs.excludes.add('**/libVkLayer_khronos_validation.so')
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+}
