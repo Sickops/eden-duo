@@ -8,6 +8,8 @@
 target_sources(yuzu-cmd PRIVATE
     emu_window/emu_window_sdl3_aux.cpp
     emu_window/emu_window_sdl3_aux.h
+    dsmod_harness.cpp
+    dsmod_harness.h
 )
 
 if (YUZU_TESTS)

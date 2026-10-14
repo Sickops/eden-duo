@@ -20,9 +20,9 @@ stable reference.
 
 | # | Divergence | Where | Why | Sync risk |
 |---|---|---|---|---|
-| 1 | Upstream `STBI_WRITE_NO_STDIO` (#4282) not adopted; Duo defines `STBI_ONLY_PNG` there instead | `src/common/stb.h` (line ~10) | Duo still writes PNG files with `stbi_write_png` to files (`src/core/mods/`, eden-cli screenshots in `src/yuzu_cmd/yuzu.cpp`, golden tests) | Conflicts whenever upstream edits `stb.h` |
+| 1 | Upstream `STBI_WRITE_NO_STDIO` (#4282) not adopted; Duo defines `STBI_ONLY_PNG` there instead | `src/common/stb.h` (line ~10) | Duo still writes PNG files with `stbi_write_png` to files (`src/core/mods/`, eden-cli screenshots in `src/yuzu_cmd/dsmod_harness.cpp`, golden tests) | Conflicts whenever upstream edits `stb.h` |
 | 2 | `unordered_dense` kept after upstream dropped it (#4326) | `cpmfile.json` (`unordered_dense` entry), `externals/CMakeLists.txt` (`AddJsonPackage(unordered-dense)`), `.patch/unordered-dense/`, `src/core/mods/duo_core.cmake` (`target_link_libraries(core PUBLIC unordered_dense::unordered_dense)`) | The dual-screen runtime's per-tick snapshots use the pinned dense map | Low for the link (no longer on upstream's `core` link line); `cpmfile.json` and `externals/CMakeLists.txt` are busy upstream files |
-| 3 | eden-cli keeps its own `getopt_long` table and `PrintHelp` instead of upstream's unified parser (#4424, `Core::ParseLaunchParams`); about 117 lines upstream removed are restored | `src/yuzu_cmd/yuzu.cpp` (`PrintHelp` ~91-117, option loop ~897-1104) | eden-cli needs Duo-only harness flags (dump, install, scripted input, aux window) | High: upstream parser changes and new flags never reach eden-cli. Planned fix: parse Duo flags first, pass the rest to `ParseLaunchParams` |
+| 3 | eden-cli keeps its own `getopt_long` table and `PrintHelp` instead of upstream's unified parser (#4424, `Core::ParseLaunchParams`); about 117 lines upstream removed are restored | `src/yuzu_cmd/dsmod_harness.cpp` (`PrintHelp`, `ParseCommandLine`); `src/yuzu_cmd/yuzu.cpp` only calls `DSModHarness::ParseCommandLine` where upstream calls `ParseLaunchParams` | eden-cli needs Duo-only harness flags (dump, install, scripted input, aux window), and harness scripts rely on the pre-#4424 semantics that upstream's parser changed. Layering the Duo flags on `ParseLaunchParams` was evaluated for 1.3.0 and rejected, see "eden-cli option parser" below | Medium: the parser no longer conflicts (it is in a Duo file), but upstream parser changes and new flags never reach eden-cli. Re-check on each sync whether upstream fixed the items below |
 | 4 | Kernel `application_process` guarded by a lock plus an epoch counter | `src/core/hle/kernel/kernel.{h,cpp}` (`SetApplicationProcess`, `RetainApplicationProcess`, `IsApplicationProcess`, `application_process_epoch`) | The companion runtime reads the application process from other threads and must detect a process swap; also closes an upstream race | Medium |
 
 ## Generic fixes carried on top of upstream
@@ -38,6 +38,34 @@ drop it as soon as upstream fixes the same problem.
 | 8 | `HostMemory::Unmap` range check as an overflow-safe `ASSERT_MSG` with the offending range | `src/common/host_memory.cpp` | Low |
 | 9 | Test fixes | `src/tests/core/core_timing.cpp`, `src/tests/video_core/memory_tracker.cpp` | Low |
 | 10 | Dynarmic code-page cache invalidated through an atomic `code_gen` counter (bumped by `ClearInstructionCache`/`InvalidateCacheRange`, possibly from another thread) instead of a cross-thread write to `last_code_addr` | `src/core/arm/dynarmic/arm_dynarmic_{32,64}.{h,cpp}` (`DynarmicCallbacks*::MemoryReadCode`) | Medium; regenerate the ledger, the headers become upstream hooks |
+| 11 | SDL frontend lifetime fixes: `*appstate = state`, `SDL_APP_CONTINUE` from `SDL_AppInit`/`SDL_AppEvent`, the input subsystem kept in `SdlState` (upstream's is a local that dies when `SDL_AppInit` returns) and passed to `System::SetInputSubsystem`, the shader-reload callback capturing `state` by value, and `SDL_AppQuit` tolerating early exits (`IsPoweredOn` guard) | `src/yuzu_cmd/yuzu.cpp` (`SdlState`, `SDL_AppInit`, `SDL_AppEvent`, `SDL_AppQuit`) | Low; drop each part once upstream fixes it |
+
+## eden-cli option parser
+
+The eden-cli harness (option parsing, `--dump-il2cpp`/`--dump-romfs`/`--install`, screenshots,
+scripted input, aux window) lives in `src/yuzu_cmd/dsmod_harness.{h,cpp}`. `yuzu.cpp` keeps
+upstream's layout and calls `DSModHarness::ParseCommandLine`, `ResolveSelectedUser`,
+`OnGameLoaded`, `Iterate` and `HandleEvent`.
+
+Putting the Duo flags in front of upstream's `Core::ParseLaunchParams` (Duo flags consumed
+first, the rest passed through) would change flags the harness scripts use. In upstream's
+parser at the recorded base:
+
+* `-d/--debug` is `no_argument` but reads `optarg`: `-d <port>` (the BOTW harness) passes a
+  null pointer to `atoi`.
+* `-i/--input-profile` is `no_argument` but builds a `std::string` from `optarg` (null).
+* `-x/--filter` is `no_argument` and takes the next `argv` entry; `--filter=<spec>` is rejected.
+* `-p/--program` is `optional_argument` and also takes the next `argv` entry, so
+  `--program=<args>` swallows the following argument.
+* `-h/--help` and `-v/--version` only log and do not exit; the run then fails with "No ROM
+  specified" (the `cli_help`/`cli_version` tests expect exit 0 and the text on stdout).
+* `-u <name>` is looked up before the config is loaded; Duo resolves it after `SdlConfig`.
+* A malformed `--multiplayer` is ignored instead of printing the usage and failing.
+
+Fixing those means editing upstream's `src/core/launch_params.cpp`, which is shared with the Qt
+frontend; that is a separate upstream fix, not a Duo change. Revisit when upstream's parser
+handles the cases above; then `ParseCommandLine` can strip the Duo-only flags (`-a`, `-V`,
+`-D`, `-R`, `-I`, `-S`) and pass the rest to `ParseLaunchParams`.
 
 ## Accidental drift (to revert in a source change)
 
