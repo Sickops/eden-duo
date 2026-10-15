@@ -1564,6 +1564,21 @@ void ModRuntime::PublishMapState(StateSnapshot& snapshot, bool with_flags) {
         std::scoped_lock rlk{map_records_mutex};
         return map_records_page == current_page;
     }();
+    // Each map widget's view as last drawn ("@map_view_cx:<area>", _cy, _ppw world units / canvas
+    // px per unit, _x/_y/_w/_h its canvas rect): a package can place things over a world point the
+    // way the map draws it (screen = rect centre + (world - c) * ppw, y up), one tick behind.
+    if (records_current) {
+        std::scoped_lock rlk{map_records_mutex};
+        for (const auto& rec : map_draw_records_published) {
+            snapshot.floats["@map_view_cx:" + rec.area] = rec.cx;
+            snapshot.floats["@map_view_cy:" + rec.area] = rec.cy;
+            snapshot.floats["@map_view_ppw:" + rec.area] = rec.ppw;
+            snapshot.floats["@map_view_x:" + rec.area] = rec.rect[0];
+            snapshot.floats["@map_view_y:" + rec.area] = rec.rect[1];
+            snapshot.floats["@map_view_w:" + rec.area] = rec.rect[2];
+            snapshot.floats["@map_view_h:" + rec.area] = rec.rect[3];
+        }
+    }
     if (!map_selections.empty() && !manifest.pages.empty()) {
         const Page& page = manifest.pages[std::min(current_page, manifest.pages.size() - 1)];
         // Pin mode off: a map whose taps are gated drops its selections.
