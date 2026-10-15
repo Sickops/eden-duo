@@ -131,3 +131,17 @@ add_executable(bktr_romfs_check
 create_target_directory_groups(bktr_romfs_check)
 target_link_libraries(bktr_romfs_check PRIVATE common core)
 target_link_libraries(bktr_romfs_check PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
+
+# Boot-free check that NSO helper (companion / guest-helper) RX pages are reserved before NCE
+# PatchText/RelocateAndCopy, so every module's SVC trampolines land in mapped patch pages (the
+# 1.2.1 Android "load plan on a non-last module" hang). `--reproduce-1.2.1` runs the old layout
+# and must fail. Needs the NCE patcher (oaknut), so arm64 builds only.
+if (HAS_NCE)
+    add_executable(nso_nce_layout_test
+        core/loader/nso_nce_layout.cpp
+        ../core/arm/nce/patcher.cpp
+    )
+    target_include_directories(nso_nce_layout_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
+    target_link_libraries(nso_nce_layout_test PRIVATE common merry::oaknut)
+    add_test(NAME nso_nce_layout_test COMMAND nso_nce_layout_test)
+endif()
