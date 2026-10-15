@@ -734,6 +734,11 @@ void ModRuntime::PublishUi(const StateSnapshot& snapshot) {
         // map needs (BuildRenderExtras adds the map rects for glide_owed).
         render_extras.glide_owed = true;
     }
+    // An Image widget cross-fade ("src_fade_ms") in flight: glide_owed above only re-arms Map
+    // widgets, so without this the fade would stop on its first frame (the outgoing picture).
+    if (image_fallback_state.fade_in_flight.exchange(false, std::memory_order_relaxed)) {
+        ui_signature_valid = false;
+    }
     // Widget groups advance on real time; a group that starts moving on an odd tick is drawn from
     // the next published frame on.
     UpdateGroupAnims(snapshot);

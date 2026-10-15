@@ -157,12 +157,16 @@ TEST_CASE("DSMod image fallback: src_fade_ms cross-fades only when src_fade_bind
     Canvas starting = Draw(w, Provide({{"module:g:c", Solid(Red)}}), s, fallback, &animating);
     REQUIRE(animating);
     REQUIRE(PixelAt(starting, 5, 5) != Red);
+    // ... and flags it for PublishUi, which owes the follow-up repaints (the redraw worker's own
+    // `animating` only re-arms Map widgets).
+    REQUIRE(fallback.fade_in_flight.exchange(false));
     // Once src_fade_ms has fully elapsed, the target shows exactly (no more blending) and
     // animating goes false again.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     Canvas landed = Draw(w, Provide({{"module:g:c", Solid(Red)}}), s, fallback, &animating);
     REQUIRE(PixelAt(landed, 5, 5) == Red);
     REQUIRE_FALSE(animating);
+    REQUIRE_FALSE(fallback.fade_in_flight.load());
 }
 
 TEST_CASE("DSMod image fallback: src_fade_ms/src_fade_bind parse, clamp and expand with \"{i}\"",

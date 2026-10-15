@@ -263,6 +263,7 @@ void DrawImage(const WidgetDrawContext& ctx) {
                 fade_from_image = slot.fade_from;
                 fade_t = ApplyEasing(Easing::EaseInOut, elapsed / span);
                 ctx.settling = true; // a fade in flight: the caller must redraw again
+                ctx.image_fallback->fade_in_flight.store(true, std::memory_order_relaxed);
             }
         }
         if (image == nullptr) {

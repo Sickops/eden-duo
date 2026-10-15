@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <functional>
@@ -87,6 +88,11 @@ struct ImageFallbackEntry {
 struct ImageFallbackState {
     std::unordered_map<std::string, ImageFallbackEntry> entries;
     std::mutex mutex;
+    /// Set by DrawImage while any cross-fade is still in flight. The redraw worker's `animating`
+    /// signal only re-arms Map widgets (glide_owed), so PublishUi consumes this to schedule the
+    /// repaint that carries the fade to its end; otherwise a fade freezes on its first frame (the
+    /// outgoing picture) until something else redraws the page.
+    std::atomic<bool> fade_in_flight{false};
 };
 /// Called with the area the map is drawing and the player's world position in it, so the runtime
 /// can record fog-of-war reveal against exactly the area shown (not a guessed one).
