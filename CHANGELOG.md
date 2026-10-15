@@ -2,9 +2,11 @@
 
 ## Unreleased
 
-- Fix stale sampled textures after GPU memory remapping, including character and environment texture corruption in **Trails through Daybreak II**.
-- Match Vulkan fragment-output numeric types to integer render targets.
-- Lower proven invocation-private compute shared memory to private scratch, avoiding oversized workgroup allocations without truncating shader data.
+**Fixed**
+
+- **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory.
+- Games that draw to integer render targets now render correctly on all Vulkan drivers, not only on macOS.
+- Compute shaders that need more shared memory than the GPU provides now run in full instead of being cut short (seen in Trails through Daybreak II on Adreno).
 
 ## 1.2.1
 

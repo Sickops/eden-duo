@@ -1,17 +1,17 @@
 """Check a 1920x1080 Thor capture of the prologue café's first Van/Elaine dialogue.
 
 Pause at Van's "Huh... It ain't every day..." line; keep the default camera.
-Run: python tools/test_daybreak_textures.py screenshot.png
+Run: python tools/duo/daybreak-texture-check.py screenshot.png
 Requires Pillow. Checks actual window materials, not emulator source or mock output.
 
 Temporal check: record 15+ seconds at Elaine's "You're a master of your craft,
 Victor." line, 1920x1080, without advancing dialogue or moving the camera.
-Run: python tools/test_daybreak_textures.py --popping recording.mp4
+Run: python tools/duo/daybreak-texture-check.py --popping recording.mp4
 Requires ffmpeg on PATH; inspects every frame for rear-wall disappearance.
 
 Gameplay check: stand inside Montmart Bistro facing the double entrance doors;
 keep the front wall centered, with no camera movement, and record 20 seconds.
-Run: python tools/test_daybreak_textures.py --gameplay-popping recording.mp4
+Run: python tools/duo/daybreak-texture-check.py --gameplay-popping recording.mp4
 """
 
 import subprocess

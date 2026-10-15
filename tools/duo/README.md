@@ -60,3 +60,9 @@ Then resolve the conflicts, fill `release_tag` / `release_url` in
 
 Formatting rule: only format Duo-owned paths. Never run `clang-format` over whole
 upstream files; reflowed upstream code conflicts on every sync.
+
+## `daybreak-texture-check.py`
+
+Not a sync tool: the pixel check from PR #12 for Trails through Daybreak II rendering
+(stale or missing textures). It needs your own 1920x1080 captures of the scenes named in
+its header and Pillow (plus ffmpeg for the video modes); it is not run by any test suite.
