@@ -3,8 +3,8 @@
 
 // Drag-to-scroll lists (Page::scrolls): the "@scroll:<id>" offset key, region lookup, a repeat
 // template's element count and row pitch, the content size (MeasureScroll, memoised per snapshot by
-// ScrollMemo), the clamped offset, the follow_bind offset, the visible element range and the scrollbar thumb. Pure
-// functions; the drag and fling are in mod_input.cpp.
+// ScrollMemo), the clamped offset, the follow_bind offset (FollowOffset), the visible element range
+// and the scrollbar thumb. Pure functions; the drag and fling are in mod_input.cpp.
 
 #include <algorithm>
 

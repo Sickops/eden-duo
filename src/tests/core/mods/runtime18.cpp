@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Runtime 18: a module re-requests its font through "__font_epoch" (mod_font_epoch.h),
 // and the runtime 15/17 forms a package uses for a gate over a value that may be unpublished
-// ("view_custom:<id>" before the view was ever touched). Also the unreleased scroll-region
-// "follow_bind" / "follow_open" keys (lumi-rt).
+// ("view_custom:<id>" before the view was ever touched). Also the scroll-region "follow_bind" /
+// "follow_open" keys the Luminescent Platinum / Shining Pearl packages use.
 #include <map>
 #include <optional>
 #include <string>
@@ -140,7 +140,8 @@ TEST_CASE("DSMod font epoch: atlas invalidation includes numeric pages only",
     REQUIRE_FALSE(FontAtlasKeyMatches("module:font/{p}.rgba", "module:other/12.rgba"));
 }
 
-TEST_CASE("DSMod scroll: follow_bind / follow_open manifest keys", "[dsmod][runtime18][scroll][follow]") {
+TEST_CASE("DSMod scroll: follow_bind / follow_open manifest keys",
+          "[dsmod][runtime18][scroll][follow]") {
     const auto json = nlohmann::json::parse(R"({"format":1,"pages":[{"id":"p",
         "scrolls":[{"id":"a","rect":[0,0,100,100],"follow_bind":"sel.row","follow_open":true},
                    {"id":"b","rect":[0,0,100,100]}],
