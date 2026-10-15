@@ -58,7 +58,13 @@ void RemoveUnreachableBlocks(IR::Program& program) {
     program.blocks.erase(std::remove_if(begin, end, pred), end);
 }
 
-void PrivatizeInvocationSharedMemory(IR::Program& program) {
+void PrivatizeInvocationSharedMemory(IR::Program& program, const HostTranslateInfo& host_info) {
+    // Only rewrite shaders whose shared memory does not fit the device; shaders that fit keep
+    // their workgroup memory (an unknown limit, 0, disables the pass).
+    if (host_info.max_compute_shared_memory_size == 0 ||
+        program.shared_memory_size <= host_info.max_compute_shared_memory_size) {
+        return;
+    }
     if (program.stage != Stage::Compute || program.shared_memory_size == 0 ||
         program.workgroup_size[0] == 0 || program.workgroup_size[1] != 1 ||
         program.workgroup_size[2] != 1) {
@@ -576,7 +582,7 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     Optimization::SsaRewritePass(program);
 
     Optimization::ConstantPropagationPass(env, program);
-    PrivatizeInvocationSharedMemory(program);
+    PrivatizeInvocationSharedMemory(program, normalized_host_info);
 
     Optimization::PositionPass(env, program);
 
