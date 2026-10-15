@@ -3,7 +3,7 @@
 
 // Drag-to-scroll lists (Page::scrolls): the "@scroll:<id>" offset key, region lookup, a repeat
 // template's element count and row pitch, the content size (MeasureScroll, memoised per snapshot by
-// ScrollMemo), the clamped offset, the visible element range and the scrollbar thumb. Pure
+// ScrollMemo), the clamped offset, the follow_bind offset, the visible element range and the scrollbar thumb. Pure
 // functions; the drag and fling are in mod_input.cpp.
 
 #include <algorithm>
@@ -84,6 +84,24 @@ ScrollMetrics MeasureScroll(const Page& page, const ScrollRegion& region,
     m.max_offset =
         static_cast<s32>(std::clamp<s64>(m.content_h - std::max(0, region.rect[3]), 0, 1'000'000));
     return m;
+}
+
+float FollowOffset(const ScrollMetrics& m, s32 view_h, s64 index, float offset) {
+    const float max_offset = static_cast<float>(std::max(0, m.max_offset));
+    offset = std::clamp(offset, 0.0f, max_offset);
+    if (index < 0 || m.row_h <= 0) {
+        return offset;
+    }
+    const s64 row = index / std::max(1, m.cols);
+    const float top = static_cast<float>(row * m.row_h);
+    const float bottom = top + static_cast<float>(m.row_h);
+    const float h = static_cast<float>(std::max(0, view_h));
+    if (top < offset || m.row_h > view_h) {
+        offset = top;
+    } else if (bottom > offset + h) {
+        offset = bottom - h;
+    }
+    return std::clamp(offset, 0.0f, max_offset);
 }
 
 s32 ScrollOffset(const ScrollRegion& region, const StateSnapshot& snapshot) {

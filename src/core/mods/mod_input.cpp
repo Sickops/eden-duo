@@ -1008,9 +1008,11 @@ void ModRuntime::PublishScroll(StateSnapshot& snapshot, bool advance) {
     }
     for (const ScrollRegion& region : page.scrolls) {
         auto& st = scroll_state[region.id];
+        bool was_reset = false; ///< reset_bind changed this tick: the follow is re-applied
         if (!region.reset_bind.empty()) {
             const s64 v = snapshot.GetInt(region.reset_bind);
-            if (st.has_reset && v != st.reset_value && st.offset != 0.0f) {
+            was_reset = st.has_reset && v != st.reset_value;
+            if (was_reset && st.offset != 0.0f) {
                 LOG_INFO(Core, "DSMod: scroll '{}' reset ({} {} -> {})", region.id,
                          region.reset_bind, st.reset_value, v);
                 st.offset = 0.0f;
@@ -1026,6 +1028,39 @@ void ModRuntime::PublishScroll(StateSnapshot& snapshot, bool advance) {
         }
         const ScrollMetrics m = MeasureScroll(page, region, snapshot);
         const float max_offset = static_cast<float>(m.max_offset);
+        if (!region.follow_bind.empty()) {
+            // Keep the bound element (the selected row) in view when it changes from outside
+            // the list. A finger in the list -- a tap on a row -- owns the change instead.
+            const s64 now_ms = SteadyMs();
+            if (scroll_target == region.id) {
+                st.touched_ms = now_ms;
+            }
+            const bool touched =
+                st.touched_ms >= 0 && now_ms - st.touched_ms < FollowQuietMs;
+            const auto v = SnapshotNumber(snapshot, region.follow_bind);
+            const std::optional<s64> index =
+                v ? std::optional<s64>{static_cast<s64>(std::llround(*v))} : std::nullopt;
+            if (was_reset || (st.has_follow ? index != st.follow_value : region.follow_open)) {
+                st.follow_pending = !touched && index && *index >= 0;
+            }
+            st.has_follow = true;
+            st.follow_value = index;
+            if (touched) {
+                st.follow_pending = false;
+            }
+            // Applied once the list holds the element (its count may arrive after the index).
+            if (st.follow_pending && index && *index < m.count) {
+                st.follow_pending = false;
+                const float to = FollowOffset(m, region.rect[3], *index, st.offset);
+                if (std::fabs(to - st.offset) >= 0.5f) {
+                    LOG_INFO(Core, "DSMod: scroll '{}' follows {} = {} (offset {:.0f} -> {:.0f})",
+                             region.id, region.follow_bind, *index, st.offset, to);
+                    st.offset = to;
+                    st.flinging = false;
+                    st.velocity = 0.0f;
+                }
+            }
+        }
         if (st.flinging && dt > 0.0f) {
             st.offset += st.velocity * dt;
             st.velocity *= std::pow(region.friction, dt);

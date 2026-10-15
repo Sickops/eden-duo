@@ -531,6 +531,10 @@ struct ScrollMetrics {
 /// Content size of a region against the snapshot (count_bind, else the largest template count).
 ScrollMetrics MeasureScroll(const Page& page, const ScrollRegion& region,
                             const StateSnapshot& snapshot);
+/// Follow (ScrollRegion::follow_bind): the offset that shows element `index`'s row whole, moving
+/// the least from `offset` (unchanged when the row is already in view; a row taller than the
+/// viewport aligns its top). Clamped to 0..max_offset. `view_h` is the region's rect height.
+float FollowOffset(const ScrollMetrics& m, s32 view_h, s64 index, float offset);
 /// MeasureScroll per region, computed at most once while one snapshot is being expanded or
 /// scanned (it walks every widget of the page, once per region).
 struct ScrollMemo {

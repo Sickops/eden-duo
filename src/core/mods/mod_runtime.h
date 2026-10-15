@@ -1752,6 +1752,10 @@ private:
         bool flinging{false};
         bool has_reset{false};
         s64 reset_value{0}; ///< last reset_bind value seen
+        bool has_follow{false};
+        std::optional<s64> follow_value; ///< last follow_bind value seen (nullopt = missing)
+        bool follow_pending{false};      ///< a follow waiting for the list to reach the element
+        s64 touched_ms{-1};              ///< last tick a finger gesture owned this list
     };
     std::unordered_map<std::string, ScrollState> scroll_state; ///< region id -> state
     size_t scroll_page{~size_t{0}};

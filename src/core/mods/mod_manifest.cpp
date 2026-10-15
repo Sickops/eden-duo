@@ -564,6 +564,8 @@ std::optional<ScrollRegion> ParseScrollRegion(const nlohmann::json& j) {
     r.pad = static_cast<s32>(j.contains("pad") ? ParseNumber(j.at("pad")) : 0);
     r.show = ParseGate(j, "show_bind");
     r.reset_bind = j.value("reset_bind", std::string{});
+    r.follow_bind = j.value("follow_bind", std::string{});
+    r.follow_open = j.value("follow_open", false);
     r.fling = j.value("fling", true);
     r.friction = std::clamp(static_cast<float>(j.value("friction", 0.135)), 0.0001f, 0.99f);
     r.bar_src = StringOr(j, "bar_src");

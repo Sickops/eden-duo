@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Drag-to-scroll lists (Page::scrolls, Widget::scroll): boot-free checks of the pieces the
 // runtime and the renderer share -- offset clamp, visible-row materialisation, hit-test index
-// mapping through the clip, the "{i}" keep range, and clipped drawing.
+// mapping through the clip, the "{i}" keep range, clipped drawing, and the follow_bind offset.
 #include <catch2/catch_test_macros.hpp>
 #include "core/mods/mod_ui.h"
 
@@ -419,4 +419,39 @@ TEST_CASE("DSMod scroll: wrapped document uses measured height and resets for sh
     // An explicit list pitch still owns its content size.
     region.row_h = 40;
     REQUIRE(MeasureScroll(page, region, snapshot).content_h == 44);
+}
+
+TEST_CASE("DSMod scroll: follow_bind shows the element's row, moving the least",
+          "[dsmod][ui][scroll][follow]") {
+    const Page page = ItemPage();
+    const ScrollRegion& r = page.scrolls[0]; // 660 px viewport, 66 px rows: 10 rows visible
+    const auto m = MeasureScroll(page, r, State(160, 0));
+    const s32 h = r.rect[3];
+    // Already whole in view: no move.
+    REQUIRE(FollowOffset(m, h, 0, 0.0f) == 0.0f);
+    REQUIRE(FollowOffset(m, h, 9, 0.0f) == 0.0f);
+    REQUIRE(FollowOffset(m, h, 12, 5.0f * RowPitch) == 5.0f * RowPitch);
+    // Below the viewport: its bottom lands on the viewport bottom.
+    REQUIRE(FollowOffset(m, h, 10, 0.0f) == 11.0f * RowPitch - h);
+    REQUIRE(FollowOffset(m, h, 100, 0.0f) == 101.0f * RowPitch - h);
+    // Above the viewport (or cut at its top): its top lands on the viewport top.
+    REQUIRE(FollowOffset(m, h, 3, 40.0f * RowPitch) == 3.0f * RowPitch);
+    REQUIRE(FollowOffset(m, h, 3, 3.0f * RowPitch + 10) == 3.0f * RowPitch);
+    // The last element: the list's end (never past max_offset).
+    REQUIRE(FollowOffset(m, h, 159, 0.0f) == static_cast<float>(m.max_offset));
+    // Nothing to follow: the offset only clamps.
+    REQUIRE(FollowOffset(m, h, -1, 123.0f) == 123.0f);
+    REQUIRE(FollowOffset(m, h, -1, 1e9f) == static_cast<float>(m.max_offset));
+    // A list that fits never scrolls.
+    REQUIRE(FollowOffset(MeasureScroll(page, r, State(8, 0)), h, 7, 0.0f) == 0.0f);
+    // Grid: the element's row is index / cols.
+    ScrollMetrics grid = m;
+    grid.cols = 4;
+    REQUIRE(FollowOffset(grid, h, 4 * 10 + 3, 0.0f) == 11.0f * RowPitch - h);
+    REQUIRE(FollowOffset(grid, h, 4 * 9 + 3, 0.0f) == 0.0f);
+    // A row taller than the viewport aligns its top.
+    ScrollMetrics tall = m;
+    tall.row_h = 700;
+    tall.max_offset = 160 * 700 - h;
+    REQUIRE(FollowOffset(tall, h, 2, 0.0f) == 1400.0f);
 }

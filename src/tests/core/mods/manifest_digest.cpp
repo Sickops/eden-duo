@@ -589,6 +589,8 @@ std::string R(const ScrollRegion& o) {
     C(bar_color);
     C(bar_track);
     F(bar_w);
+    if (!o.follow_bind.empty()) { F(follow_bind); }
+    if (o.follow_open) { F(follow_open); }
     DUMP_END;
 }
 std::string R(const ActionValue& o) {
@@ -1230,7 +1232,7 @@ void CheckLayouts() {
         {"Widget", sizeof(Widget), 2272},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
-        {"ScrollRegion", sizeof(ScrollRegion), 256},
+        {"ScrollRegion", sizeof(ScrollRegion), 296},
         {"MapWidgetExtras", sizeof(MapWidgetExtras), 448},
         {"MapWidgetExtras::Group", sizeof(MapWidgetExtras::Group), 112},
         {"MapWidgetExtras::LabelStyle", sizeof(MapWidgetExtras::LabelStyle), 24},

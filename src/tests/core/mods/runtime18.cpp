@@ -2,17 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Runtime 18: a module re-requests its font through "__font_epoch" (mod_font_epoch.h),
 // and the runtime 15/17 forms a package uses for a gate over a value that may be unpublished
-// ("view_custom:<id>" before the view was ever touched).
+// ("view_custom:<id>" before the view was ever touched). Also the unreleased scroll-region
+// "follow_bind" / "follow_open" keys (lumi-rt).
 #include <map>
 #include <optional>
 #include <string>
 #include <thread>
 #include <catch2/catch_test_macros.hpp>
+#include <nlohmann/json.hpp>
 
 #include "core/mods/dsmod_module_abi.h"
 #include "core/mods/mod_expr.h"
 #include "core/mods/mod_font_epoch.h"
 #include "core/mods/mod_process_guard.h"
+#include "core/mods/mod_runtime.h"
 
 using namespace Core::Mods;
 
@@ -135,4 +138,22 @@ TEST_CASE("DSMod font epoch: atlas invalidation includes numeric pages only",
     REQUIRE_FALSE(FontAtlasKeyMatches("module:font/{p}.rgba", "module:font/.rgba"));
     REQUIRE_FALSE(FontAtlasKeyMatches("module:font/{p}.rgba", "module:font/x.rgba"));
     REQUIRE_FALSE(FontAtlasKeyMatches("module:font/{p}.rgba", "module:other/12.rgba"));
+}
+
+TEST_CASE("DSMod scroll: follow_bind / follow_open manifest keys", "[dsmod][runtime18][scroll][follow]") {
+    const auto json = nlohmann::json::parse(R"({"format":1,"pages":[{"id":"p",
+        "scrolls":[{"id":"a","rect":[0,0,100,100],"follow_bind":"sel.row","follow_open":true},
+                   {"id":"b","rect":[0,0,100,100]}],
+        "widgets":[{"type":"rect","rect":[0,0,100,20],"repeat":9,"repeat_dy":20,
+                    "scroll":{"id":"c","rect":[0,0,100,60],"follow_bind":"x"}}]}]})");
+    Manifest m;
+    REQUIRE(ParseDualScreenManifest(json, m));
+    const auto& s = m.pages[0].scrolls;
+    REQUIRE(s.size() == 3);
+    REQUIRE(s[0].follow_bind == "sel.row");
+    REQUIRE(s[0].follow_open);
+    REQUIRE(s[1].follow_bind.empty());
+    REQUIRE_FALSE(s[1].follow_open);
+    REQUIRE(s[2].follow_bind == "x"); // the inline form takes it too
+    REQUIRE_FALSE(s[2].follow_open);
 }

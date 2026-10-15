@@ -533,7 +533,17 @@ struct ScrollRegion {
     u32 bar_color{0};       ///< scrollbar thumb colour (0 = no bar)
     u32 bar_track{0};       ///< scrollbar track colour (0 = none)
     s32 bar_w{6};           ///< bar width, px, drawn inside the rect's right edge
+    /// "follow_bind": an element index (the selected row) kept in view. When the value changes
+    /// for a reason outside the list (a sort, a button, a swipe elsewhere) the list scrolls the
+    /// least that shows that element's row whole. A change within FollowQuietMs of a finger in
+    /// the list (a tap on a row) never scrolls. Negative / missing = nothing to follow. A
+    /// reset_bind change re-applies the follow to the current value.
+    std::string follow_bind;
+    bool follow_open{false}; ///< "follow_open": also bring the element into view on page entry
 };
+
+/// A follow_bind change this soon after a finger was in the list is the list's own tap.
+inline constexpr s64 FollowQuietMs = 500;
 
 struct Page {
     std::string id;
