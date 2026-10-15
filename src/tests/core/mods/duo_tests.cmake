@@ -12,6 +12,7 @@ target_sources(tests PRIVATE
     core/mods/map_overview.cpp
     core/mods/manifest_digest.cpp
     core/mods/map_room_category.cpp
+    core/mods/image_fallback.cpp
     core/mods/mod_load_plan.cpp
     core/mods/render_golden.cpp
     core/mods/runtime14.cpp

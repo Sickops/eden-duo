@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -55,6 +56,38 @@ using ImageProvider = std::function<std::shared_ptr<const Image>(const std::stri
 /// caller is a different thread -- fixed the same way ImageProvider is).
 using TextProvider = std::function<std::shared_ptr<const std::string>(const std::string& ref)>;
 using MapFollowState = std::map<std::string, std::array<float, 2>>;
+
+/// Per-Image-widget-instance draw continuity, kept across redraw passes. `GetModuleImage` /
+/// `CacheFindImage` return nullptr on a cache miss while a decode is pending, not a drawable
+/// "no picture" state -- a module that mints a fresh source key every time it has something new
+/// to show (a live-rendered frame named by revision) would otherwise flicker blank on every key,
+/// at whatever rate it mints them. `image`/`source_key` are the picture and key last actually
+/// resolved for this widget, kept alive here past whatever the runtime's own image_cache evicts;
+/// a pending decode draws `image` again instead of nothing. `fade_from` is only non-null while an
+/// Image widget's optional "src_fade_ms" cross-fade (into `image`, from `fade_from`) is in
+/// flight; `fade_bind_value` is "src_fade_bind"'s value recorded at the swap that started the
+/// fade currently showing (or the last instant swap), so the next swap can tell whether that bind
+/// actually changed.
+struct ImageFallbackEntry {
+    std::string source_key;
+    std::shared_ptr<const Image> image;
+    std::shared_ptr<const Image> fade_from;
+    std::chrono::steady_clock::time_point fade_start{};
+    std::string fade_bind_value;
+};
+/// Every Image widget instance's `ImageFallbackEntry`, by DrawImage's own stable key (page id +
+/// widget id/index, the same convention the pan_zoom view lookup in RenderPage uses, plus
+/// src_bind). One instance lives on the ModRuntime (`image_fallback_state`); RenderPage only
+/// borrows a pointer to it, like `follow_state`. Its own mutex, not `asset_cache_mutex`: a
+/// fallback hit never touches `image_cache`, and the only writer/reader is DrawImage, on
+/// whichever thread runs it (the redraw worker, or the tick thread's synchronous carve-outs for a
+/// page transition / EDEN_DSMOD_SYNC_REDRAW -- the same two callers every other per-widget
+/// RenderPage state already has to allow for). Cleared wholesale by ShutdownGameModule, so
+/// nothing leaks across a title change or a package reload.
+struct ImageFallbackState {
+    std::unordered_map<std::string, ImageFallbackEntry> entries;
+    std::mutex mutex;
+};
 /// Called with the area the map is drawing and the player's world position in it, so the runtime
 /// can record fog-of-war reveal against exactly the area shown (not a guessed one).
 using VisitReporter = std::function<void(const std::string& area, float wx, float wy)>;
@@ -452,6 +485,14 @@ std::optional<f64> SnapshotNumber(const StateSnapshot& snapshot, const std::stri
 /// lock `ModRuntime::UpdateHiddenMarkers` already holds for its whole body (`map_state_mutex`,
 /// reused here rather than a new lock, same reasoning as `follow_state_mutex`/`view_mutex`). Added
 /// last of all, after `follow_state_mutex`, for the identical positional-compatibility reason.
+///
+/// `image_fallback` (optional, owns its own lock -- see `ImageFallbackState`): an Image widget
+/// whose resolved source is still decoding (a null from `images`) draws the last picture this
+/// widget instance actually drew instead of nothing, and an Image widget with "src_fade_ms" set
+/// cross-fades into a newly landed picture instead of swapping instantly. Null (every call site
+/// that predates this, every test) keeps both exactly off, today's behaviour: a pending decode
+/// draws nothing, a new picture swaps instantly. Added last of all, for the same
+/// positional-compatibility reason as `follow_state_mutex`/`manifest_markers_mutex`.
 bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                 const StateSnapshot& snapshot, const ImageProvider& images = {},
                 const ViewState& views = {}, MapFollowState* follow_state = nullptr,
@@ -459,7 +500,8 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                 AuxDrawList* draw_list = nullptr, bool* animating = nullptr,
                 const TextProvider& texts = {}, MapDrawRecords* map_records = nullptr,
                 const RenderExtras* extras = nullptr, std::mutex* follow_state_mutex = nullptr,
-                std::recursive_mutex* manifest_markers_mutex = nullptr);
+                std::recursive_mutex* manifest_markers_mutex = nullptr,
+                ImageFallbackState* image_fallback = nullptr);
 
 /// A hash of what a page draw paints outside every widget's own rect, which no per-widget
 /// dependency hash sees: the drag ghost and drop-target highlight (snapshot.drag, "@drag*") and

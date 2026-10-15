@@ -526,6 +526,8 @@ std::string R(const Widget& o) {
     F(empty_src);
     F(src_rect);
     F(empty_rect);
+    F(src_fade_ms);
+    F(src_fade_bind);
     F(payload);
     F(select_group);
     F(draggable);
@@ -1229,7 +1231,7 @@ void CheckLayouts() {
     const Size sizes[] = {
         {"Manifest", sizeof(Manifest), 2448},
         {"Page", sizeof(Page), 160},
-        {"Widget", sizeof(Widget), 2272},
+        {"Widget", sizeof(Widget), 2312},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
         {"ScrollRegion", sizeof(ScrollRegion), 296},

@@ -425,6 +425,14 @@ struct Widget {
     /// Image: the rect for `empty_src`, when the "empty" sprite lives elsewhere in the same
     /// atlas -- an energy tank's blank and full frames, for instance.
     std::array<float, 4> empty_rect{0.0f, 0.0f, 1.0f, 1.0f};
+    /// Image: cross-fade into a newly resolved `src`/`src_bind` picture over this many ms
+    /// (clamped 0..1000) instead of swapping instantly. 0 (the default) = instant, as before.
+    s32 src_fade_ms{0};
+    /// Image: with `src_fade_ms` > 0, only fade when this bind's value differs from its value at
+    /// the previous swap (text or numeric point); empty = always fade. Lets a package fade a
+    /// deliberate scene change while a picture that merely keeps the same logical content under a
+    /// fresh key (a live-rendered frame) swaps instantly, as if nothing special happened.
+    std::string src_fade_bind;
     // --- tap-select / drag-and-drop ---------------------------------------------------------
     /// The value this widget carries ("{i}" expanded): an integer (dec or 0x hex), or "$point"
     /// to carry a published int read at the moment it is used.

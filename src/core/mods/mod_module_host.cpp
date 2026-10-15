@@ -152,6 +152,15 @@ void ModRuntime::ShutdownGameModule() {
     }
     module_asset_used.clear();
     module_asset_bytes = 0;
+    {
+        // The last-known-good/cross-fade store holds shared_ptr<const Image> directly (that is
+        // the point of it -- surviving the image_cache eviction above), so it needs its own
+        // explicit clear: a stale picture (and its memory) from this title must not answer as
+        // some unrelated widget's "last known good" after the next title's manifest reuses the
+        // same page id / widget id by coincidence.
+        std::scoped_lock lock{image_fallback_state.mutex};
+        image_fallback_state.entries.clear();
+    }
     module_snapshot = nullptr;
     {
         std::scoped_lock lock{module_save_mutex};

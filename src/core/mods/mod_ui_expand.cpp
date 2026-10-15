@@ -193,6 +193,7 @@ size_t ExpandTemplateInto(const Page& page, const Widget& source, const StateSna
             substitute(clone.bind_text);
             substitute(clone.src);
             substitute(clone.src_bind);
+            substitute(clone.src_fade_bind);
             substitute(clone.fill_bind);
             substitute(clone.on_tap);
             substitute(clone.on_hold);

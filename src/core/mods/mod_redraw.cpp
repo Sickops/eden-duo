@@ -1216,7 +1216,7 @@ bool ModRuntime::RenderPageTo(const Page& page, const StateSnapshot& snapshot, A
         // body. This call site (the debug page aside, __debug returns above) also serves the
         // synchronous carve-out (page transitions, GPU_COMPOSITE), which can run concurrently with
         // the redraw worker's own RenderPage call, so this needs to be real, not a formality.
-        &map_state_mutex);
+        &map_state_mutex, &image_fallback_state);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1654,7 +1654,7 @@ void ModRuntime::RunRedrawJob(RedrawJob& job) {
                      &view_mutex,
                      // Same reuse as RenderPageTo's own call -- see
                      // UpdateHiddenMarkers's own updated comment.
-                     &map_state_mutex) &&
+                     &map_state_mutex, &image_fallback_state) &&
                  ok;
             animating = animating || pass_animating;
         }
@@ -1780,7 +1780,11 @@ void ModRuntime::RunRedrawJob(RedrawJob& job) {
             [](const std::string&, float, float) {},
             [this](const std::string& area, float wx, float wy) { return IsVisited(area, wx, wy); },
             nullptr, nullptr, [this](const std::string& ref) { return GetMsbtText(ref); }, &records,
-            nullptr, nullptr, &map_state_mutex);
+            nullptr, nullptr, &map_state_mutex,
+            // Same image_fallback_state as the real pass, not null: both passes must agree on
+            // which picture a pending-decode/mid-fade widget draws, or this verification diff
+            // would flag the very continuity this state exists to provide as a mismatch.
+            &image_fallback_state);
         render_snapshot = nullptr;
 #if EDEN_DSMOD_BUILD_DEV_TOOLS
         ++nstats.verified;

@@ -41,15 +41,34 @@
 namespace Core::Mods {
 
 namespace {
+/// "src_fade_bind"'s current value as a string, text or numeric alike (whichever the package
+/// actually published), so two swaps can be compared for "did this bind change" without caring
+/// which kind of point it names. Empty when the bind is empty or unresolved -- an unresolved bind
+/// compares equal to itself across swaps (no spurious fade from a point that never landed).
+std::string FadeBindSignature(const StateSnapshot& snapshot, const std::string& bind) {
+    if (bind.empty()) {
+        return {};
+    }
+    if (const auto t = snapshot.texts.find(bind); t != snapshot.texts.end()) {
+        return t->second;
+    }
+    if (const auto n = SnapshotNumber(snapshot, bind)) {
+        return fmt::format("{}", *n);
+    }
+    return {};
+}
+
 /// WidgetType::Image: a picture (by src, bound name, table, threshold or format), whole,
 /// cropped, mirrored, turning, trembling or filled as a gauge.
 void DrawImage(const WidgetDrawContext& ctx) {
     Canvas& canvas = ctx.canvas;
     const Manifest& manifest = ctx.manifest;
+    const Page& page = ctx.page;
     const StateSnapshot& snapshot = ctx.snapshot;
     const ImageProvider& images = ctx.images;
     const Widget& widget = ctx.widget;
     const ViewTransform& view = ctx.view;
+    const size_t widget_index = ctx.widget_index;
     s32& x = ctx.x;
     s32& y = ctx.y;
     const s32 rw = ctx.rw;
@@ -171,7 +190,7 @@ void DrawImage(const WidgetDrawContext& ctx) {
             source = &mapped->second;
         }
     }
-    const std::shared_ptr<const Image> image = images(*source);
+    std::shared_ptr<const Image> image = images(*source);
     // Pan and zoom on a picture is a narrower window onto it: at 2x we sample half the
     // source across the same rectangle. Panning is clamped so the content cannot be
     // dragged off its own frame and leave the user staring at nothing.
@@ -197,6 +216,61 @@ void DrawImage(const WidgetDrawContext& ctx) {
         canvas.DrawImageRegion(x, y, rw, rh, img, sx, sy, sw, sh, static_cast<u32>(tint),
                                widget.flip_x, widget.flip_y);
     };
+    // Last-known-good fallback, and optional cross-fade ("src_fade_ms"/"src_fade_bind"):
+    // GetModuleImage/CacheFindImage return nullptr while a newly-minted source key (a module
+    // re-rendering its own picture under a fresh key every time it has something new to show,
+    // e.g. a live map frame named by revision) is still decoding -- not "no picture", just "not
+    // yet this one". Without this, every such key draws one blank frame on the already-cleared
+    // canvas (RenderPage) before the decode lands, flickering at whatever rate the module mints
+    // keys. `ctx.image_fallback` is null for every caller that predates this feature (tests,
+    // RenderDebugPage): behaviour is then exactly what it was before.
+    std::shared_ptr<const Image> fade_from_image;
+    float fade_t = 1.0f;
+    if (ctx.image_fallback != nullptr) {
+        // Stable per-instance key: ExpandWidgets' own "id, else page + index" convention (see the
+        // pan_zoom view lookup in RenderPage), plus src_bind so two differently-bound Image
+        // widgets that happen to share an id never collide.
+        const std::string fallback_key =
+            (widget.id.empty() ? page.id + "#" + std::to_string(widget_index) : widget.id) + "#" +
+            widget.src_bind;
+        std::scoped_lock lock{ctx.image_fallback->mutex};
+        ImageFallbackEntry& slot = ctx.image_fallback->entries[fallback_key];
+        if (image != nullptr && *source != slot.source_key) {
+            // A genuinely new source landed for this widget (not the same key simply re-read from
+            // cache): decide an instant swap or a cross-fade, then it becomes the slot's target.
+            const std::string fade_value = FadeBindSignature(snapshot, widget.src_fade_bind);
+            const bool fade = widget.src_fade_ms > 0 && slot.image != nullptr &&
+                              (widget.src_fade_bind.empty() || fade_value != slot.fade_bind_value);
+            // The currently-displayed target (if any) becomes the new fade's start -- "start the
+            // new fade from the currently displayed (latest) image" even when a fade was already
+            // in flight: the half-finished one is superseded, not queued.
+            slot.fade_from = fade ? slot.image : nullptr;
+            slot.fade_start = std::chrono::steady_clock::now();
+            slot.image = image;
+            slot.source_key = *source;
+            slot.fade_bind_value = fade_value;
+        } else if (image != nullptr) {
+            slot.image = image; // the same source key landing again: keep the slot current
+        }
+        if (slot.fade_from != nullptr) {
+            const float elapsed = std::chrono::duration<float, std::milli>(
+                                      std::chrono::steady_clock::now() - slot.fade_start)
+                                      .count();
+            const float span = static_cast<float>(std::max(widget.src_fade_ms, 1));
+            if (elapsed >= span) {
+                slot.fade_from = nullptr; // landed
+            } else {
+                fade_from_image = slot.fade_from;
+                fade_t = ApplyEasing(Easing::EaseInOut, elapsed / span);
+                ctx.settling = true; // a fade in flight: the caller must redraw again
+            }
+        }
+        if (image == nullptr) {
+            // Pending decode: the slot's last picture (possibly still null, on this widget's
+            // very first ever draw -- then there is truly nothing to show yet, same as before).
+            image = slot.image;
+        }
+    }
     if (image == nullptr) {
         return;
     }
@@ -213,68 +287,84 @@ void DrawImage(const WidgetDrawContext& ctx) {
     }
     // Runtime 16: tint / tint_bind replace `color` as the picture's tint (the same value when
     // neither is set).
-    const u32 tint = WidgetTint(widget, snapshot, widget.color);
+    const u32 base_tint = WidgetTint(widget, snapshot, widget.color);
     const ImageTransform xf = WidgetImageTransform(widget, rw, rh, &snapshot);
     const float spin_deg =
         widget.spin != 0.0f
             ? std::fmod(widget.spin * static_cast<float>(snapshot.tick % 216000) / 60.0f, 360.0f)
             : 0.0f;
-    if (widget.fill_bind.empty() && (xf.active || widget.fill != ImageFill::Stretch)) {
-        // Runtime 16: tile / 9-slice into a picture of the rect's size first, then rotate /
-        // scale that picture as a whole (with any spin), or blit it.
-        const auto& r = eff;
-        const Image* pic = image.get();
-        s32 sx = static_cast<s32>(r[0] * static_cast<float>(image->w));
-        s32 sy = static_cast<s32>(r[1] * static_cast<float>(image->h));
-        s32 sw = std::max(1, static_cast<s32>((r[2] - r[0]) * static_cast<float>(image->w)));
-        s32 sh = std::max(1, static_cast<s32>((r[3] - r[1]) * static_cast<float>(image->h)));
-        static thread_local Image composed;
-        if (widget.fill != ImageFill::Stretch) {
-            ComposeImageFill(composed, rw, rh, *image, sx, sy, sw, sh, widget.fill, widget.slice);
-            pic = &composed;
-            sx = sy = 0;
-            sw = static_cast<s32>(composed.w);
-            sh = static_cast<s32>(composed.h);
-        }
-        if (xf.active || widget.spin != 0.0f) {
-            const float pivot_x = xf.active ? xf.pivot_x : static_cast<float>(rw) * 0.5f;
-            const float pivot_y = xf.active ? xf.pivot_y : static_cast<float>(rh) * 0.5f;
-            canvas.DrawImageTransformed(x, y, rw, rh, *pic, sx, sy, sw, sh, tint,
-                                        xf.degrees + spin_deg, xf.scale, pivot_x, pivot_y,
-                                        widget.flip_x, widget.flip_y);
-        } else {
-            canvas.DrawImageRegion(x, y, rw, rh, *pic, sx, sy, sw, sh, tint, widget.flip_x,
-                                   widget.flip_y);
-        }
-    } else if (widget.fill_bind.empty()) {
-        if (widget.spin != 0.0f) {
-            // A turning piece (loading wheel): the angle advances with the tick, the
-            // page's 15 Hz signature keeps it redrawn while the widget is visible.
-            const float deg = spin_deg;
+    // One image at one tint, every existing fill/transform/spin/mirror path unchanged -- `image`
+    // and `tint` below name this lambda's own parameters (shadowing the outer `image`/the new
+    // `base_tint`), not the resolved picture or its full-opacity tint, so a cross-fade is simply
+    // calling this twice: the outgoing picture at `base_tint`, the incoming one on top at a
+    // fraction of its alpha.
+    const auto draw_one = [&](const std::shared_ptr<const Image>& image, u32 tint) {
+        if (widget.fill_bind.empty() && (xf.active || widget.fill != ImageFill::Stretch)) {
+            // Runtime 16: tile / 9-slice into a picture of the rect's size first, then rotate /
+            // scale that picture as a whole (with any spin), or blit it.
             const auto& r = eff;
-            canvas.DrawImageRegionRotated(
-                x, y, rw, rh, *image, static_cast<s32>(r[0] * static_cast<float>(image->w)),
-                static_cast<s32>(r[1] * static_cast<float>(image->h)),
-                std::max(1, static_cast<s32>((r[2] - r[0]) * static_cast<float>(image->w))),
-                std::max(1, static_cast<s32>((r[3] - r[1]) * static_cast<float>(image->h))),
-                tint, deg * 3.14159265f / 180.0f);
-        } else if (whole && !widget.flip_x && !widget.flip_y) {
-            canvas.DrawImage(x, y, rw, rh, *image, tint);
+            const Image* pic = image.get();
+            s32 sx = static_cast<s32>(r[0] * static_cast<float>(image->w));
+            s32 sy = static_cast<s32>(r[1] * static_cast<float>(image->h));
+            s32 sw = std::max(1, static_cast<s32>((r[2] - r[0]) * static_cast<float>(image->w)));
+            s32 sh = std::max(1, static_cast<s32>((r[3] - r[1]) * static_cast<float>(image->h)));
+            static thread_local Image composed;
+            if (widget.fill != ImageFill::Stretch) {
+                ComposeImageFill(composed, rw, rh, *image, sx, sy, sw, sh, widget.fill,
+                                 widget.slice);
+                pic = &composed;
+                sx = sy = 0;
+                sw = static_cast<s32>(composed.w);
+                sh = static_cast<s32>(composed.h);
+            }
+            if (xf.active || widget.spin != 0.0f) {
+                const float pivot_x = xf.active ? xf.pivot_x : static_cast<float>(rw) * 0.5f;
+                const float pivot_y = xf.active ? xf.pivot_y : static_cast<float>(rh) * 0.5f;
+                canvas.DrawImageTransformed(x, y, rw, rh, *pic, sx, sy, sw, sh, tint,
+                                            xf.degrees + spin_deg, xf.scale, pivot_x, pivot_y,
+                                            widget.flip_x, widget.flip_y);
+            } else {
+                canvas.DrawImageRegion(x, y, rw, rh, *pic, sx, sy, sw, sh, tint, widget.flip_x,
+                                       widget.flip_y);
+            }
+        } else if (widget.fill_bind.empty()) {
+            if (widget.spin != 0.0f) {
+                // A turning piece (loading wheel): the angle advances with the tick, the
+                // page's 15 Hz signature keeps it redrawn while the widget is visible.
+                const float deg = spin_deg;
+                const auto& r = eff;
+                canvas.DrawImageRegionRotated(
+                    x, y, rw, rh, *image, static_cast<s32>(r[0] * static_cast<float>(image->w)),
+                    static_cast<s32>(r[1] * static_cast<float>(image->h)),
+                    std::max(1, static_cast<s32>((r[2] - r[0]) * static_cast<float>(image->w))),
+                    std::max(1, static_cast<s32>((r[3] - r[1]) * static_cast<float>(image->h))),
+                    tint, deg * 3.14159265f / 180.0f);
+            } else if (whole && !widget.flip_x && !widget.flip_y) {
+                canvas.DrawImage(x, y, rw, rh, *image, tint);
+            } else {
+                // A mirrored whole image takes the region path too (same sampling as
+                // DrawImage), so flip_x/flip_y work with or without src_rect.
+                region(*image, static_cast<s32>(tint));
+            }
         } else {
-            // A mirrored whole image takes the region path too (same sampling as
-            // DrawImage), so flip_x/flip_y work with or without src_rect.
-            region(*image, static_cast<s32>(tint));
+            const s64 fill_value = snapshot.GetInt(widget.fill_bind);
+            const s64 span = maximum > 0 ? maximum : 1;
+            const auto& sr = widget.src_rect;
+            canvas.DrawImageFilled(x, y, rw, rh, *image, tint,
+                                   static_cast<float>(fill_value) / static_cast<float>(span),
+                                   static_cast<s32>(sr[0] * static_cast<float>(image->w)),
+                                   static_cast<s32>(sr[1] * static_cast<float>(image->h)),
+                                   static_cast<s32>((sr[2] - sr[0]) * static_cast<float>(image->w)),
+                                   static_cast<s32>((sr[3] - sr[1]) * static_cast<float>(image->h)));
         }
+    };
+    if (fade_from_image != nullptr) {
+        draw_one(fade_from_image, base_tint);
+        const u32 alpha =
+            static_cast<u32>(std::lround(static_cast<float>(base_tint >> 24) * fade_t));
+        draw_one(image, (base_tint & 0x00FFFFFFu) | (alpha << 24));
     } else {
-        const s64 fill_value = snapshot.GetInt(widget.fill_bind);
-        const s64 span = maximum > 0 ? maximum : 1;
-        const auto& sr = widget.src_rect;
-        canvas.DrawImageFilled(x, y, rw, rh, *image, tint,
-                               static_cast<float>(fill_value) / static_cast<float>(span),
-                               static_cast<s32>(sr[0] * static_cast<float>(image->w)),
-                               static_cast<s32>(sr[1] * static_cast<float>(image->h)),
-                               static_cast<s32>((sr[2] - sr[0]) * static_cast<float>(image->w)),
-                               static_cast<s32>((sr[3] - sr[1]) * static_cast<float>(image->h)));
+        draw_one(image, base_tint);
     }
 }
 
@@ -706,7 +796,8 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                 MapFollowState* follow_state, const VisitReporter& report_visit,
                 const VisitedQuery& is_visited, AuxDrawList* draw_list, bool* animating,
                 const TextProvider& texts, MapDrawRecords* map_records, const RenderExtras* extras,
-                std::mutex* follow_state_mutex, std::recursive_mutex* manifest_markers_mutex) {
+                std::mutex* follow_state_mutex, std::recursive_mutex* manifest_markers_mutex,
+                ImageFallbackState* image_fallback) {
     // A genuinely narrowed partial redraw (extras != nullptr with a real, non-whole-canvas clip --
     // the same test the per-widget bbox pre-reject below uses) must NOT blow away every Map
     // widget's tap-hit-testing record just because this pass didn't happen to touch the map. A
@@ -1308,7 +1399,8 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                                     .rw = rw,
                                     .rh = rh,
                                     .value = value,
-                                    .maximum = maximum};
+                                    .maximum = maximum,
+                                    .image_fallback = image_fallback};
         canvas.SetTextEffects(widget.text_outline, widget.text_outline_px, widget.text_rise);
         switch (widget.type) {
         case WidgetType::Image:

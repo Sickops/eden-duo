@@ -919,6 +919,11 @@ private:
     /// Contended once the redraw worker calls GetImage while the tick thread runs
     /// PumpNxAssets/DrainModuleImages.
     mutable std::mutex asset_cache_mutex;
+    /// Per-Image-widget-instance draw continuity (last-known-good fallback + optional
+    /// "src_fade_ms" cross-fade): see ImageFallbackState's own doc comment (mod_ui.h). RenderPage
+    /// (mod_redraw.cpp's call sites) only borrows a pointer to it, the same shape as
+    /// `map_follow_state`/`follow_state_mutex`. Cleared wholesale by ShutdownGameModule.
+    ImageFallbackState image_fallback_state;
     // --- image cache accessors (mod_assets.cpp) ----------------------------------------------
     /// The only sanctioned way to read `image_cache`: returns a live, ref-counted copy (or
     /// nullptr), never a raw pointer into the map. Safe to hold across any amount of caller-side
