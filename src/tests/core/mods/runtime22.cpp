@@ -393,3 +393,57 @@ TEST_CASE("DSMod map view turn: the GPU path draws the turned base into the canv
     REQUIRE(Px(c, 70, 40) == Green);
     REQUIRE(Px(c, 40, 30) == Red);
 }
+
+TEST_CASE("DSMod image transform: the row-span walk paints exactly the full-box walk",
+          "[dsmod][runtime22][image]") {
+    // A 7x5 picture with distinct texels, drawn turned/scaled about assorted pivots; the reference
+    // is the same inverse mapping over every pixel of the clip.
+    Image img;
+    img.w = 7;
+    img.h = 5;
+    for (u32 i = 0; i < img.w * img.h; ++i) {
+        img.pixels.push_back(0xFF000000u | (i * 0x070513u));
+    }
+    for (const float deg : {3.0f, 30.0f, 45.0f, 89.9f, 90.0f, 137.0f, 180.0f, 271.0f, 359.5f}) {
+        for (const float scale : {0.7f, 1.0f, 2.3f}) {
+            for (const auto& [px, py] : {std::pair{10.0f, 7.5f}, std::pair{-30.0f, 55.0f},
+                                         std::pair{80.0f, -12.0f}}) {
+                Canvas canvas;
+                canvas.Resize(90, 70);
+                canvas.Clear(Black);
+                canvas.SetClip(5, 4, 75, 60);
+                canvas.DrawImageTransformed(20, 15, 23, 17, img, 0, 0, 7, 5, 0xFFFFFFFFu, deg, scale,
+                                            px, py);
+                const float ax = 20.0f + px, ay = 15.0f + py;
+                const float rc = std::cos(deg * 3.14159265f / 180.0f);
+                const float rs = std::sin(deg * 3.14159265f / 180.0f);
+                for (s32 y = 0; y < 70; ++y) {
+                    for (s32 x = 0; x < 90; ++x) {
+                        u32 want = Black;
+                        bool edge = false; // within float rounding of a rect edge: either is fine
+                        if (x >= 5 && x < 80 && y >= 4 && y < 64) {
+                            const float dx = static_cast<float>(x) + 0.5f - ax;
+                            const float dy = static_cast<float>(y) + 0.5f - ay;
+                            const float inv = 1.0f / scale; // the implementation's own rounding
+                            const float lx = (dx * rc + dy * rs) * inv + px;
+                            const float ly = (-dx * rs + dy * rc) * inv + py;
+                            for (const float d : {lx, lx - 23.0f, ly, ly - 17.0f}) {
+                                edge = edge || std::fabs(d) < 1e-3f;
+                            }
+                            if (lx >= 0.0f && lx < 23.0f && ly >= 0.0f && ly < 17.0f) {
+                                const s32 ox = static_cast<s32>(static_cast<s64>(lx) * 7 / 23);
+                                const s32 oy = static_cast<s32>(static_cast<s64>(ly) * 5 / 17);
+                                want = img.pixels[static_cast<size_t>(oy) * 7 + ox];
+                            }
+                        }
+                        INFO("deg " << deg << " scale " << scale << " pivot " << px << "," << py
+                                    << " at " << x << "," << y);
+                        if (!edge) {
+                            REQUIRE(Px(canvas, x, y) == want);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -392,10 +392,39 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
     const bool plain = tint == 0xFFFFFFFFu;
     const s32 iw = static_cast<s32>(image.w), ih = static_cast<s32>(image.h);
     const float fw = static_cast<float>(rw), fh = static_cast<float>(rh);
+    // Along a row, lx and ly are linear in px: only the span where both can land inside the rect
+    // is visited (widened by a pixel; the exact test below still decides). A large turned picture
+    // clipped to a small window (a turned map's tiles, runtime 22) then costs its visible area,
+    // not its whole bounding box.
+    const auto span = [](float a, float b, float lo, float hi, float& from, float& to) {
+        // a * t + b in [lo, hi)
+        if (std::fabs(a) < 1e-12f) {
+            if (!(b >= lo && b < hi)) {
+                from = 1.0f;
+                to = 0.0f;
+            }
+            return;
+        }
+        float t0 = (lo - b) / a, t1 = (hi - b) / a;
+        if (t0 > t1) {
+            std::swap(t0, t1);
+        }
+        from = std::max(from, t0);
+        to = std::min(to, t1);
+    };
     for (s32 py = y0; py < y1; ++py) {
         u32* const dst = pixels.data() + static_cast<size_t>(py) * w;
         const float dy = static_cast<float>(py) + 0.5f - ay;
-        for (s32 px = x0; px < x1; ++px) {
+        float from = static_cast<float>(x0), to = static_cast<float>(x1);
+        const float bx = 0.5f - ax; // dx = px + bx
+        span(c * inv, (bx * c + dy * s) * inv + pivot_x, 0.0f, fw, from, to);
+        span(-s * inv, (-bx * s + dy * c) * inv + pivot_y, 0.0f, fh, from, to);
+        if (!(to >= from)) {
+            continue;
+        }
+        const s32 px0 = std::max(x0, static_cast<s32>(std::floor(from)) - 1);
+        const s32 px1 = std::min(x1, static_cast<s32>(std::ceil(to)) + 1);
+        for (s32 px = px0; px < px1; ++px) {
             const float dx = static_cast<float>(px) + 0.5f - ax;
             const float lx = (dx * c + dy * s) * inv + pivot_x;
             const float ly = (-dx * s + dy * c) * inv + pivot_y;

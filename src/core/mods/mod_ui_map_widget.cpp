@@ -690,7 +690,13 @@ std::array<float, 2> GeometryMapDraw::pt(float wx, float wy) const {
 
 void GeometryMapDraw::blit_turned(const Image& img, float qx, float qy, float qw, float qh, s32 sx,
                                   s32 sy, s32 sw, s32 sh, u32 tint) {
-    if (!img.Valid() || !(qw > 0.0f) || !(qh > 0.0f) || sw <= 0 || sh <= 0) {
+    if (!img.Valid() || !(qw > 0.0f) || !(qh > 0.0f) || sw <= 0 || sh <= 0 || (tint >> 24) == 0) {
+        return;
+    }
+    // A small fully transparent picture (a placeholder base such as a 1x1 clear PNG) would only
+    // cost a pass over the whole widget.
+    if (img.pixels.size() <= 4096 &&
+        std::ranges::all_of(img.pixels, [](u32 p) { return (p >> 24) == 0; })) {
         return;
     }
     // Shared edges round alike, so neighbouring tiles still abut after the turn.
