@@ -53,12 +53,12 @@ duo-only	A	-	147	0	src/core/mods/mod_load_plan.h
 duo-only	A	-	149	0	src/tests/core/mods/duo_tests.cmake
 duo-only	A	-	15	0	.github/FUNDING.yml
 duo-only	A	-	15	0	src/android/app/src/duo/res/values/duo_branding.xml
-duo-only	A	-	151	0	.upstream/DIVERGENCES.md
+duo-only	A	-	152	0	.upstream/DIVERGENCES.md
 duo-only	A	-	1524	0	src/core/mods/mod_state.cpp
 duo-only	A	-	155	0	src/core/mods/map_overview.h
 duo-only	A	-	1567	0	src/core/mods/mod_ui.cpp
-duo-only	A	-	157	0	CHANGELOG.md
 duo-only	A	-	157	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/views/AuxPresentation.kt
+duo-only	A	-	159	0	CHANGELOG.md
 duo-only	A	-	160	0	src/tests/core/mods/map_areas_src.cpp
 duo-only	A	-	160	0	src/tests/core/mods/runtime18.cpp
 duo-only	A	-	16	0	src/android/app/src/main/java/org/libsdl/app/EdenAudioContext.java
@@ -163,7 +163,7 @@ duo-only	A	-	42	0	src/core/mods/mod_user_source.h
 duo-only	A	-	425	0	src/core/mods/mod_types_map.h
 duo-only	A	-	431	0	src/android/app/lint-baseline.xml
 duo-only	A	-	446	0	src/android/app/src/main/jni/dsmod_native.cpp
-duo-only	A	-	451	0	.upstream/duo-touched.tsv
+duo-only	A	-	453	0	.upstream/duo-touched.tsv
 duo-only	A	-	457	0	src/tests/core/mods/scroll_list.cpp
 duo-only	A	-	458	0	src/tests/core/mods/runtime17_nav.cpp
 duo-only	A	-	46	0	src/android/app/src/main/jni/dsmod_native.h
@@ -310,8 +310,8 @@ duo-only	A	-	-	-	src/tests/core/mods/golden/Persona5Royal/waiting.partial.png
 duo-only	A	-	-	-	src/tests/core/mods/golden/Persona5Royal/waiting.png
 upstream-hook	M	24	168	35	src/android/app/src/main/java/org/yuzu/yuzu_emu/fragments/EmulationFragment.kt
 upstream-hook	M	20	56	3	src/core/file_sys/registered_cache.cpp
+upstream-hook	M	18	64	0	src/android/app/src/main/jni/native.cpp
 upstream-hook	M	17	33	13	src/yuzu_cmd/yuzu.cpp
-upstream-hook	M	16	26	0	src/android/app/src/main/jni/native.cpp
 upstream-hook	M	13	107	16	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/GameHelper.kt
 upstream-hook	M	12	139	0	src/core/core.cpp
 upstream-hook	M	11	36	12	src/video_core/renderer_vulkan/renderer_vulkan.cpp
@@ -393,6 +393,7 @@ upstream-hook	M	2	8	0	src/video_core/renderer_vulkan/vk_rasterizer.h
 upstream-hook	M	2	8	1	src/video_core/renderer_vulkan/vk_present_manager.h
 upstream-hook	M	2	8	2	src/video_core/renderer_vulkan/vk_present_manager.cpp
 upstream-hook	M	2	9	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/adapters/GameAdapter.kt
+upstream-hook	M	2	9	0	src/android/app/src/main/jni/native.h
 upstream-hook	M	2	9	0	src/core/cpu_manager.cpp
 upstream-hook	M	2	9	0	src/core/hle/kernel/physical_core.cpp
 upstream-hook	M	2	9	0	src/input_common/drivers/android.cpp
