@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <jni.h>
+#include <pthread.h> // Eden Duo
 
 #include "applets/software_keyboard.h"
 #include "applets/web_browser.h"
@@ -103,12 +104,38 @@ static jmethodID s_clear_chat;
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 namespace Common::Android {
+    // Eden Duo: whether the caller runs on its thread's own stack (not a fiber's). ART takes the
+    // current stack pointer as the top of the thread's stack when it attaches a thread and
+    // madvise(MADV_DONTNEED)s from the stack's bottom up to it, so an attach from a fiber's heap
+    // stack zeroes every thread stack above (the cold front-end launch crash in 1.3.0-beta.8).
+    static bool IsOnOwnThreadStack() {
+        pthread_attr_t attr;
+        if (pthread_getattr_np(pthread_self(), &attr) != 0) {
+            return true;
+        }
+        void* stack_addr = nullptr;
+        size_t stack_size = 0;
+        pthread_attr_getstack(&attr, &stack_addr, &stack_size);
+        pthread_attr_destroy(&attr);
+        const auto here = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
+        const auto low = reinterpret_cast<uintptr_t>(stack_addr);
+        return here >= low && here < low + stack_size;
+    }
+
     JNIEnv *GetEnvForThread() {
         thread_local static struct OwnedEnv {
             OwnedEnv() {
                 status = s_java_vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
-                if (status == JNI_EDETACHED)
-                    s_java_vm->AttachCurrentThread(&env, nullptr);
+                if (status == JNI_EDETACHED) {
+                    // Eden Duo: refuse rather than wipe memory (see IsOnOwnThreadStack).
+                    if (IsOnOwnThreadStack()) {
+                        s_java_vm->AttachCurrentThread(&env, nullptr);
+                    } else {
+                        LOG_CRITICAL(Frontend, "JNI attach refused on a fiber stack; attach the "
+                                               "thread before it runs fibers");
+                        status = JNI_ERR;
+                    }
+                }
             }
 
             ~OwnedEnv() {

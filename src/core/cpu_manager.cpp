@@ -17,6 +17,9 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "video_core/gpu.h"
+#ifdef __ANDROID__
+#include "common/android/id_cache.h" // Eden Duo
+#endif
 
 namespace Core {
 
@@ -176,6 +179,12 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     Common::SetCurrentThreadToPerformanceCores();
     auto& data = core_data[core];
+#ifdef __ANDROID__
+    // Eden Duo: attach to the JVM here, on this thread's own stack. HLE service code running on
+    // a fiber stack makes JNI calls (SAF file access); attaching from there makes ART treat the
+    // fiber's heap address as the stack top and madvise(MADV_DONTNEED) everything in between.
+    Common::Android::GetEnvForThread();
+#endif
     data.host_context = Common::Fiber::ThreadToFiber();
 
     // Cleanup

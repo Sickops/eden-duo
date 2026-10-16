@@ -49,8 +49,8 @@ duo-only	A	-	138	0	src/core/mods/mod_nav.h
 duo-only	A	-	141	0	src/core/mods/mod_input_tokens.h
 duo-only	A	-	1422	0	src/tests/core/mods/manifest_digest.cpp
 duo-only	A	-	145	0	src/tests/core/mods/runtime15_persist.cpp
-duo-only	A	-	146	0	.upstream/DIVERGENCES.md
 duo-only	A	-	147	0	src/core/mods/mod_load_plan.h
+duo-only	A	-	147	0	.upstream/DIVERGENCES.md
 duo-only	A	-	149	0	src/tests/core/mods/duo_tests.cmake
 duo-only	A	-	15	0	.github/FUNDING.yml
 duo-only	A	-	15	0	src/android/app/src/duo/res/values/duo_branding.xml
@@ -160,8 +160,8 @@ duo-only	A	-	42	0	src/core/mods/mod_input_drag.h
 duo-only	A	-	42	0	src/core/mods/mod_user_source.h
 duo-only	A	-	425	0	src/core/mods/mod_types_map.h
 duo-only	A	-	431	0	src/android/app/lint-baseline.xml
-duo-only	A	-	437	0	.upstream/duo-touched.tsv
 duo-only	A	-	446	0	src/android/app/src/main/jni/dsmod_native.cpp
+duo-only	A	-	447	0	.upstream/duo-touched.tsv
 duo-only	A	-	457	0	src/tests/core/mods/scroll_list.cpp
 duo-only	A	-	458	0	src/tests/core/mods/runtime17_nav.cpp
 duo-only	A	-	46	0	src/android/app/src/main/jni/dsmod_native.h
@@ -354,6 +354,7 @@ upstream-hook	M	3	20	1	src/android/app/src/main/java/org/yuzu/yuzu_emu/model/Gam
 upstream-hook	M	3	22	1	src/android/app/src/main/res/layout-land/fragment_games.xml
 upstream-hook	M	3	26	1	src/core/loader/nso.h
 upstream-hook	M	3	28	0	src/core/file_sys/vfs/vfs_real.cpp
+upstream-hook	M	3	29	2	src/common/android/id_cache.cpp
 upstream-hook	M	3	5	2	src/android/app/src/main/java/org/yuzu/yuzu_emu/utils/GameIconUtils.kt
 upstream-hook	M	3	6	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/fragments/AddonsFragment.kt
 upstream-hook	M	2	10	0	src/core/perf_stats.cpp
@@ -388,6 +389,7 @@ upstream-hook	M	2	8	0	src/video_core/renderer_vulkan/vk_rasterizer.h
 upstream-hook	M	2	8	1	src/video_core/renderer_vulkan/vk_present_manager.h
 upstream-hook	M	2	8	2	src/video_core/renderer_vulkan/vk_present_manager.cpp
 upstream-hook	M	2	9	0	src/android/app/src/main/java/org/yuzu/yuzu_emu/adapters/GameAdapter.kt
+upstream-hook	M	2	9	0	src/core/cpu_manager.cpp
 upstream-hook	M	2	9	0	src/core/hle/kernel/physical_core.cpp
 upstream-hook	M	1	10	0	src/android/app/src/main/res/layout/card_game_carousel.xml
 upstream-hook	M	1	10	0	src/android/app/src/main/res/layout/card_game_grid.xml
