@@ -9,6 +9,7 @@
 
 **Fixed**
 
+- Controller rumble no longer keeps one CPU core at 100% in the background (a rumble worker thread could spin forever once several threads sent rumble at the same time), which heated the device and caused throttling.
 - Press-and-hold actions on the second screen now receive the widget's value (captured when the hold starts), the same way taps do; companions whose hold actions use `$payload` work again.
 - **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory.
 - Games that draw to integer render targets now render correctly on all Vulkan drivers, not only on macOS.
