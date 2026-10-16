@@ -9,6 +9,7 @@
 
 **Fixed**
 
+- Press-and-hold actions on the second screen now receive the widget's value (captured when the hold starts), the same way taps do; companions whose hold actions use `$payload` work again.
 - **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory.
 - Games that draw to integer render targets now render correctly on all Vulkan drivers, not only on macOS.
 - Compute shaders that need more shared memory than the GPU provides now run in full instead of being cut short (seen in Trails through Daybreak II on Adreno).
