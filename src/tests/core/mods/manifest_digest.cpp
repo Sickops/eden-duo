@@ -416,6 +416,9 @@ std::string R(const MapWidgetExtras& o) {
     if (!o.marker_rotate_bind.empty()) {
         F(marker_rotate_bind);
     }
+    if (!o.view_rotate_bind.empty()) { // runtime 22; printed only when set: goldens unchanged
+        F(view_rotate_bind);
+    }
     if (o.marker_tint != 0xFFFFFFFFu) {
         C(marker_tint);
     }
@@ -1236,7 +1239,7 @@ void CheckLayouts() {
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
         {"ScrollRegion", sizeof(ScrollRegion), 296},
-        {"MapWidgetExtras", sizeof(MapWidgetExtras), 448},
+        {"MapWidgetExtras", sizeof(MapWidgetExtras), 480},
         {"MapWidgetExtras::Group", sizeof(MapWidgetExtras::Group), 112},
         {"MapWidgetExtras::LabelStyle", sizeof(MapWidgetExtras::LabelStyle), 24},
         {"MapWidgetExtras::Overlay", sizeof(MapWidgetExtras::Overlay), 168},
@@ -1392,6 +1395,7 @@ TEST_CASE("DSMod map digest retains non-default heading tint and detail referenc
           "[dsmod][golden][digest]") {
     MapWidgetExtras extras;
     extras.marker_rotate_bind = "player.heading";
+    extras.view_rotate_bind = "camera.turn";
     extras.marker_tint = 0xFFFFCC00u;
     MapWidgetExtras::Overlay overlay;
     overlay.src_detail_bind = "tile.detail";
@@ -1399,6 +1403,9 @@ TEST_CASE("DSMod map digest retains non-default heading tint and detail referenc
     extras.overlays.push_back(overlay);
     const auto text = R(extras);
     REQUIRE(text.find("player.heading") != std::string::npos);
+    REQUIRE(text.find("view_rotate_bind=") != std::string::npos);
+    REQUIRE(text.find("camera.turn") != std::string::npos);
+    REQUIRE(R(MapWidgetExtras{}).find("view_rotate_bind") == std::string::npos);
     REQUIRE(text.find("marker_tint=") != std::string::npos);
     REQUIRE(text.find("tile.detail") != std::string::npos);
     REQUIRE(text.find("detail_threshold=") != std::string::npos);

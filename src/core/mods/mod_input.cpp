@@ -107,6 +107,21 @@ std::array<s32, 4> ModRuntime::WidgetRect(const std::string& key) const {
     return {0, 0, 0, 0};
 }
 
+float ModRuntime::ViewRotation(const std::string& key) const {
+    // Runtime 22: the turn the last published draw of this map used (view_rotate_bind). Read
+    // before view_mutex is taken, never under it.
+    std::scoped_lock lk{map_records_mutex};
+    if (map_records_page != current_page) {
+        return 0.0f;
+    }
+    for (const auto& r : map_draw_records_published) {
+        if (r.view_key == key && r.ppw > 0.0f) {
+            return r.rotation;
+        }
+    }
+    return 0.0f;
+}
+
 ViewState ModRuntime::GetViewState() const {
     std::scoped_lock lk{view_mutex};
     return view_state;
@@ -605,9 +620,17 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
 
     if (now.size() == 1 && !gesture_target.empty()) {
         if (const auto* was = previous(now[0].id)) {
-            const float dx = static_cast<float>(now[0].x - was->x);
-            const float dy = static_cast<float>(now[0].y - was->y);
+            float dx = static_cast<float>(now[0].x - was->x);
+            float dy = static_cast<float>(now[0].y - was->y);
             if (dx != 0.0f || dy != 0.0f) {
+                // Runtime 22: a turned map pans in its own (unturned) frame.
+                if (const float turn = ViewRotation(gesture_target); turn != 0.0f) {
+                    MapDrawRecord r;
+                    r.rotation = turn;
+                    const auto d = r.Unturn(dx, dy);
+                    dx = d[0];
+                    dy = d[1];
+                }
                 std::scoped_lock lk{view_mutex};
                 auto& view = view_state[gesture_target];
                 // Drag moves the content with the finger, so pan travels the other way.
@@ -641,6 +664,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
             }
         }
         if (gesture_span > 1.0f && span > 1.0f && !gesture_target.empty()) {
+            const float turn = ViewRotation(gesture_target); // runtime 22, before view_mutex
             std::scoped_lock lk{view_mutex};
             auto& view = view_state[gesture_target];
             const auto limits = ZoomLimits(gesture_target);
@@ -652,8 +676,18 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                 // stay under them. Anywhere else and the thing you were looking at slides away
                 // exactly when you were trying to look closer.
                 const auto rect = WidgetRect(gesture_target);
-                const float ox = cx - static_cast<float>(rect[0]);
-                const float oy = cy - static_cast<float>(rect[1]);
+                float ox = cx - static_cast<float>(rect[0]);
+                float oy = cy - static_cast<float>(rect[1]);
+                if (turn != 0.0f) {
+                    // A turned map: the point between the fingers, in the unturned view.
+                    MapDrawRecord r;
+                    r.rotation = turn;
+                    const float hw = static_cast<float>(rect[2]) * 0.5f;
+                    const float hh = static_cast<float>(rect[3]) * 0.5f;
+                    const auto d = r.Unturn(ox - hw, oy - hh);
+                    ox = d[0] + hw;
+                    oy = d[1] + hh;
+                }
                 const float anchor_x = view.pan_x + ox / before;
                 const float anchor_y = view.pan_y + oy / before;
                 view.zoom = after;
@@ -1297,8 +1331,11 @@ void ModRuntime::DrainTaps(const StateSnapshot& snapshot) {
         if (ex.on_map_tap.empty()) {
             return;
         }
-        const f64 wx = rec->WorldX(static_cast<float>(tap.x));
-        const f64 wy = rec->WorldY(static_cast<float>(tap.y));
+        // Runtime 22: through the view's turn (view_rotate_bind), so the tap names the world
+        // point drawn under the finger.
+        const auto world = rec->World(static_cast<float>(tap.x), static_cast<float>(tap.y));
+        const f64 wx = world[0];
+        const f64 wy = world[1];
         if (wx < rec->min_x || wx > rec->max_x || wy < rec->min_y || wy > rec->max_y) {
             out_line(fmt::format("DSMod map tap ({},{}) ignored: world ({:.1f},{:.1f}) is outside "
                                  "the area",

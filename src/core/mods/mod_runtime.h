@@ -179,7 +179,11 @@ namespace Core::Mods {
 ///          "@perf.fps" / "speed_pct" / "frametime_ms" / "frametime_x10" (mod_host_values.h),
 ///          published for a package that names them and answered to a module's get_i64 /
 ///          get_f64; ABI 1 stays.
-inline constexpr u32 DualScreenRuntimeVersion = 21;
+///   22     map "view_rotate_bind": the whole map view turns clockwise about the widget centre
+///          (a compass minimap whose up is the camera); markers, labels and pins stay upright,
+///          marker_rotate_bind turns with the map, taps / drags / pinches are turned back into
+///          the map frame. Older runtimes ignore the key and draw north-up.
+inline constexpr u32 DualScreenRuntimeVersion = 22;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
 /// (runtime 13). Before runtime 13 a job already running when the next was dispatched finished
@@ -1859,6 +1863,8 @@ private:
     const Widget* FindWidgetByKey(const std::string& key) const;
     std::pair<float, float> ZoomLimits(const std::string& key) const;
     std::array<s32, 4> WidgetRect(const std::string& key) const;
+    /// Runtime 22: the clockwise turn of the map drawn for this view key (0 when none / unknown).
+    float ViewRotation(const std::string& key) const;
 
     /// Fold this frame's touch points into pan/zoom, and emit a tap on release when the finger
     /// never really moved.

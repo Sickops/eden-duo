@@ -1,0 +1,556 @@
+// SPDX-FileCopyrightText: Copyright 2026 igawa6
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Runtime 22: the map widget's turned view ("view_rotate_bind"): parsing and normalisation, the
+// base picture and overlays drawn turned about the widget centre and clipped to it, markers placed
+// through the turn but upright, marker_rotate_bind relative to the turned map, the draw record's
+// inverse mapping (taps) and the live-marker dirty prediction.
+#include <chrono>
+#include <cmath>
+#include <limits>
+#include <map>
+#include <memory>
+#include <string>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <nlohmann/json.hpp>
+
+#include "core/mods/mod_runtime.h"
+#include "core/mods/mod_ui.h"
+
+using namespace Core::Mods;
+
+namespace {
+constexpr u32 Red = 0xFFFF0000u, Blue = 0xFF0000FFu, Green = 0xFF00FF00u, White = 0xFFFFFFFFu;
+constexpr u32 Black = 0xFF000000u;
+
+std::shared_ptr<const Image> Solid(u32 argb, u32 w = 8, u32 h = 8) {
+    auto img = std::make_shared<Image>();
+    img->w = w;
+    img->h = h;
+    img->pixels.assign(static_cast<size_t>(w) * h, argb);
+    return img;
+}
+
+/// Area "c": world (0,0)-(100,100) with a red picture; widget "m" 100x100 at the origin (canvas
+/// x = world x, canvas y = 100 - world y when unturned). One green overlay at world
+/// (30,60)-(50,80) -> unturned canvas x 30..50, y 20..40. The view turns by the "turn" value.
+struct CompassMap {
+    Manifest manifest;
+    Page page;
+    std::map<std::string, std::shared_ptr<const Image>> pics{{"img.red", Solid(Red)},
+                                                             {"img.green", Solid(Green)},
+                                                             {"img.blue", Solid(Blue)},
+                                                             {"img.white", Solid(White)}};
+    CompassMap() {
+        manifest.background = Black;
+        MapArea area;
+        area.min_x = 0.0f;
+        area.max_x = 100.0f;
+        area.min_y = 0.0f;
+        area.max_y = 100.0f;
+        area.image = "img.red";
+        DynamicMarkerDef dm;
+        dm.group = "pins";
+        dm.count = 1;
+        dm.x = "pin{i}.x";
+        dm.y = "pin{i}.y";
+        dm.icon_src_bind = "pin{i}.img";
+        dm.size = 10;
+        area.dynamic_markers.push_back(dm);
+        manifest.map_areas.emplace("c", area);
+        Widget w;
+        w.type = WidgetType::Map;
+        w.id = "m";
+        w.area = "c";
+        w.rect = {0, 0, 100, 100};
+        w.pan_zoom = true;
+        w.max_zoom = 8.0f;
+        w.area_label = false;
+        auto extras = std::make_shared<MapWidgetExtras>();
+        extras->view_rotate_bind = "turn";
+        MapWidgetExtras::Overlay ov;
+        ov.src = "img.green";
+        ov.x0 = 30.0f;
+        ov.y0 = 60.0f;
+        ov.x1 = 50.0f;
+        ov.y1 = 80.0f;
+        extras->overlays.push_back(ov);
+        w.map_extras = extras;
+        page.id = "p";
+        page.widgets.push_back(w);
+    }
+    Widget& widget() {
+        return page.widgets[0];
+    }
+    ImageProvider Images() const {
+        return [this](const std::string& key) -> std::shared_ptr<const Image> {
+            const auto it = pics.find(key);
+            return it != pics.end() ? it->second : nullptr;
+        };
+    }
+    Canvas Draw(const StateSnapshot& s, MapDrawRecords* records = nullptr,
+                AuxDrawList* draw_list = nullptr, s32 size = 100) const {
+        Canvas canvas;
+        canvas.Resize(static_cast<u32>(size), static_cast<u32>(size));
+        canvas.Clear(Black);
+        ViewState views;
+        views["m"].zoom = 1.0f;
+        RenderPage(canvas, manifest, page, s, Images(), views, nullptr, {}, {}, draw_list, nullptr,
+                   {}, records);
+        return canvas;
+    }
+};
+
+u32 Px(const Canvas& c, s32 x, s32 y) {
+    return c.Pixels()[static_cast<size_t>(y) * c.Width() + static_cast<size_t>(x)];
+}
+
+/// Canvas point of world (wx, wy) on the 100x100 fixture, turned `deg` clockwise about (50,50).
+std::array<float, 2> Turned(float wx, float wy, float deg) {
+    const float dx = wx - 50.0f, dy = 50.0f - wy;
+    const double r = deg * 3.14159265358979323846 / 180.0;
+    const float c = static_cast<float>(std::cos(r)), s = static_cast<float>(std::sin(r));
+    return {50.0f + dx * c - dy * s, 50.0f + dx * s + dy * c};
+}
+} // namespace
+
+TEST_CASE("DSMod runtime 22: version", "[dsmod][runtime22]") {
+    REQUIRE(DualScreenRuntimeVersion >= 22);
+}
+
+TEST_CASE("DSMod map view turn: optional key, normalised value", "[dsmod][runtime22][map-turn]") {
+    const auto json = nlohmann::json::parse(R"({"format":1,"pages":[{"id":"p","widgets":[
+      {"type":"map","rect":[0,0,100,100],"view_rotate_bind":"cam.turn"},
+      {"type":"map","rect":[0,0,100,100],"marker_rotate_bind":"heading"}]}]})");
+    Manifest manifest;
+    REQUIRE(ParseDualScreenManifest(json, manifest));
+    const auto& turned = manifest.pages[0].widgets[0];
+    const auto& classic = manifest.pages[0].widgets[1];
+    REQUIRE(turned.map_extras != nullptr);
+    REQUIRE(turned.map_extras->view_rotate_bind == "cam.turn");
+    REQUIRE(classic.map_extras->view_rotate_bind.empty());
+
+    StateSnapshot s;
+    REQUIRE(MapViewTurnDegrees(turned, s) == 0.0f); // missing: north-up
+    REQUIRE(MapViewTurnDegrees(classic, s) == 0.0f);
+    s.floats["cam.turn"] = 90.0;
+    REQUIRE(MapViewTurnDegrees(turned, s) == 90.0f);
+    REQUIRE(MapViewTurnDegrees(classic, s) == 0.0f); // the key is per widget
+    s.floats["cam.turn"] = -90.0;
+    REQUIRE(MapViewTurnDegrees(turned, s) == 270.0f);
+    s.floats["cam.turn"] = 450.0;
+    REQUIRE(MapViewTurnDegrees(turned, s) == 90.0f);
+    s.floats["cam.turn"] = -720.0;
+    REQUIRE(MapViewTurnDegrees(turned, s) == 0.0f);
+    s.floats["cam.turn"] = -1e-9; // rounds to 360 in float: still [0, 360)
+    REQUIRE(MapViewTurnDegrees(turned, s) >= 0.0f);
+    REQUIRE(MapViewTurnDegrees(turned, s) < 360.0f);
+    for (const double bad : {std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::infinity(),
+                             -std::numeric_limits<double>::infinity()}) {
+        s.floats["cam.turn"] = bad;
+        REQUIRE(MapViewTurnDegrees(turned, s) == 0.0f);
+    }
+    s.floats.erase("cam.turn");
+    s.ints["cam.turn"] = -45; // an integer point works too
+    REQUIRE(MapViewTurnDegrees(turned, s) == 315.0f);
+}
+
+TEST_CASE("DSMod map view turn: overlays turn about the widget centre, clipped to the widget",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    StateSnapshot s;
+    // Unturned: the classic picture (overlay at x 30..50, y 20..40).
+    auto c = map.Draw(s);
+    REQUIRE(Px(c, 40, 30) == Green);
+    REQUIRE(Px(c, 70, 40) == Red);
+    s.floats["turn"] = 0.0;
+    REQUIRE(Px(map.Draw(s), 40, 30) == Green);
+    // 90 clockwise: centre (40,30) -> (70,40); the overlay is now x 60..80, y 30..50.
+    s.floats["turn"] = 90.0;
+    c = map.Draw(s);
+    REQUIRE(Px(c, 70, 40) == Green);
+    REQUIRE(Px(c, 62, 32) == Green);
+    REQUIRE(Px(c, 78, 48) == Green);
+    REQUIRE(Px(c, 40, 30) == Red);
+    REQUIRE(Px(c, 70, 55) == Red);
+    // 180: centre -> (60,70).
+    s.floats["turn"] = 180.0;
+    c = map.Draw(s);
+    REQUIRE(Px(c, 60, 70) == Green);
+    REQUIRE(Px(c, 40, 30) == Red);
+    // An arbitrary angle: the overlay's centre lands where the turn says.
+    for (const float deg : {30.0f, 137.0f, 251.0f, 333.0f}) {
+        s.floats["turn"] = deg;
+        c = map.Draw(s);
+        const auto at = Turned(40.0f, 70.0f, deg);
+        REQUIRE(Px(c, static_cast<s32>(at[0]), static_cast<s32>(at[1])) == Green);
+    }
+    // A widget inset in a larger canvas: the turned base (whose corners swing out past the widget)
+    // never paints outside the widget rect.
+    map.widget().rect = {20, 20, 60, 60};
+    for (const float deg : {0.0f, 45.0f, 100.0f}) {
+        s.floats["turn"] = deg;
+        c = map.Draw(s, nullptr, nullptr, 100);
+        for (s32 y = 0; y < 100; ++y) {
+            for (s32 x = 0; x < 100; ++x) {
+                const bool inside = x >= 20 && x < 80 && y >= 20 && y < 80;
+                if (!inside) {
+                    REQUIRE(Px(c, x, y) == Black);
+                }
+            }
+        }
+        REQUIRE(Px(c, 50, 50) != Black);
+    }
+}
+
+TEST_CASE("DSMod map view turn: tiled overlays still abut (no seams)",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    auto extras = std::make_shared<MapWidgetExtras>(*map.widget().map_extras);
+    extras->overlays.clear();
+    // Four tiles covering the whole area with fractional canvas edges.
+    for (const auto& [x0, x1] : {std::pair{0.0f, 33.3f}, std::pair{33.3f, 100.0f}}) {
+        for (const auto& [y0, y1] : {std::pair{0.0f, 61.7f}, std::pair{61.7f, 100.0f}}) {
+            MapWidgetExtras::Overlay ov;
+            ov.src = "img.green";
+            ov.x0 = x0;
+            ov.x1 = x1;
+            ov.y0 = y0;
+            ov.y1 = y1;
+            extras->overlays.push_back(ov);
+        }
+    }
+    map.widget().map_extras = extras;
+    StateSnapshot s;
+    for (const float deg : {0.0f, 17.0f, 37.0f, 90.0f, 211.5f}) {
+        s.floats["turn"] = deg;
+        const auto c = map.Draw(s);
+        // Every pixel within the inscribed circle shows a tile (the base's red never leaks).
+        for (s32 y = 0; y < 100; ++y) {
+            for (s32 x = 0; x < 100; ++x) {
+                const float dx = static_cast<float>(x) + 0.5f - 50.0f;
+                const float dy = static_cast<float>(y) + 0.5f - 50.0f;
+                if (dx * dx + dy * dy < 46.0f * 46.0f) {
+                    REQUIRE(Px(c, x, y) == Green);
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("DSMod map view turn: markers follow the turn and stay upright",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    auto& w = map.widget();
+    // A wide live-marker picture (24x6) without a heading: always drawn upright.
+    w.marker_src = "img.white";
+    w.marker_size = {24, 6};
+    w.marker_anchor = {0.5f, 0.5f};
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    StateSnapshot s;
+    s.floats["me.x"] = 50.0;
+    s.floats["me.y"] = 80.0; // unturned canvas (50,20)
+    s.ints["pin0.x"] = 20;
+    s.ints["pin0.y"] = 50; // unturned canvas (20,50)
+    s.texts["pin0.img"] = "img.blue";
+    s.floats["turn"] = 90.0;
+    MapDrawRecords records;
+    const auto c = map.Draw(s, &records);
+    // The live marker at (80,50), still 24 wide and 6 tall.
+    REQUIRE(Px(c, 80, 50) == White);
+    REQUIRE(Px(c, 69, 50) == White);
+    REQUIRE(Px(c, 91, 50) == White);
+    REQUIRE(Px(c, 80, 45) != White);
+    REQUIRE(Px(c, 80, 55) != White);
+    // The pin (a 10 px picture) at (50,20), square and upright.
+    REQUIRE(Px(c, 50, 20) == Blue);
+    REQUIRE(Px(c, 46, 16) == Blue);
+    REQUIRE(Px(c, 20, 50) != Blue);
+    // Its tap hit point is the turned position.
+    REQUIRE(records.size() == 1);
+    REQUIRE(records[0].hits.size() == 1);
+    REQUIRE(records[0].hits[0].sx == Catch::Approx(50.0f).margin(0.01));
+    REQUIRE(records[0].hits[0].sy == Catch::Approx(20.0f).margin(0.01));
+}
+
+TEST_CASE("DSMod map view turn: a marker heading is relative to the turned map",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    auto& w = map.widget();
+    auto extras = std::make_shared<MapWidgetExtras>(*w.map_extras);
+    extras->overlays.clear();
+    extras->marker_rotate_bind = "heading";
+    w.map_extras = extras;
+    w.marker_src = "img.white";
+    w.marker_size = {24, 6};
+    w.marker_anchor = {0.5f, 0.5f};
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    StateSnapshot s;
+    s.floats["me.x"] = 50.0;
+    s.floats["me.y"] = 50.0;
+    s.floats["heading"] = 0.0;
+    s.floats["turn"] = 90.0;
+    // Heading 0 (map north) on a map turned 90 clockwise: the marker turns 90 too (tall).
+    auto c = map.Draw(s);
+    REQUIRE(Px(c, 50, 40) == White);
+    REQUIRE(Px(c, 50, 60) == White);
+    REQUIRE(Px(c, 40, 50) != White);
+    // Heading 90 on the same turn: 180, wide again.
+    s.floats["heading"] = 90.0;
+    c = map.Draw(s);
+    REQUIRE(Px(c, 40, 50) == White);
+    REQUIRE(Px(c, 50, 40) != White);
+    // Heading -90 cancels the turn: wide.
+    s.floats["heading"] = -90.0;
+    c = map.Draw(s);
+    REQUIRE(Px(c, 40, 50) == White);
+}
+
+TEST_CASE("DSMod map view turn: the draw record maps taps back and predicts the marker box",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    auto& w = map.widget();
+    auto extras = std::make_shared<MapWidgetExtras>(*w.map_extras);
+    extras->marker_rotate_bind = "heading";
+    w.map_extras = extras;
+    w.marker_src = "img.white";
+    w.marker_size = {18, 8};
+    w.marker_anchor = {0.25f, 0.5f};
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    StateSnapshot s;
+    s.floats["me.x"] = 65.0;
+    s.floats["me.y"] = 30.0;
+    s.floats["heading"] = 20.0;
+    for (const float deg : {0.0f, 45.0f, 90.0f, 200.0f, 359.0f}) {
+        s.floats["turn"] = deg;
+        MapDrawRecords records;
+        const auto c = map.Draw(s, &records);
+        REQUIRE(records.size() == 1);
+        const auto& r = records[0];
+        REQUIRE(r.rotation == Catch::Approx(deg));
+        REQUIRE(r.view_key == "m");
+        // Taps: the world point under a turned canvas point.
+        for (const auto& [wx, wy] : {std::pair{40.0f, 70.0f}, std::pair{10.0f, 90.0f},
+                                     std::pair{65.0f, 30.0f}}) {
+            const auto at = Turned(wx, wy, deg);
+            const auto back = r.World(at[0], at[1]);
+            REQUIRE(back[0] == Catch::Approx(wx).margin(0.01));
+            REQUIRE(back[1] == Catch::Approx(wy).margin(0.01));
+        }
+        if (deg == 0.0f) {
+            REQUIRE(r.World(30.0f, 20.0f)[0] == Catch::Approx(r.WorldX(30.0f)));
+            REQUIRE(r.World(30.0f, 20.0f)[1] == Catch::Approx(r.WorldY(20.0f)));
+        }
+        // The marker-only redraw's prediction contains every painted marker pixel.
+        const auto box = PredictMapMarkerBox(map.manifest, w, s, r, map.Images());
+        unsigned painted = 0;
+        for (s32 y = 0; y < 100; ++y) {
+            for (s32 x = 0; x < 100; ++x) {
+                if (Px(c, x, y) != White) {
+                    continue;
+                }
+                ++painted;
+                REQUIRE(x >= box[0]);
+                REQUIRE(x < box[0] + box[2]);
+                REQUIRE(y >= box[1]);
+                REQUIRE(y < box[1] + box[3]);
+            }
+        }
+        REQUIRE(painted > 60);
+    }
+    // Unturn is the inverse of the forward turn used for drags / pinches.
+    MapDrawRecord r;
+    r.rotation = 63.0f;
+    const double rad = 63.0 * 3.14159265358979323846 / 180.0;
+    const float fx = static_cast<float>(10.0 * std::cos(rad) - 4.0 * std::sin(rad));
+    const float fy = static_cast<float>(10.0 * std::sin(rad) + 4.0 * std::cos(rad));
+    const auto v = r.Unturn(fx, fy);
+    REQUIRE(v[0] == Catch::Approx(10.0f).margin(1e-4));
+    REQUIRE(v[1] == Catch::Approx(4.0f).margin(1e-4));
+}
+
+TEST_CASE("DSMod map view turn: the GPU path draws the turned base into the canvas",
+          "[dsmod][runtime22][map-turn]") {
+    CompassMap map;
+    StateSnapshot s;
+    AuxDrawList unturned;
+    map.Draw(s, nullptr, &unturned);
+    bool had_map_quad = false;
+    for (const auto& q : unturned.quads) {
+        had_map_quad = had_map_quad || (!q.solid && q.slot == 0u);
+    }
+    REQUIRE(had_map_quad);
+    s.floats["turn"] = 90.0;
+    AuxDrawList turned;
+    const auto c = map.Draw(s, nullptr, &turned);
+    REQUIRE(turned.active);
+    for (const auto& q : turned.quads) {
+        REQUIRE((q.solid || q.slot != 0u)); // no axis-aligned map quad for a turned view
+    }
+    REQUIRE(Px(c, 70, 40) == Green);
+    REQUIRE(Px(c, 40, 30) == Red);
+}
+
+TEST_CASE("DSMod image transform: the row-span walk paints exactly the full-box walk",
+          "[dsmod][runtime22][image]") {
+    // A 7x5 picture with distinct texels, drawn turned/scaled about assorted pivots; the reference
+    // is the same inverse mapping over every pixel of the clip.
+    Image img;
+    img.w = 7;
+    img.h = 5;
+    for (u32 i = 0; i < img.w * img.h; ++i) {
+        img.pixels.push_back(0xFF000000u | (i * 0x070513u));
+    }
+    for (const float deg : {3.0f, 30.0f, 45.0f, 89.9f, 90.0f, 137.0f, 180.0f, 271.0f, 359.5f}) {
+        for (const float scale : {0.7f, 1.0f, 2.3f}) {
+            for (const auto& [px, py] : {std::pair{10.0f, 7.5f}, std::pair{-30.0f, 55.0f},
+                                         std::pair{80.0f, -12.0f}}) {
+                Canvas canvas;
+                canvas.Resize(90, 70);
+                canvas.Clear(Black);
+                canvas.SetClip(5, 4, 75, 60);
+                canvas.DrawImageTransformed(20, 15, 23, 17, img, 0, 0, 7, 5, 0xFFFFFFFFu, deg, scale,
+                                            px, py);
+                const float ax = 20.0f + px, ay = 15.0f + py;
+                const float rc = std::cos(deg * 3.14159265f / 180.0f);
+                const float rs = std::sin(deg * 3.14159265f / 180.0f);
+                for (s32 y = 0; y < 70; ++y) {
+                    for (s32 x = 0; x < 90; ++x) {
+                        u32 want = Black;
+                        bool edge = false; // within float rounding of a rect edge: either is fine
+                        if (x >= 5 && x < 80 && y >= 4 && y < 64) {
+                            const float dx = static_cast<float>(x) + 0.5f - ax;
+                            const float dy = static_cast<float>(y) + 0.5f - ay;
+                            const float inv = 1.0f / scale; // the implementation's own rounding
+                            const float lx = (dx * rc + dy * rs) * inv + px;
+                            const float ly = (-dx * rs + dy * rc) * inv + py;
+                            for (const float d : {lx, lx - 23.0f, ly, ly - 17.0f}) {
+                                edge = edge || std::fabs(d) < 1e-3f;
+                            }
+                            if (lx >= 0.0f && lx < 23.0f && ly >= 0.0f && ly < 17.0f) {
+                                const s32 ox = static_cast<s32>(static_cast<s64>(lx) * 7 / 23);
+                                const s32 oy = static_cast<s32>(static_cast<s64>(ly) * 5 / 17);
+                                want = img.pixels[static_cast<size_t>(oy) * 7 + ox];
+                            }
+                        }
+                        INFO("deg " << deg << " scale " << scale << " pivot " << px << "," << py
+                                    << " at " << x << "," << y);
+                        if (!edge) {
+                            REQUIRE(Px(canvas, x, y) == want);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("DSMod map view turn: draw cost, turned vs unturned (bench, hidden)",
+          "[.][bench][runtime22]") {
+    // The BOTW Ready circle's shape: an 800 px follow window over 1000-unit native tiles of 840 px,
+    // a 1x1 clear base picture. Prints the mean widget draw time for a few turns.
+    CompassMap map;
+    auto& w = map.widget();
+    w.rect = {0, 0, 800, 800};
+    w.follow_window = 900.0f;
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    w.pan_zoom = false;
+    MapArea area;
+    area.min_x = -6000.0f;
+    area.max_x = 6000.0f;
+    area.min_y = -5000.0f;
+    area.max_y = 5000.0f;
+    area.image = "img.clear";
+    map.manifest.map_areas["c"] = area;
+    auto clear = std::make_shared<Image>();
+    clear->w = clear->h = 1;
+    clear->pixels = {0u};
+    map.pics["img.clear"] = clear;
+    auto tile = std::make_shared<Image>();
+    tile->w = tile->h = 840;
+    for (u32 i = 0; i < 840u * 840u; ++i) {
+        tile->pixels.push_back(0xFF000000u | (i * 2654435761u >> 8));
+    }
+    map.pics["img.tile"] = tile;
+    auto extras = std::make_shared<MapWidgetExtras>(*w.map_extras);
+    extras->overlays.clear();
+    for (int ty = -5; ty < 5; ++ty) {
+        for (int tx = -6; tx < 6; ++tx) {
+            MapWidgetExtras::Overlay ov;
+            ov.src = "img.tile";
+            ov.x0 = tx * 1000.0f;
+            ov.x1 = ov.x0 + 1000.0f;
+            ov.y0 = ty * 1000.0f;
+            ov.y1 = ov.y0 + 1000.0f;
+            extras->overlays.push_back(ov);
+        }
+    }
+    w.map_extras = extras;
+    StateSnapshot s;
+    s.floats["me.x"] = 1520.0;
+    s.floats["me.y"] = 2340.0;
+    for (const float deg : {0.0f, 1.0f, 37.0f, 90.0f, 213.0f}) {
+        s.floats["turn"] = deg;
+        Canvas canvas;
+        canvas.Resize(800, 800);
+        const auto t0 = std::chrono::steady_clock::now();
+        constexpr int N = 20;
+        for (int i = 0; i < N; ++i) {
+            RenderPage(canvas, map.manifest, map.page, s, map.Images());
+        }
+        const double ms =
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count() /
+            N;
+        WARN("turn " << deg << ": " << ms << " ms per Ready-sized map draw");
+    }
+}
+
+TEST_CASE("DSMod image turned: the fast turned blit matches the exact transform but for edges",
+          "[dsmod][runtime22][image]") {
+    // A 60x40 picture of 4 colour quadrants drawn at 1:1.3 into a 78x52 rect.
+    Image img;
+    img.w = 60;
+    img.h = 40;
+    for (u32 yy = 0; yy < 40; ++yy) {
+        for (u32 xx = 0; xx < 60; ++xx) {
+            img.pixels.push_back(xx < 30 ? (yy < 20 ? Red : Green) : (yy < 20 ? Blue : White));
+        }
+    }
+    for (const float deg : {0.5f, 17.0f, 45.0f, 90.0f, 133.0f, 250.0f}) {
+        Canvas exact, fast;
+        for (Canvas* c : {&exact, &fast}) {
+            c->Resize(160, 160);
+            c->Clear(Black);
+            c->SetClip(10, 10, 140, 140);
+        }
+        exact.DrawImageTransformed(40, 50, 78, 52, img, 0, 0, 60, 40, 0xFFFFFFFFu, deg, 1.0f, 41.0f,
+                                   27.0f);
+        fast.DrawImageTurned(40, 50, 78, 52, img, 0, 0, 60, 40, 0xFFFFFFFFu, deg, 41.0f, 27.0f);
+        unsigned differ = 0, painted = 0;
+        for (s32 y = 0; y < 160; ++y) {
+            for (s32 x = 0; x < 160; ++x) {
+                const u32 a = Px(exact, x, y), b = Px(fast, x, y);
+                painted += a != Black;
+                if (a == b) {
+                    continue;
+                }
+                ++differ;
+                // Only at a colour or rect boundary: some 4-neighbour of the exact picture differs.
+                bool boundary = false;
+                for (const auto& [ox, oy] : {std::pair{1, 0}, std::pair{-1, 0}, std::pair{0, 1},
+                                             std::pair{0, -1}}) {
+                    boundary = boundary || Px(exact, x + ox, y + oy) != a;
+                }
+                REQUIRE(boundary);
+                REQUIRE((x >= 10 && x < 150 && y >= 10 && y < 150)); // the clip holds
+            }
+        }
+        REQUIRE(painted > 3000);
+        REQUIRE(differ * 50 < painted); // under 2 %
+    }
+}

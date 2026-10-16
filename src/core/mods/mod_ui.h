@@ -12,6 +12,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -216,6 +217,12 @@ public:
     void DrawImageTransformed(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy, s32 sw,
                               s32 sh, u32 tint, float degrees, float scale, float pivot_x,
                               float pivot_y, bool flip_x = false, bool flip_y = false);
+    /// Runtime 22: DrawImageTransformed at scale 1 for big pictures (a turned map's base and
+    /// tiles): the source position is stepped along each row in 32.32 fixed point instead of
+    /// recomputed and divided per pixel, and only the row span inside the rect is visited. Up to
+    /// one texel / one edge pixel may differ from DrawImageTransformed; opaque texels are stored.
+    void DrawImageTurned(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy, s32 sw,
+                         s32 sh, u32 tint, float degrees, float pivot_x, float pivot_y);
     /// Draws only the bottom `fraction` of the image (or of one atlas cell), so a sprite can act
     /// as a gauge. The tint's alpha multiplies the image like DrawImageRegion.
     void DrawImageFilled(s32 x, s32 y, s32 w, s32 h, const Image& image, u32 tint, float fraction,
@@ -350,6 +357,10 @@ struct MapDrawRecord {
     float cx{}, cy{}; ///< world point at the widget centre
     float ppw{};      ///< canvas px per world unit
     float min_x{}, min_y{}, max_x{}, max_y{};
+    /// Runtime 22: degrees the view is turned clockwise about the widget centre (view_rotate_bind),
+    /// normalised to [0, 360); 0 = north-up. `view_key` is the widget's ViewState key.
+    float rotation{};
+    std::string view_key;
     struct Hit {
         std::string group;
         s32 index{};
@@ -363,6 +374,23 @@ struct MapDrawRecord {
     u64 content_id{};     ///< identity of the pictures this draw used (base, fade, atlas)
     u64 render_serial{};  ///< the RenderPage call that made this record (CurrentRenderSerial)
     bool clock_dependent{}; ///< something other than the live marker was drawn from the clock
+    /// Canvas offset from the widget centre turned back into the unturned view (runtime 22).
+    [[nodiscard]] std::array<float, 2> Unturn(float dx, float dy) const {
+        if (rotation == 0.0f) {
+            return {dx, dy};
+        }
+        const float rad = rotation * 3.14159265358979f / 180.0f;
+        const float c = std::cos(rad), s = std::sin(rad);
+        return {dx * c + dy * s, -dx * s + dy * c};
+    }
+    /// The world point under canvas pixel (sx, sy), through the view's turn.
+    [[nodiscard]] std::array<float, 2> World(float sx, float sy) const {
+        const auto d =
+            Unturn(sx - (static_cast<float>(rect[0]) + static_cast<float>(rect[2]) * 0.5f),
+                   sy - (static_cast<float>(rect[1]) + static_cast<float>(rect[3]) * 0.5f));
+        return {cx + d[0] / ppw, cy - d[1] / ppw};
+    }
+    /// Unturned views only (rotation 0); World() is the general form.
     [[nodiscard]] float WorldX(float sx) const {
         return cx + (sx - (static_cast<float>(rect[0]) + static_cast<float>(rect[2]) * 0.5f)) / ppw;
     }
@@ -522,6 +550,10 @@ u64 CurrentRenderSerial();
 /// `widget` (page widget index `widget_index`) would use for this snapshot, these views and this
 /// follow state, without drawing anything or changing `follow`. nullopt when the widget would not
 /// draw a geometry view (no map data for its area, no position yet).
+/// Runtime 22: a Map widget's view turn ("view_rotate_bind"), clockwise degrees in [0, 360);
+/// 0 when the key is unset, its value missing or nonfinite.
+float MapViewTurnDegrees(const Widget& widget, const StateSnapshot& snapshot);
+
 std::optional<MapDrawRecord> ProbeMapView(const Manifest& manifest, const Page& page,
                                           const StateSnapshot& snapshot, const Widget& widget,
                                           size_t widget_index, const ViewState& views,

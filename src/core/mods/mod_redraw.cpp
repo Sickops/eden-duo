@@ -499,6 +499,7 @@ u64 ModRuntime::WidgetDependencyHash(const Widget& w, const StateSnapshot& s,
         // Runtime 14: the bound base picture and the overlays' pictures / gates.
         add(w.map_extras->image_bind);
         add(w.map_extras->marker_rotate_bind);
+        add(w.map_extras->view_rotate_bind); // runtime 22: the whole view turns
         for (const auto& ov : w.map_extras->overlays) {
             add(ov.src_bind);
             add(ov.src_detail_bind);
@@ -1434,7 +1435,7 @@ bool SameMapView(const MapDrawRecord& a, const MapDrawRecord& b, bool content = 
     const auto same = [](float x, float y) { return std::memcmp(&x, &y, sizeof(float)) == 0; };
     return a.area == b.area && a.rect == b.rect && same(a.cx, b.cx) && same(a.cy, b.cy) &&
            same(a.ppw, b.ppw) && same(a.min_x, b.min_x) && same(a.min_y, b.min_y) &&
-           same(a.max_x, b.max_x) && same(a.max_y, b.max_y) &&
+           same(a.max_x, b.max_x) && same(a.max_y, b.max_y) && same(a.rotation, b.rotation) &&
            (!content || a.content_id == b.content_id);
 }
 
