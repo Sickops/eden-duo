@@ -377,6 +377,27 @@ jlongArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getContainerBaseTitleIds(JNIEnv
     return result;
 }
 
+// Eden Duo: a game's icon straight from its own file. GameMetadata.getIcon also builds the
+// update/DLC metadata (PatchManager), which waits for the external content scan, so the library's
+// first icons appeared only after that scan finished. The icon itself always comes from the base
+// file (Loader::ReadIcon), so nothing else is needed here. Empty when the file has no icon.
+jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_readGameIcon(JNIEnv* env, jobject jobj,
+                                                              jstring jpath) {
+    std::vector<u8> icon;
+    auto& system = EmulationSession::GetInstance().System();
+    const auto file =
+        Core::GetGameFileFromPath(system.GetFilesystem(), Common::Android::GetJString(env, jpath));
+    if (file != nullptr) {
+        if (const auto loader = Loader::GetLoader(system, file, 0, 0); loader != nullptr) {
+            loader->ReadIcon(icon);
+        }
+    }
+    jbyteArray result = env->NewByteArray(static_cast<jsize>(icon.size()));
+    env->SetByteArrayRegion(result, 0, static_cast<jsize>(icon.size()),
+                            reinterpret_cast<const jbyte*>(icon.data()));
+    return result;
+}
+
 // DSMod: the directory the add-on scanner (PatchManager and the dual-screen runtime) reads for
 // this title, so the Android installers write exactly where the scan looks. Empty when the
 // title has no mod root (id 0, or an update id).

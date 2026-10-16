@@ -26,6 +26,7 @@ import coil.request.ImageRequest
 import coil.request.Options
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.duo.GameIconCache
 import org.yuzu.yuzu_emu.model.Game
 import java.util.Collections
 import java.util.WeakHashMap
@@ -50,7 +51,7 @@ class GameIconFetcher(
     }
 
     private fun decodeGameIcon(game: Game): Bitmap? {
-        val data = GameMetadata.getIcon(game.path)
+        val data = GameIconCache.read(game) // Eden Duo: disk cache, then the game file
         gameIconHashes[game.iconCacheKey()] = data.contentHashCode()
         return BitmapFactory.decodeByteArray(
             data,
@@ -117,7 +118,9 @@ object GameIconUtils {
             return
         }
 
-        val iconHash = GameMetadata.getIcon(game.path).contentHashCode()
+        val iconData = GameMetadata.getIcon(game.path)
+        GameIconCache.store(game, iconData) // Eden Duo: keep the disk cache current
+        val iconHash = iconData.contentHashCode()
         val targetsToRefresh = targets.filter { gameIconTargets[it]?.iconHash != iconHash }
         if (targetsToRefresh.isEmpty()) {
             return

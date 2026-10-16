@@ -727,6 +727,9 @@ object NativeLibrary {
     /** Eden Duo: whether the keys are loaded, without rebuilding the filesystem factories. */
     external fun areKeysLoaded(): Boolean
 
+    /** Eden Duo: a game's icon from its own file, without update/DLC metadata (empty if none). */
+    external fun readGameIcon(path: String): ByteArray
+
     // DSMod second-screen surface
     external fun auxSurfaceChanged(surf: Surface)
 
