@@ -358,10 +358,19 @@ PadIdentifier Android::GetIdentifier(const std::string& guid, size_t port) const
 
 void Android::SendVibrations(JNIEnv* env, std::stop_token token) {
     VibrationRequest request = vibration_queue.PopWait(token);
+    if (token.stop_requested()) {
+        return; // Eden Duo: PopWait returned an empty request, not a popped one
+    }
     auto device = input_devices.find(request.identifier);
     if (device != input_devices.end()) {
         float average_intensity = static_cast<float>(
             (request.vibration.high_amplitude + request.vibration.low_amplitude) / 2.0);
+        // Eden Duo: games stream the same rumble every frame; only cross JNI on a change.
+        auto& last = last_vibration_intensity[request.identifier];
+        if (last == average_intensity) {
+            return;
+        }
+        last = average_intensity;
         env->CallVoidMethod(device->second, Common::Android::GetYuzuDeviceVibrate(),
                             average_intensity);
     }

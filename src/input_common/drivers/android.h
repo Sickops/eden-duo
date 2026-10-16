@@ -9,6 +9,7 @@
 #include <set>
 #include <common/threadsafe_queue.h>
 #include <jni.h>
+#include <unordered_map>
 #include "input_common/input_engine.h"
 
 namespace InputCommon {
@@ -144,7 +145,11 @@ private:
                                                    backbone_labs_vid, xbox_vid};
 
     /// Queue of vibration request to controllers
-    Common::SPSCQueue<VibrationRequest> vibration_queue;
+    // Eden Duo: SetVibration is reached from several host threads (HID service calls under
+    // multicore), so the queue needs a producer lock; the single-producer queue corrupted its
+    // size and left the vibration worker spinning at 100% on one core.
+    Common::MPSCQueue<VibrationRequest> vibration_queue;
+    std::unordered_map<PadIdentifier, float> last_vibration_intensity; // Eden Duo: coalescing
     std::jthread vibration_thread;
 };
 
