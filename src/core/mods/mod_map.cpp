@@ -1691,6 +1691,48 @@ std::shared_ptr<const Image> ModRuntime::GetImage(const std::string& src_in,
     return CachePutImage(src, std::move(image));
 }
 
+namespace {
+/// An area whose dynamic markers animate on the clock (frames / pulse) while shown: such a map
+/// is never a still picture (its markers move without any bound value changing).
+bool AreaMarkersAnimate(const MapArea& area, const StateSnapshot& s) {
+    for (const auto& dm : area.dynamic_markers) {
+        if (!dm.Animated()) {
+            continue;
+        }
+        if ((!dm.show.Empty() && !GateOpen(dm.show, s)) ||
+            (!dm.hide.Empty() && GateOpen(dm.hide, s))) {
+            continue;
+        }
+        return true;
+    }
+    return false;
+}
+} // namespace
+
+std::array<float, 2> MarkerPulseAt(const DynamicMarkerDef::Pulse& pulse, u64 ms) {
+    if (pulse.period_ms <= 0) {
+        return {1.0f, 1.0f};
+    }
+    const float t = static_cast<float>(ms % static_cast<u64>(pulse.period_ms)) /
+                    static_cast<float>(pulse.period_ms);
+    if (pulse.grow) {
+        const float s = std::min(1.0f, t / 0.75f);
+        const float a = t < 2.0f / 3.0f ? 1.0f : 1.0f - (t - 2.0f / 3.0f) * 3.0f;
+        return {pulse.alpha_hi * std::clamp(a, 0.0f, 1.0f),
+                pulse.scale_lo + (pulse.scale_hi - pulse.scale_lo) * s};
+    }
+    const float k = 0.5f - 0.5f * std::cos(t * 6.2831853f);
+    return {pulse.alpha_lo + (pulse.alpha_hi - pulse.alpha_lo) * k,
+            pulse.scale_lo + (pulse.scale_hi - pulse.scale_lo) * k};
+}
+
+size_t MarkerFrameAt(size_t frames, s32 frame_ms, u64 ms) {
+    if (frames == 0) {
+        return 0;
+    }
+    return static_cast<size_t>((ms / static_cast<u64>(std::max(1, frame_ms))) % frames);
+}
+
 bool ModRuntime::IsPictureMapWidget(const Widget& widget, const StateSnapshot& s) const {
     // A fixed-area picture map has nothing that moves by itself: its view glides, fades and marker
     // moves already change the signature (or invalidate it).
@@ -1699,7 +1741,8 @@ bool ModRuntime::IsPictureMapWidget(const Widget& widget, const StateSnapshot& s
     }
     if (widget.area_bind.empty() && widget.room_bind.empty()) {
         const auto a = manifest.map_areas.find(widget.area);
-        return a != manifest.map_areas.end() && !a->second.image.empty();
+        return a != manifest.map_areas.end() && !a->second.image.empty() &&
+               !AreaMarkersAnimate(a->second, s);
     }
     // area_bind/room_bind: the area this tick's snapshot resolves to (exactly as the Map case
     // does). It is a still picture when that area draws the game's image (image mode: no fog, no
@@ -1708,6 +1751,7 @@ bool ModRuntime::IsPictureMapWidget(const Widget& widget, const StateSnapshot& s
     // conservative continuous redraw.
     const auto a = manifest.map_areas.find(ResolveMapArea(widget, s));
     return a != manifest.map_areas.end() && !a->second.image.empty() && a->second.markers.empty() &&
+           !AreaMarkersAnimate(a->second, s) &&
            widget.marker_icon.empty() && (widget.actor_x_bind.empty() || widget.actor_icon.empty());
 }
 

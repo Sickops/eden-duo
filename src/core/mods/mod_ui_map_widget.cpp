@@ -1491,6 +1491,8 @@ void GeometryMapDraw::emit_pin(float ux, float uy, float uw, float uh, float qx,
 }
 
 void GeometryMapDraw::DrawDynamicMarkers() {
+    // The animated markers' clock: the tick runs at 60 Hz.
+    const u64 clock_ms = snapshot.tick * 1000 / 60;
     for (const auto& dm : geo->second.dynamic_markers) {
         if ((!dm.show.Empty() && !GateOpen(dm.show, snapshot)) ||
             (!dm.hide.Empty() && GateOpen(dm.hide, snapshot))) {
@@ -1500,6 +1502,22 @@ void GeometryMapDraw::DrawDynamicMarkers() {
         if (!group_visible(dm.group, dm_alpha) || dm_alpha <= 0.0f) {
             continue;
         }
+        // Time-animated def: this tick's frame picture (shared by every slot) and pulse.
+        std::shared_ptr<const Image> frame_pic;
+        if (!dm.frames.empty()) {
+            const auto& key = dm.frames[MarkerFrameAt(dm.frames.size(), dm.frame_ms, clock_ms)];
+            frame_pic = images ? images(key) : nullptr;
+            add_content(frame_pic.get());
+            if (frame_pic && !frame_pic->Valid()) {
+                frame_pic.reset();
+            }
+        }
+        const auto pulse = MarkerPulseAt(dm.pulse, clock_ms);
+        dm_alpha *= std::clamp(pulse[0], 0.0f, 1.0f);
+        if (dm_alpha <= 0.0f) {
+            continue;
+        }
+        const float pulse_size = std::max(0.0f, pulse[1]);
         const s64 selected = snapshot.GetInt("@map_sel:" + dm.group, -1);
         const s32 base_sz = dm.size > 0 ? dm.size : ItemIconSize;
         const s32 sel_sz = dm.selected_size > 0 ? dm.selected_size : base_sz;
@@ -1616,8 +1634,8 @@ void GeometryMapDraw::DrawDynamicMarkers() {
             }
             // Runtime 14: a per-slot picture (a text point naming an image key) wins over the
             // atlas icon; one still loading draws nothing yet.
-            std::shared_ptr<const Image> pic;
-            if (!dm.icon_src_bind.empty()) {
+            std::shared_ptr<const Image> pic = frame_pic;
+            if (pic == nullptr && !dm.icon_src_bind.empty()) {
                 if (const auto t = snapshot.texts.find(slot_key(dm.icon_src_bind, i));
                     t != snapshot.texts.end() && !t->second.empty()) {
                     pic = images ? images(t->second) : nullptr;
@@ -1645,7 +1663,8 @@ void GeometryMapDraw::DrawDynamicMarkers() {
             const float world_sz = dm.size_world > 0.0f
                                        ? dm.size_world * ppw
                                        : static_cast<float>(is_sel ? sel_sz : base_sz);
-            const float sz = dm.size_max > 0.0f ? std::min(world_sz, dm.size_max) : world_sz;
+            const float sz =
+                (dm.size_max > 0.0f ? std::min(world_sz, dm.size_max) : world_sz) * pulse_size;
             const auto at = pt(wx, wy);
             const float qx = at[0] - dm.anchor_x * sz;
             const float qy = at[1] - dm.anchor_y * sz;

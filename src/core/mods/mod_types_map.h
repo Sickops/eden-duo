@@ -150,7 +150,31 @@ struct DynamicMarkerDef {
     s32 frame_px{0}; ///< frame thickness in px; 0 = a sixteenth of the icon, at least 2
     /// Int point, ARGB: multiplies the icon's colour (alpha included); 0 or missing = none.
     std::string tint_bind;
+    // --- time-animated markers (unreleased runtime 22 addition), driven by the tick clock ---
+    /// "frames" + "frame_ms": every slot draws frames[(t / frame_ms) % n] (image keys) instead of
+    /// its icon / icon_src_bind picture; per-slot tint still applies (one flame serves every pin
+    /// colour). A frame still loading falls back to the slot's own picture.
+    std::vector<std::string> frames;
+    s32 frame_ms{100};
+    /// "pulse": alpha and size modulated over period_ms. breathe: a cosine between lo and hi.
+    /// grow: size lo -> hi over the first 75 % of the period, alpha hi -> 0 over its last third
+    /// (the game's quest-marker ring). period_ms 0 = none.
+    struct Pulse {
+        s32 period_ms{0};
+        float alpha_lo{1.0f}, alpha_hi{1.0f};
+        float scale_lo{1.0f}, scale_hi{1.0f};
+        bool grow{false};
+    };
+    Pulse pulse;
+    [[nodiscard]] bool Animated() const {
+        return !frames.empty() || pulse.period_ms > 0;
+    }
 };
+
+/// Pulse of an animated marker at `ms` on its clock: {alpha multiplier, size multiplier}.
+std::array<float, 2> MarkerPulseAt(const DynamicMarkerDef::Pulse& pulse, u64 ms);
+/// Which of `frames` an animated marker shows at `ms` (frame_ms <= 0 counts as 1 ms).
+size_t MarkerFrameAt(size_t frames, s32 frame_ms, u64 ms);
 
 /// A text label at a world position ("labels"): a region name shown once visited.
 struct MapLabel {

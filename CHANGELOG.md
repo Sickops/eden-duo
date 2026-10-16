@@ -9,10 +9,14 @@
   - Runtime 22: a map widget can turn with the game's camera (`view_rotate_bind`, degrees clockwise): the map picture and its tiles rotate about the widget centre; markers, labels and pins keep their place but stay upright; a marker heading (`marker_rotate_bind`) turns with the map; taps, drags and pinches work on the turned map. Older Eden Duo versions ignore the key and show the map north-up.
   - Scroll regions can scroll on both axes (`axes`: `"x"`, `"y"` or `"xy"`, with `lock_axis`), take their content size from a value (`content_w`/`content_h`, `content_w_bind`/`content_h_bind`) so one large module-drawn picture scrolls natively with the finger, let a widget follow only one axis (`scroll_follow`: a frozen header row or label column), fling horizontally, show a horizontal scrollbar, and hand a tap's content-relative point to an action (`"payload": "$tap"`). Older runtimes ignore the keys and scroll vertically as before.
   - Text can lean like a game's italic menu text: `slant_deg` on any text widget (or `italic: true` for the common 9° lean) shears the glyphs about their baseline, in the game font and the built-in one. Older runtimes ignore the key and draw upright.
+  - Map markers can animate on their own clock: `frames` + `frame_ms` cycle a marker's picture (a flickering pin flame), `pulse` breathes its size and alpha or grows a ring (the quest marker), on pan/zoom map pages too. Older runtimes draw the static icon.
+  - `preload`: a list of picture sources the runtime decodes right after the package loads, so a page that uses many never-seen textures no longer pops them in one by one on its first visit.
   - Image widgets: `pan_bounds` limits pan/zoom to part of the picture (a padded picture can no longer be dragged to show its padding; the default view and the Reset button follow the same bounds). Older runtimes ignore the key.
 
 **Fixed**
 
+- Companion pictures inside a compressed game archive (Breath of the Wild's `Common.sblarc`) no longer cost ~70 ms each to decode: the archive is unpacked once and kept, so icons appear at once instead of one by one over a second.
+- Images turned by exactly 90, 180 or 270 degrees draw several times faster (an integer axis swap instead of per-pixel trigonometry), which cuts the cost of a full-page rotated gradient.
 - Starting another game while the previous one was still loading or closing no longer leaves the previous game's emulator (renderer, GPU resources, memory) alive in the background.
 - Controller rumble no longer keeps one CPU core at 100% in the background (a rumble worker thread could spin forever once several threads sent rumble at the same time), which heated the device and caused throttling.
 - Press-and-hold actions on the second screen now receive the widget's value (captured when the hold starts), the same way taps do; companions whose hold actions use `$payload` work again.

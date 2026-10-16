@@ -380,6 +380,15 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
         DrawImageRegion(nx, ny, nw, nh, image, sx, sy, sw, sh, tint, flip_x, flip_y);
         return;
     }
+    if (scale == 1.0f && (deg == 90.0f || deg == 180.0f || deg == 270.0f)) {
+        // A quarter turn at 1x: the inverse map is a swap and/or a mirror of the axes, so each
+        // canvas column and row maps to one source column or row -- two integer tables and no
+        // trigonometry per pixel. Same texel as the generic path below for every pixel (the
+        // same formulas with cos / sin at exactly 0 / +-1).
+        DrawImageQuarterTurned(x, y, rw, rh, image, sx, sy, sw, sh, tint, deg, pivot_x, pivot_y,
+                               flip_x, flip_y);
+        return;
+    }
     // Inverse mapping, as DrawImageRegionRotated but about the pivot and through the scale: every
     // canvas pixel centre in the transformed box is turned back by the angle, divided by the scale
     // and, when it lands inside the unrotated rect, takes the texel the unscaled blit would use.
@@ -451,6 +460,83 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
             if (src_x < 0 || src_x >= iw || src_y < 0 || src_y >= ih) {
                 continue;
             }
+            u32 texel = image.pixels[static_cast<size_t>(src_y) * image.w + src_x];
+            if (!plain) {
+                texel = Tint(texel, tint);
+            }
+            dst[px] = Blend(dst[px], full_opacity ? texel : ApplyDrawOpacity(texel));
+        }
+    }
+}
+
+void Canvas::DrawImageQuarterTurned(s32 x, s32 y, s32 rw, s32 rh, const Image& image, s32 sx,
+                                    s32 sy, s32 sw, s32 sh, u32 tint, float deg, float pivot_x,
+                                    float pivot_y, bool flip_x, bool flip_y) {
+    const auto box = TransformedImageBounds(x, y, rw, rh, deg, 1.0f, pivot_x, pivot_y);
+    const s32 x0 = std::max(clip_x0, box[0]), x1 = std::min(clip_x1, box[2]);
+    const s32 y0 = std::max(clip_y0, box[1]), y1 = std::min(clip_y1, box[3]);
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    const float ax = static_cast<float>(x) + pivot_x;
+    const float ay = static_cast<float>(y) + pivot_y;
+    const float fw = static_cast<float>(rw), fh = static_cast<float>(rh);
+    const s32 iw = static_cast<s32>(image.w), ih = static_cast<s32>(image.h);
+    const bool plain = tint == 0xFFFFFFFFu;
+    const bool full_opacity = EffectiveOpacity() >= 1.0f;
+    // lx / ly of the generic path: for 90 and 270 degrees lx comes from the canvas row and ly
+    // from the column; for 180 degrees each from its own axis. Each table holds the source
+    // column / row that coordinate selects, or -1 when it falls outside the rect.
+    const auto src_col = [&](float lx) -> s32 {
+        if (!(lx >= 0.0f && lx < fw)) {
+            return -1;
+        }
+        const s32 off = static_cast<s32>(static_cast<s64>(std::min(static_cast<s32>(lx), rw - 1)) * sw / rw);
+        const s32 col = flip_x ? sx + (sw - 1) - off : sx + off;
+        return col >= 0 && col < iw ? col : -1;
+    };
+    const auto src_row = [&](float ly) -> s32 {
+        if (!(ly >= 0.0f && ly < fh)) {
+            return -1;
+        }
+        const s32 off = static_cast<s32>(static_cast<s64>(std::min(static_cast<s32>(ly), rh - 1)) * sh / rh);
+        const s32 row = flip_y ? sy + (sh - 1) - off : sy + off;
+        return row >= 0 && row < ih ? row : -1;
+    };
+    // by_px[i]: what canvas column x0 + i selects; by_py[j]: what canvas row y0 + j selects.
+    thread_local std::vector<s32> by_px, by_py;
+    by_px.resize(static_cast<size_t>(x1 - x0));
+    by_py.resize(static_cast<size_t>(y1 - y0));
+    const bool swap_axes = deg != 180.0f;
+    for (s32 px = x0; px < x1; ++px) {
+        const float dx = static_cast<float>(px) + 0.5f - ax;
+        // 90: ly = -dx + pivot_y; 180: lx = -dx + pivot_x; 270: ly = dx + pivot_y
+        by_px[static_cast<size_t>(px - x0)] =
+            deg == 90.0f    ? src_row(-dx + pivot_y)
+            : deg == 180.0f ? src_col(-dx + pivot_x)
+                            : src_row(dx + pivot_y);
+    }
+    for (s32 py = y0; py < y1; ++py) {
+        const float dy = static_cast<float>(py) + 0.5f - ay;
+        // 90: lx = dy + pivot_x; 180: ly = -dy + pivot_y; 270: lx = -dy + pivot_x
+        by_py[static_cast<size_t>(py - y0)] =
+            deg == 90.0f    ? src_col(dy + pivot_x)
+            : deg == 180.0f ? src_row(-dy + pivot_y)
+                            : src_col(-dy + pivot_x);
+    }
+    for (s32 py = y0; py < y1; ++py) {
+        const s32 from_py = by_py[static_cast<size_t>(py - y0)];
+        if (from_py < 0) {
+            continue;
+        }
+        u32* const dst = pixels.data() + static_cast<size_t>(py) * w;
+        for (s32 px = x0; px < x1; ++px) {
+            const s32 from_px = by_px[static_cast<size_t>(px - x0)];
+            if (from_px < 0) {
+                continue;
+            }
+            const s32 src_x = swap_axes ? from_py : from_px;
+            const s32 src_y = swap_axes ? from_px : from_py;
             u32 texel = image.pixels[static_cast<size_t>(src_y) * image.w + src_x];
             if (!plain) {
                 texel = Tint(texel, tint);

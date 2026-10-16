@@ -190,6 +190,9 @@ namespace Core::Mods {
 ///          (TapPayload). Older runtimes ignore the keys and scroll on y as before.
 ///          Also: leaning text -- Widget "slant_deg" / "italic" (Canvas::SetTextSlant, a
 ///          per-scanline shear about the baseline). Older runtimes draw upright.
+///          Also: animated dynamic map markers ("frames" / "frame_ms" / "pulse", clock-driven;
+///          MarkerFrameAt / MarkerPulseAt) and the manifest "preload" picture list (queued once
+///          by PumpNxAssets). Older runtimes draw the static icon and decode on first use.
 inline constexpr u32 DualScreenRuntimeVersion = 22;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
@@ -1425,6 +1428,8 @@ private:
     /// self-animation) -- shared by UiSignature's `animating` flag and WidgetDependencyHash so both
     /// treat the same widget the same way. See UiSignature's own comment for the area_bind caveat.
     [[nodiscard]] bool IsPictureMapWidget(const Widget& widget, const StateSnapshot& s) const;
+    /// Manifest "preload" pictures queued (PumpNxAssets does it once per runtime).
+    bool nx_preload_done{false};
     // mod_map.cpp
     /// The map area a Map widget draws for this snapshot (room_bind, area_bind + season, area).
     [[nodiscard]] std::string ResolveMapArea(const Widget& w, const StateSnapshot& s) const;

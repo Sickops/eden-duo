@@ -215,6 +215,11 @@ public:
                        s32 sh, u32 argb);
     /// DrawImageRegion turned by `angle_rad` about the rect's centre (a loading wheel); nearest
     /// sampling, clockwise for positive angles on the panel's y-down axes.
+    /// DrawImageTransformed's exact-quarter-turn path (90 / 180 / 270 degrees at scale 1): axis
+    /// swap / mirror through two integer tables, the same texels as the generic inverse map.
+    void DrawImageQuarterTurned(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy,
+                                s32 sw, s32 sh, u32 tint, float deg, float pivot_x, float pivot_y,
+                                bool flip_x, bool flip_y);
     void DrawImageRegionRotated(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy,
                                 s32 sw, s32 sh, u32 tint, float angle_rad);
     /// Runtime 16: the region drawn into {x, y, w, h}, then scaled by `scale` and turned by

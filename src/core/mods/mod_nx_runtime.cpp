@@ -506,6 +506,37 @@ struct NxAssetState {
     std::unordered_map<std::string, NX::SarcIndex> sarcs;
     std::unordered_map<std::string, std::shared_ptr<const NX::BntxIndex>> bntxs;
     std::unordered_map<std::string, std::shared_ptr<const FontBuild>> fonts;
+    /// Containers already unpacked in memory, by chain: a Yaz0-compressed archive (a game's
+    /// Common.sblarc) decoded once instead of on every job that reads a member of it (which was
+    /// the ~70 ms fixed cost of every small texture decode), and a BFRES's embedded BNTX. Bounded
+    /// by ExpandedCacheBytes, oldest out first (io_mutex).
+    std::unordered_map<std::string, FileSys::VirtualFile> expanded;
+    std::deque<std::string> expanded_order;
+    size_t expanded_bytes{0};
+    static constexpr size_t ExpandedCacheBytes = 160ull * 1024 * 1024;
+    void RememberExpanded(const std::string& chain, const FileSys::VirtualFile& file) {
+        std::scoped_lock lock{io_mutex};
+        if (expanded.contains(chain)) {
+            return;
+        }
+        const size_t bytes = static_cast<size_t>(file->GetSize());
+        while (!expanded_order.empty() && expanded_bytes + bytes > ExpandedCacheBytes) {
+            const auto victim = expanded.find(expanded_order.front());
+            if (victim != expanded.end()) {
+                expanded_bytes -= static_cast<size_t>(victim->second->GetSize());
+                expanded.erase(victim);
+            }
+            expanded_order.pop_front();
+        }
+        expanded.emplace(chain, file);
+        expanded_order.push_back(chain);
+        expanded_bytes += bytes;
+    }
+    FileSys::VirtualFile FindExpanded(const std::string& chain) {
+        std::scoped_lock lock{io_mutex};
+        const auto it = expanded.find(chain);
+        return it != expanded.end() ? it->second : nullptr;
+    }
 
     // ---- worker only ----
     std::unordered_map<std::string, CompositeCache> caches;
@@ -652,6 +683,18 @@ LocateStatus NxAssetState::Locate(const std::string& src, const Roots& roots, Lo
     }
     out.size = out.file->GetSize();
     for (u32 depth = 0; depth < 8; ++depth) {
+        // This container was unpacked by an earlier job: use that copy (its embedded BNTX when
+        // it is a BFRES; the decoded bytes when it was Yaz0).
+        if (const auto embedded = FindExpanded(out.chain + "#embedded-bntx")) {
+            out.file = embedded;
+            out.base = 0;
+            out.size = embedded->GetSize();
+            out.chain += "#embedded-bntx";
+        } else if (const auto unpacked = FindExpanded(out.chain)) {
+            out.file = unpacked;
+            out.base = 0;
+            out.size = unpacked->GetSize();
+        }
         out.magic = {};
         if (out.size < 4 ||
             out.file->Read(out.magic.data(), 4, static_cast<size_t>(out.base)) != 4) {
@@ -671,6 +714,7 @@ LocateStatus NxAssetState::Locate(const std::string& src, const Roots& roots, Lo
                 error = "decoded Yaz0 asset too short";
                 return LocateStatus::Error;
             }
+            RememberExpanded(out.chain, out.file);
         }
         if (std::memcmp(out.magic.data(), "FRES", 4) == 0) {
             std::vector<u8> container;
@@ -688,6 +732,7 @@ LocateStatus NxAssetState::Locate(const std::string& src, const Roots& roots, Lo
             out.size = member.size();
             out.chain += "#embedded-bntx";
             std::memcpy(out.magic.data(), "BNTX", 4);
+            RememberExpanded(out.chain, out.file);
         }
         if (!out.has_rest || std::memcmp(out.magic.data(), "SARC", 4) != 0) {
             return LocateStatus::Ok;
@@ -1776,6 +1821,18 @@ void ModRuntime::PumpNxAssets(const StateSnapshot& snapshot) {
     // this lock does -- locals destruct in reverse declaration order), covering every touch of
     // the state_mutex bucket this function makes.
     std::scoped_lock state_lock{s.state_mutex};
+    // Manifest "preload" (unreleased runtime 22 addition): the package's fixed pictures are
+    // queued once, here, behind whatever the first page asked for, so a later page finds them
+    // decoded instead of popping them in one by one on its first visit.
+    if (!nx_preload_done && asset_sources) {
+        nx_preload_done = true;
+        for (const auto& src : manifest.preload) {
+            GetImage(src);
+        }
+        if (!manifest.preload.empty()) {
+            LOG_INFO(Core, "DSMod nx: {} preload picture(s) queued", manifest.preload.size());
+        }
+    }
 #if EDEN_DSMOD_BUILD_DEV_TOOLS
     const auto pump_started = NxClock::now();
     struct PumpTimer {

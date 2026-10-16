@@ -1225,6 +1225,31 @@ void ParseMapAreasInto(const nlohmann::json& areas,
                 dm.frame_color_bind = d.value("frame_color_bind", std::string{});
                 dm.frame_px = static_cast<s32>(d.value("frame_px", 0));
                 dm.tint_bind = d.value("tint_bind", std::string{});
+                // Time-animated markers (unreleased runtime 22 addition).
+                if (d.contains("frames") && d.at("frames").is_array()) {
+                    for (const auto& f : d.at("frames")) {
+                        if (f.is_string() && !f.get<std::string>().empty() &&
+                            dm.frames.size() < 256) {
+                            dm.frames.push_back(f.get<std::string>());
+                        }
+                    }
+                }
+                dm.frame_ms = std::clamp(static_cast<s32>(d.value("frame_ms", 100)), 1, 60000);
+                if (d.contains("pulse") && d.at("pulse").is_object()) {
+                    const auto& p = d.at("pulse");
+                    dm.pulse.period_ms =
+                        std::clamp(static_cast<s32>(p.value("period_ms", 1000)), 1, 60000);
+                    const auto range = [&p](const char* key, float& lo, float& hi) {
+                        if (p.contains(key) && p.at(key).is_array() && p.at(key).size() == 2 &&
+                            p.at(key)[0].is_number() && p.at(key)[1].is_number()) {
+                            lo = std::clamp(p.at(key)[0].get<float>(), 0.0f, 8.0f);
+                            hi = std::clamp(p.at(key)[1].get<float>(), 0.0f, 8.0f);
+                        }
+                    };
+                    range("alpha", dm.pulse.alpha_lo, dm.pulse.alpha_hi);
+                    range("scale", dm.pulse.scale_lo, dm.pulse.scale_hi);
+                    dm.pulse.grow = p.value("mode", std::string{"breathe"}) == "grow";
+                }
                 if (dm.count > 0 && !dm.x.empty() && !dm.y.empty()) {
                     entry.dynamic_markers.push_back(std::move(dm));
                 } else {
@@ -1483,6 +1508,14 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
     ParseNav(json, manifest.nav);
     if (json.contains("anim_hz") && json.at("anim_hz").is_number()) {
         manifest.anim_hz = static_cast<u32>(std::clamp(json.at("anim_hz").get<f64>(), 1.0, 240.0));
+    }
+    // "preload": picture sources to decode once the package is up (PumpNxAssets).
+    if (json.contains("preload") && json.at("preload").is_array()) {
+        for (const auto& p : json.at("preload")) {
+            if (p.is_string() && !p.get<std::string>().empty() && manifest.preload.size() < 1024) {
+                manifest.preload.push_back(p.get<std::string>());
+            }
+        }
     }
     // "page_binds" -- edge-triggered automatic page switches. Absent/empty = no behaviour change
     // for every package that predates this.

@@ -781,6 +781,12 @@ std::string R(const DynamicMarkerDef& o) {
     F(frame_color_bind);
     F(frame_px);
     F(tint_bind);
+    if (!o.frames.empty()) { F(frames); F(frame_ms); }
+    if (o.pulse.period_ms > 0) {
+        dd.out += fmt::format(" pulse={}:{}/{}:{}/{}:{}", o.pulse.period_ms, o.pulse.alpha_lo,
+                              o.pulse.alpha_hi, o.pulse.scale_lo, o.pulse.scale_hi,
+                              o.pulse.grow ? "grow" : "breathe");
+    }
     DUMP_END;
 }
 std::string R(const MapLabel& o) {
@@ -1099,6 +1105,7 @@ std::string DumpManifest(const Manifest& o) {
         F(haptics);
         F(nav);
         F(anim_hz);
+        if (!o.preload.empty()) { dd.out += fmt::format(" preload={}", o.preload.size()); }
         F(find_spec);
         F(trace_target);
         F(dump_registry);
@@ -1242,7 +1249,7 @@ void CheckLayouts() {
     };
     // clang-format off
     const Size sizes[] = {
-        {"Manifest", sizeof(Manifest), 2448},
+        {"Manifest", sizeof(Manifest), 2472},
         {"Page", sizeof(Page), 160},
         {"Widget", sizeof(Widget), 2344},
         {"ChartSpec", sizeof(ChartSpec), 64},
@@ -1266,7 +1273,7 @@ void CheckLayouts() {
         {"MapRoom", sizeof(MapRoom), 80},
         {"MapArea", sizeof(MapArea), 320},
         {"MapMarker", sizeof(MapMarker), 400},
-        {"DynamicMarkerDef", sizeof(DynamicMarkerDef), 656},
+        {"DynamicMarkerDef", sizeof(DynamicMarkerDef), 712},
         {"MapLabel", sizeof(MapLabel), 216},
         {"MapLayer", sizeof(MapLayer), 168},
         {"MapRoomCategory", sizeof(MapRoomCategory), 192},

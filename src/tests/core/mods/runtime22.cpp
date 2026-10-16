@@ -433,8 +433,16 @@ TEST_CASE("DSMod image transform: the row-span walk paints exactly the full-box 
                 canvas.DrawImageTransformed(20, 15, 23, 17, img, 0, 0, 7, 5, 0xFFFFFFFFu, deg, scale,
                                             px, py);
                 const float ax = 20.0f + px, ay = 15.0f + py;
-                const float rc = std::cos(deg * 3.14159265f / 180.0f);
-                const float rs = std::sin(deg * 3.14159265f / 180.0f);
+                float rc = std::cos(deg * 3.14159265f / 180.0f);
+                float rs = std::sin(deg * 3.14159265f / 180.0f);
+                if (scale == 1.0f && std::fmod(deg, 90.0f) == 0.0f) {
+                    // An exact quarter turn at 1x takes the exact integer path
+                    // (DrawImageQuarterTurned): cos / sin are exactly 0 / +-1 there, so a
+                    // coordinate that lands on a texel boundary is not floored a texel early by
+                    // float noise (cos(90 deg) = -4e-8 in the generic path).
+                    rc = std::round(rc);
+                    rs = std::round(rs);
+                }
                 for (s32 y = 0; y < 70; ++y) {
                     for (s32 x = 0; x < 90; ++x) {
                         u32 want = Black;
