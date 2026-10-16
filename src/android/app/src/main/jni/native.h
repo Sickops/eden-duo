@@ -46,6 +46,13 @@ public:
     void HaltEmulation();
     void RunEmulation();
     void ShutdownEmulation();
+    // Eden Duo: a run cycle spans InitializeEmulation..ShutdownEmulation. The next cycle must
+    // wait for the previous one to unwind: HaltEmulation clears m_is_running at once, so the
+    // Kotlin gate can start a new game while the old thread is still loading or shutting down;
+    // the new RunEmulation then set m_is_running back to true, the old loop never broke and the
+    // old session (renderer, GPU resources, process memory) was never torn down.
+    bool BeginEmulationCycle();
+    void EndEmulationCycle();
     void RequestDiskShaderCacheReload(u64 program_id);
 
     const Core::PerfStatsResults& PerfStats();
@@ -83,6 +90,8 @@ private:
     std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     std::atomic<bool> m_is_running = false;
+    bool m_cycle_active = false;           // Eden Duo: guarded by m_mutex
+    std::condition_variable m_cycle_cv;    // Eden Duo
     std::atomic<bool> m_is_paused = false;
     Common::Android::SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;

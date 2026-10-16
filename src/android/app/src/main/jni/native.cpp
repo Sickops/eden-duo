@@ -411,6 +411,35 @@ void EmulationSession::UnPauseEmulation() {
     m_is_paused = false;
 }
 
+// Eden Duo
+bool EmulationSession::BeginEmulationCycle() {
+    std::unique_lock lock(m_mutex);
+    if (m_cycle_active) {
+        LOG_WARNING(Frontend, "Waiting for the previous emulation session to shut down");
+        const auto start = std::chrono::steady_clock::now();
+        if (!m_cycle_cv.wait_for(lock, std::chrono::seconds(60),
+                                 [this] { return !m_cycle_active; })) {
+            LOG_CRITICAL(Frontend, "Previous emulation session did not shut down in 60 s");
+            return false;
+        }
+        LOG_INFO(Frontend, "Previous emulation session shut down after {} ms",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::steady_clock::now() - start)
+                     .count());
+    }
+    m_cycle_active = true;
+    return true;
+}
+
+// Eden Duo
+void EmulationSession::EndEmulationCycle() {
+    {
+        std::scoped_lock lock(m_mutex);
+        m_cycle_active = false;
+    }
+    m_cycle_cv.notify_all();
+}
+
 void EmulationSession::HaltEmulation() {
     std::scoped_lock lock(m_mutex);
     m_is_running = false;
@@ -549,6 +578,15 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath,
         LOG_CRITICAL(Frontend, "failed to load: filepath empty!");
         return Core::SystemResultStatus::ErrorLoader;
     }
+
+    // Eden Duo: serialise run cycles (see EmulationSession::BeginEmulationCycle). Declared
+    // before the shutdown SCOPE_EXIT so it runs after it.
+    if (!EmulationSession::GetInstance().BeginEmulationCycle()) {
+        return Core::SystemResultStatus::ErrorNotInitialized;
+    }
+    SCOPE_EXIT {
+        EmulationSession::GetInstance().EndEmulationCycle();
+    };
 
     SCOPE_EXIT {
         EmulationSession::GetInstance().ShutdownEmulation();
