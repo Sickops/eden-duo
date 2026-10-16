@@ -1295,7 +1295,9 @@ void GeometryMapDraw::emit_atlas_tinted(float ux, float uy, float uw, float uh, 
     const float cuy = uy + uh * (t - qy) / qh;
     const float cuw = uw * (r - l) / qw;
     const float cuh = uh * (b - t) / qh;
-    if (draw_list != nullptr && !to_canvas) {
+    // A turned view paints its base into the HUD canvas, which the compositor draws last; a
+    // slot-1 quad would end up underneath it, so glyphs go into the canvas too when turned.
+    if (draw_list != nullptr && !to_canvas && turn == 0.0f) {
         draw_list->quads.push_back({1u, cux / aw, cuy / ah, (cux + cuw) / aw, (cuy + cuh) / ah, l,
                                     t, r - l, b - t, alpha, cr, cg, cb});
     } else {
@@ -1848,7 +1850,7 @@ void GeometryMapDraw::DrawMarkerPicture() {
             if (r > l && b > t) {
                 const float u0 = (l - qx) / mw, v0 = (t - qy) / mh;
                 const float u1 = (r - qx) / mw, v1 = (b - qy) / mh;
-                if (draw_list != nullptr && slot_free && tint == 0xFFFFFFFFu) {
+                if (draw_list != nullptr && slot_free && tint == 0xFFFFFFFFu && turn == 0.0f) {
                     draw_list->atlas_key = widget.marker_src;
                     draw_list->quads.push_back({1u, u0, v0, u1, v1, l, t, r - l, b - t, 1.0f});
                 } else {

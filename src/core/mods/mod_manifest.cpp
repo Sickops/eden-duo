@@ -1009,9 +1009,21 @@ std::shared_ptr<const MapWidgetExtras> ParseMapWidgetExtras(const nlohmann::json
     }
     extras->view_rect_pad = std::max(0.0f, JsonFloat(w, "view_rect_pad", 0.0f));
     // Runtime 14: a bound base picture and world-space overlays.
-    extras->image_bind = w.value("image_bind", std::string{});
-    extras->marker_rotate_bind = w.value("marker_rotate_bind", std::string{});
-    extras->view_rotate_bind = w.value("view_rotate_bind", std::string{}); // runtime 22
+    // A bind key must name a published value; a wrong type is skipped with a warning rather
+    // than failing the whole manifest.
+    const auto bind_name = [&w](const char* key) -> std::string {
+        if (!w.contains(key)) {
+            return {};
+        }
+        if (!w.at(key).is_string()) {
+            LOG_WARNING(Core, "DSMod: map widget {} must be a name; ignored", key);
+            return {};
+        }
+        return w.at(key).get<std::string>();
+    };
+    extras->image_bind = bind_name("image_bind");
+    extras->marker_rotate_bind = bind_name("marker_rotate_bind");
+    extras->view_rotate_bind = bind_name("view_rotate_bind"); // runtime 22
     extras->marker_tint = ParseColor(w, "marker_tint", 0xFFFFFFFFu);
     if (w.contains("overlays") && w.at("overlays").is_array()) {
         for (const auto& o : w.at("overlays")) {

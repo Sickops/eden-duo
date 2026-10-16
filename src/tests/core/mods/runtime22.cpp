@@ -393,6 +393,23 @@ TEST_CASE("DSMod map view turn: the GPU path draws the turned base into the canv
     }
     REQUIRE(Px(c, 70, 40) == Green);
     REQUIRE(Px(c, 40, 30) == Red);
+
+    // A live marker picture on the GPU path: unturned it is a slot-1 quad, turned it must be
+    // painted into the canvas (a quad would sit under the turned base, which is drawn last).
+    auto& w = map.widget();
+    w.marker_src = "img.white";
+    w.marker_size = {24, 6};
+    w.marker_anchor = {0.5f, 0.5f};
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    s.floats["me.x"] = 50.0;
+    s.floats["me.y"] = 80.0; // unturned canvas (50,20) -> turned 90: (80,50)
+    AuxDrawList turned_marker;
+    const auto cm = map.Draw(s, nullptr, &turned_marker);
+    REQUIRE(Px(cm, 80, 50) == White);
+    for (const auto& q : turned_marker.quads) {
+        REQUIRE((q.solid || q.slot != 1u)); // no slot-1 marker quad on a turned view
+    }
 }
 
 TEST_CASE("DSMod image transform: the row-span walk paints exactly the full-box walk",
