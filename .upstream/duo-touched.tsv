@@ -161,7 +161,7 @@ duo-only	A	-	42	0	src/core/mods/mod_user_source.h
 duo-only	A	-	425	0	src/core/mods/mod_types_map.h
 duo-only	A	-	431	0	src/android/app/lint-baseline.xml
 duo-only	A	-	446	0	src/android/app/src/main/jni/dsmod_native.cpp
-duo-only	A	-	447	0	.upstream/duo-touched.tsv
+duo-only	A	-	448	0	.upstream/duo-touched.tsv
 duo-only	A	-	457	0	src/tests/core/mods/scroll_list.cpp
 duo-only	A	-	458	0	src/tests/core/mods/runtime17_nav.cpp
 duo-only	A	-	46	0	src/android/app/src/main/jni/dsmod_native.h
