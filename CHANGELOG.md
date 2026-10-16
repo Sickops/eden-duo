@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**New**
+
+- For companion makers (see the [Package Format](https://github.com/igawa6/eden-duo-companions/blob/main/docs/PACKAGE_FORMAT.md)):
+  - Runtime 21: companions can show the device's battery level and charging state and the game's FPS, emulation speed and frame time. Module ABI 1 stays compatible with existing companions.
+
 **Fixed**
 
 - **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory.
