@@ -233,6 +233,13 @@ struct MapWidgetExtras {
     /// area's world box like the area's own `image` and overriding it; "" / missing = the area's.
     std::string image_bind;
     std::string marker_rotate_bind; ///< clockwise degrees about the marker anchor
+    /// Runtime 22: a published value in degrees that turns the whole map view clockwise about the
+    /// widget centre ("view_rotate_bind"; a compass map whose up is the camera). The base picture
+    /// and the overlays turn with it; markers, labels and pins keep their place on the map but stay
+    /// upright; marker_rotate_bind becomes relative to the turned map (a map-frame heading still
+    /// points the right way). Taps, drags and pinches are turned back into the map frame. Missing
+    /// or nonfinite = 0, the classic north-up view; older runtimes ignore the key.
+    std::string view_rotate_bind;
     u32 marker_tint{0xFFFFFFFFu};
     /// Runtime 14: pictures placed in world space ("overlays"), drawn over the base picture and
     /// under the markers, panning / zooming with the map. The picture's top edge is at the larger

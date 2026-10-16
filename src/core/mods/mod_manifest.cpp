@@ -960,6 +960,7 @@ std::shared_ptr<const MapWidgetExtras> ParseMapWidgetExtras(const nlohmann::json
                                      "view_rect_pad",
                                      "image_bind",
                                      "marker_rotate_bind",
+                                     "view_rotate_bind",
                                      "marker_tint",
                                      "overlays"};
     if (std::ranges::none_of(keys, [&](const char* k) { return w.contains(k); })) {
@@ -1010,6 +1011,7 @@ std::shared_ptr<const MapWidgetExtras> ParseMapWidgetExtras(const nlohmann::json
     // Runtime 14: a bound base picture and world-space overlays.
     extras->image_bind = w.value("image_bind", std::string{});
     extras->marker_rotate_bind = w.value("marker_rotate_bind", std::string{});
+    extras->view_rotate_bind = w.value("view_rotate_bind", std::string{}); // runtime 22
     extras->marker_tint = ParseColor(w, "marker_tint", 0xFFFFFFFFu);
     if (w.contains("overlays") && w.at("overlays").is_array()) {
         for (const auto& o : w.at("overlays")) {
