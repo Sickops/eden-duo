@@ -62,6 +62,7 @@
 #include "core/mods/mod_chart.h"
 #include "core/mods/mod_clock.h"
 #include "core/mods/mod_font_epoch.h"
+#include "core/mods/mod_host_values.h"
 #include "core/mods/mod_input_hold.h"
 #include "core/mods/mod_input_swipe.h"
 #include "core/mods/mod_process_guard.h"
@@ -174,7 +175,11 @@ namespace Core::Mods {
 ///          write-extension batches of up to 32 ops (EDEN_DSMOD_WRITE_BATCH_MAX_OPS, 16 before).
 ///          In a chord a '+' right after an axis name ("LX") is its sign, so a positive axis
 ///          followed by another token needs "++" ("LX++A"; "LX+A" does not parse, "A+LX+" does).
-inline constexpr u32 DualScreenRuntimeVersion = 20;
+///   21     device and emulator values: "@device.battery_present" / "battery_pct" / "charging" and
+///          "@perf.fps" / "speed_pct" / "frametime_ms" / "frametime_x10" (mod_host_values.h),
+///          published for a package that names them and answered to a module's get_i64 /
+///          get_f64; ABI 1 stays.
+inline constexpr u32 DualScreenRuntimeVersion = 21;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
 /// (runtime 13). Before runtime 13 a job already running when the next was dispatched finished
@@ -871,6 +876,22 @@ private:
     [[nodiscard]] bool ModuleTicksWhileHidden() const; // mod_module_host.cpp
     /// A module's get_i64("__source:<prefix>") (either host copy); nullopt: not answered.
     static std::optional<s64> SourceQuery(ModRuntime& rt, const char* name); // mod_module_host.cpp
+    /// Runtime 21: refresh the host values when a package or its module reads them.
+    void UpdateHostValues() {
+        if (manifest.uses_host_keys || host_values_wanted) {
+            host_values.Update();
+        }
+    }
+    /// A module asked for a host value: sample from now on (immediately the first time).
+    HostValues& ModuleHostValues() {
+        if (!host_values_wanted) {
+            host_values_wanted = true;
+            if (!host_values.Sampled()) {
+                host_values.Update();
+            }
+        }
+        return host_values;
+    }
     void InitializeModuleExtensions();                                   // mod_module_services.cpp
     void InitializeModuleSaveExtensions();                               // mod_module_services.cpp
     void InitializeModuleWriteExtensions();                              // mod_module_services.cpp
@@ -1340,6 +1361,11 @@ private:
     /// Runtime 16: publishes @clock.* / @game.seconds each tick ahead of the derived pass
     /// (mod_clock.h). Its source is set in the constructor (game time = CoreTiming).
     ClockPublisher clock_points;
+    /// Runtime 21: @device.* / @perf.* (mod_host_values.h), sampled on the tick thread while the
+    /// package names them or its module has asked for one. Its perf source is set in the
+    /// constructor (PerfStats totals, read lazily: PerfStats exists only once the game runs).
+    HostValues host_values;
+    bool host_values_wanted{false};
     void UpdateHeldButtons();                      // mod_actions.cpp
     void PublishUi(const StateSnapshot& snapshot); // mod_redraw.cpp
     /// GPU-composite publish: hand the renderer a quad display list plus up to three source

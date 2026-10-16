@@ -14,6 +14,8 @@ target_sources(core PRIVATE
     mods/mod_persist.h
     mods/mod_clock.cpp
     mods/mod_clock.h
+    mods/mod_host_values.cpp
+    mods/mod_host_values.h
     mods/mod_expr.cpp
     mods/mod_expr.h
     mods/mod_state.cpp

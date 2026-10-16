@@ -694,9 +694,10 @@ void ModRuntime::EvaluateDerived(StateSnapshot& snapshot, bool volatile_only) {
         // Which values the post-tap pass must recompute.
         derived_volatile.assign(list.size(), 0);
         const auto is_volatile_key = [](const std::string& name) {
-            // The runtime 16 clock keys are published before the first pass and do not change
-            // between the two: reading them does not make a value volatile.
-            return (name.starts_with('@') && !IsClockKey(name)) ||
+            // The runtime 16 clock keys and the runtime 21 device / perf keys are published
+            // before the first pass and do not change between the two: reading them does not
+            // make a value volatile.
+            return (name.starts_with('@') && !IsClockKey(name) && !IsHostValueKey(name)) ||
                    name.starts_with("view_custom:");
         };
         for (size_t i = 0; i < list.size(); ++i) {

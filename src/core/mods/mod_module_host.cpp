@@ -332,6 +332,11 @@ void ModRuntime::InitializeGameModule() {
         if (const auto source = SourceQuery(rt, name)) {
             return *source;
         }
+        if (IsHostValueKey(name)) {
+            // Runtime 21: from the latest sample, not the snapshot (this tick's publish runs
+            // after the module).
+            return rt.ModuleHostValues().GetI64(name).value_or(fallback);
+        }
         if (rt.module_snapshot) {
             const auto value = rt.module_snapshot->ints.find(name);
             if (value != rt.module_snapshot->ints.end()) {
@@ -342,6 +347,9 @@ void ModRuntime::InitializeGameModule() {
     };
     module_host.get_f64 = [](void* p, const char* name, double fallback) -> double {
         auto& rt = *static_cast<ModRuntime*>(p);
+        if (ValidString(name, MaxName) && IsHostValueKey(name)) {
+            return rt.ModuleHostValues().GetF64(name).value_or(fallback); // runtime 21
+        }
         if (rt.module_snapshot && ValidString(name, MaxName)) {
             const auto value = rt.module_snapshot->floats.find(name);
             if (value != rt.module_snapshot->floats.end()) {

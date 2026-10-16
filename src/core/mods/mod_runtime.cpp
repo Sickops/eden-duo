@@ -34,6 +34,7 @@
 #include "common/logging.h"
 #include "common/settings.h"
 #include "core/arm/debug.h"
+#include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_thread.h"
@@ -43,6 +44,7 @@
 #include "core/mods/mod_runtime.h"
 #include "core/mods/mod_runtime_shared.h"
 #include "core/mods/mod_view_default.h"
+#include "core/perf_stats.h"
 #include "hid_core/resources/npad/dsmod_pad_gate.h"
 #include "input_common/drivers/virtual_gamepad.h"
 #include "input_common/main.h"
@@ -65,6 +67,22 @@ ModRuntime::ModRuntime(System& system_, Manifest manifest_)
     // Runtime 16 @game.seconds: emulated-system time since boot (the wall clock is the default).
     clock_points.SetSource(ClockSource{.game_seconds = [this] {
         return static_cast<s64>(core_timing.GetGlobalTimeNs().count() / 1000000000);
+    }});
+    // Runtime 21 @perf.*: the non-resetting PerfStats totals (GetAndResetStats belongs to the
+    // frontends' overlays). PerfStats is created after this runtime (System::Load) and exists once
+    // the game runs, which the first tick proves; a module's create() can ask earlier.
+    host_values.SetSource(HostValueSource{.perf = [this]() -> std::optional<PerfSample> {
+        if (tick_count == 0 || !system.IsPoweredOn()) {
+            return std::nullopt;
+        }
+        const auto totals = system.GetPerfStats().GetTotals();
+        return PerfSample{
+            .game_frames = totals.game_frames,
+            .system_frames = totals.system_frames,
+            .frametime_ns =
+                std::chrono::duration_cast<std::chrono::nanoseconds>(totals.frametime).count(),
+            .emulated_us = core_timing.GetGlobalTimeUs().count(),
+        };
     }});
 }
 
@@ -628,6 +646,7 @@ void ModRuntime::Tick() {
             snapshot.texts.clear();
             snapshot.floats.clear();
             snapshot.addresses.clear();
+            UpdateHostValues(); // runtime 21: what the module's get_i64 answers
             RunGameModule(snapshot, true);
         }
         // What the package does to the game itself must not depend on whether a second display
@@ -664,6 +683,7 @@ void ModRuntime::Tick() {
     DriveCmdDrag(panel_w, panel_h, cw, ch); // console "drag": feeds the touch read just below
     const size_t count = aux.GetTouch(points);
 
+    UpdateHostValues(); // runtime 21: before the module, which may read them through get_i64
     RunGameModule(snapshot, true);
     WatchFontEpoch(snapshot);  // runtime 18: the module may ask for its font again
     PublishFlags(snapshot);    // runtime flags are sources for derived values too
@@ -671,6 +691,10 @@ void ModRuntime::Tick() {
         // Runtime 16 @clock.* / @game.seconds, also derived sources. Only for a package that
         // names them: they change every second and would otherwise churn UiSignature.
         clock_points.Publish(snapshot);
+    }
+    if (manifest.uses_host_keys) {
+        // Runtime 21 @device.* / @perf.*: change at most twice a second.
+        host_values.Publish(snapshot);
     }
     EvaluateDerived(snapshot); // after every source (points, sequences, module) is published
     // View gestures are a shared host feature, available to every package. Bound default views

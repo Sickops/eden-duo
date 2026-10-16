@@ -17,6 +17,7 @@ target_sources(tests PRIVATE
     core/mods/render_golden.cpp
     core/mods/runtime14.cpp
     core/mods/runtime18.cpp
+    core/mods/runtime21.cpp
     core/mods/runtime16_image.cpp
     core/mods/text_markup.cpp
     core/mods/runtime17_text.cpp

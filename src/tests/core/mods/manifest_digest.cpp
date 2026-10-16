@@ -1091,6 +1091,7 @@ std::string DumpManifest(const Manifest& o) {
         F(trace_target);
         F(dump_registry);
         F(uses_clock_keys);
+        F(uses_host_keys);
         F(describe_string);
         F(valid);
         dd.out += fmt::format(" asset_dir={}", o.asset_dir ? "set" : "null");

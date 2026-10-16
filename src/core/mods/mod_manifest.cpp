@@ -1429,6 +1429,7 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
     manifest.trace_target = json.value("trace", std::string{});
     manifest.dump_registry = Common::DSMod::DevToolsEnabled && json.value("dump_registry", false);
     manifest.uses_clock_keys = JsonReferencesClockKeys(json); // the data file may add to it
+    manifest.uses_host_keys = JsonReferencesHostKeys(json);   // likewise
     if (json.contains("module_tick_hidden")) {
         manifest.module_tick_hidden = json.at("module_tick_hidden").get<bool>();
     }
@@ -2554,6 +2555,8 @@ std::optional<Manifest> ModRuntime::Discover(System& system, u64 title_id,
                 manifest.data_file = candidate;
                 manifest.uses_clock_keys =
                     manifest.uses_clock_keys || JsonReferencesClockKeys(*data_json);
+                manifest.uses_host_keys =
+                    manifest.uses_host_keys || JsonReferencesHostKeys(*data_json);
                 if (data_json->contains("points")) {
                     ParsePoints(data_json->at("points"), manifest);
                 }
@@ -2767,6 +2770,7 @@ void ModRuntime::ReloadManifest() {
     if (!manifest.data_file.empty()) {
         if (const auto dj = ReadPackageJson(manifest.asset_dir->GetFile(manifest.data_file))) {
             manifest.uses_clock_keys = manifest.uses_clock_keys || JsonReferencesClockKeys(*dj);
+            manifest.uses_host_keys = manifest.uses_host_keys || JsonReferencesHostKeys(*dj);
             if (dj->contains("points")) {
                 manifest.points.clear();
                 ParsePoints(dj->at("points"), manifest);

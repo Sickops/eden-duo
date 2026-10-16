@@ -150,6 +150,9 @@ struct Manifest {
     /// Runtime 16/17: the manifest or its data file names a "@clock." / "@game." key (or has a
     /// derived "countdown"): only then are those keys published each tick (ClockPublisher).
     bool uses_clock_keys{false};
+    /// Runtime 21: the manifest or its data file names a "@device." / "@perf." key: only then are
+    /// those keys published each tick (HostValues, mod_host_values.h).
+    bool uses_host_keys{false};
     /// "module_tick_hidden": tick the native module while the second screen is hidden (true) or
     /// not (false). Unset: the module's own flag decides, else whether it has actions.
     std::optional<bool> module_tick_hidden;
