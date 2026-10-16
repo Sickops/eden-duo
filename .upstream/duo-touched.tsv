@@ -50,8 +50,8 @@ duo-only	A	-	141	0	src/core/mods/mod_input_tokens.h
 duo-only	A	-	1422	0	src/tests/core/mods/manifest_digest.cpp
 duo-only	A	-	145	0	src/tests/core/mods/runtime15_persist.cpp
 duo-only	A	-	147	0	src/core/mods/mod_load_plan.h
-duo-only	A	-	148	0	.upstream/DIVERGENCES.md
 duo-only	A	-	149	0	src/tests/core/mods/duo_tests.cmake
+duo-only	A	-	149	0	.upstream/DIVERGENCES.md
 duo-only	A	-	15	0	.github/FUNDING.yml
 duo-only	A	-	15	0	src/android/app/src/duo/res/values/duo_branding.xml
 duo-only	A	-	1524	0	src/core/mods/mod_state.cpp
@@ -435,6 +435,7 @@ upstream-hook	M	1	3	1	src/core/file_sys/fssystem/fssystem_aes_xts_storage.h
 upstream-hook	M	1	4	0	src/core/arm/dynarmic/arm_dynarmic_64.h
 upstream-hook	M	1	4	0	src/core/file_sys/patch_manager.cpp
 upstream-hook	M	1	4	1	src/input_common/drivers/sdl_driver.cpp
+upstream-hook	M	1	44	0	CMakeModules/GenerateSCMRev.cmake
 upstream-hook	M	1	5	0	src/core/loader/loader.h
 upstream-hook	M	1	5	0	src/core/loader/nro.cpp
 upstream-hook	M	1	5	1	src/android/app/src/main/java/org/yuzu/yuzu_emu/features/settings/model/IntSetting.kt
