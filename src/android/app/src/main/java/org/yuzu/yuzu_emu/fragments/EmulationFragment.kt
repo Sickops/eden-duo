@@ -91,6 +91,7 @@ import org.yuzu.yuzu_emu.utils.GameHelper
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.InputHandler
+import org.yuzu.yuzu_emu.utils.IntentGameSetupRules
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.LosslessScalingHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
@@ -152,6 +153,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var isCustomSettingsIntent = false
     private var isStoppingForRomSwap = false
     private var deferGameSetupUntilStopCompletes = false
+
+    // Eden Duo: resolves an intent-launched Game off the UI thread (see resolveIntentGameAsync).
+    private var intentGameResolveJob: Job? = null
 
     private var perfStatsRunnable: Runnable? = null
     private var socRunnable: Runnable? = null
@@ -247,23 +251,101 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (intent.action == CustomSettingsHandler.CUSTOM_CONFIG_ACTION) {
             handleEmuReadyIntent(intent)
             return
-        } else if (intentUri != null) {
-            intentGame = if (Game.extensions.contains(FileUtil.getExtension(intentUri))) {
-                GameHelper.getGame(requireActivity().intent.data!!, false)
-            } else {
-                null
-            }
+        } else if (intentUri != null && Game.extensions.contains(FileUtil.getExtension(intentUri))) {
+            // Eden Duo: a frontend/shortcut can start EmulationActivity directly with this URI
+            // while the app's library scan never ran (cold launch, no prior background scan to
+            // prime the native side). GameHelper.getGame() reads native game metadata and, the
+            // first time since boot, lazily walks every linked update/DLC container
+            // (ExternalContentProvider::EnsureScanned) - calling it here inline used to run that
+            // scan on this thread and freeze the UI (hundreds of dropped frames on a library with
+            // many containers). Resolve it off the UI thread instead; the loading card is already
+            // the fragment's default view state, so nothing else needs to change meanwhile.
+            resolveIntentGameAsync(intentUri)
+            return
         }
 
+        continueGameSetupAfterIntentResolved()
+    }
+
+    /**
+     * Eden Duo: off-main-thread counterpart of the synchronous `GameHelper.getGame(uri, false)`
+     * call this used to make directly in [onCreate]. Tied to the fragment's own lifecycleScope
+     * (not the view's, since this starts before the view exists) so it is cancelled automatically
+     * - no further work, no leaked callback - if the fragment is destroyed before it finishes.
+     */
+    private fun resolveIntentGameAsync(uri: Uri) {
+        intentGameResolveJob = lifecycleScope.launch {
+            val resolvedGame = withContext(Dispatchers.IO) {
+                runCatching { GameHelper.getGame(uri, false) }
+                    .onFailure {
+                        Log.error("[EmulationFragment] Failed to resolve intent game: ${it.message}")
+                    }
+                    .getOrNull()
+            }
+
+            // isAdded: destroyed while we were off the UI thread (lifecycleScope would already
+            // have cancelled us by then, but this is the same belt-and-suspenders check the rest
+            // of this file uses). hasNewerEmulationFragment: a ROM swap replaced this fragment
+            // with a fresh one during the wait; let that one own game setup instead.
+            if (!isAdded || hasNewerEmulationFragment()) {
+                return@launch
+            }
+
+            intentGame = resolvedGame
+            continueGameSetupAfterIntentResolved()
+        }.also { job ->
+            job.invokeOnCompletion {
+                if (intentGameResolveJob == job) {
+                    intentGameResolveJob = null
+                }
+            }
+        }
+    }
+
+    /**
+     * Eden Duo: the tail end of [onCreate]'s game setup. For the library-launch path this still
+     * runs synchronously from [onCreate], before the view exists, exactly like before this fix.
+     * [resolveIntentGameAsync] also reaches it, later and on the main thread, once an
+     * intent-launched Game has been resolved off the UI thread.
+     */
+    private fun continueGameSetupAfterIntentResolved() {
         if (emulationViewModel.isEmulationStopping.value) {
             deferGameSetupUntilStopCompletes = true
             if (game == null) {
-                game = args.game ?: intentGame
+                game = IntentGameSetupRules.deferredGame(game, args.game, intentGame)
             }
             return
         }
 
         finishGameSetup()
+
+        // Eden Duo: onViewCreated() may already have run - and skipped view setup, since `game`
+        // was still null at the time - while intentGame was resolving asynchronously above.
+        // Finish it here instead, the same way the existing EmuReady intent path already does.
+        if (_binding != null) {
+            completeViewSetup()
+            completeViewSetupCatchUpSurface()
+        }
+    }
+
+    /**
+     * Eden Duo: [completeViewSetup] just registered the SurfaceHolder callback above, but for an
+     * async intent resolution the SurfaceView may have turned valid well before that call -
+     * Android does not replay surfaceCreated/surfaceChanged for an already-valid surface on a
+     * late addCallback. Start emulation here instead when that happened; a no-op in the ordinary
+     * case where the surface isn't ready yet, since surfaceChanged will fire normally once it is.
+     */
+    private fun completeViewSetupCatchUpSurface() {
+        val root = _binding?.root ?: return
+        root.post {
+            if (emulationStarted) {
+                return@post
+            }
+            _binding?.surfaceEmulation?.holder?.surface?.takeIf { it.isValid }?.let { surface ->
+                startEmulationForNewlyValidSurface(surface)
+                updatePausedFrameVisibility()
+            }
+        }
     }
 
     /**
@@ -1502,6 +1584,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         isAmiiboPickerOpen = false
     }
 
+    override fun onDestroy() {
+        // Eden Duo: belt-and-suspenders alongside lifecycleScope's own cancellation - make sure
+        // an in-flight intent game resolution (resolveIntentGameAsync) never touches this
+        // fragment again once it's torn down.
+        intentGameResolveJob?.cancel()
+        intentGameResolveJob = null
+        super.onDestroy()
+    }
+
     override fun onDetach() {
         if (!hasNewerEmulationFragment()) {
             NativeLibrary.clearEmulationActivity()
@@ -1937,31 +2028,43 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height)
         if (!emulationStarted) {
-            emulationStarted = true
-
-            // For intent launches, wait for driver initialization to complete
-            if (isCustomSettingsIntent || intentGame != null) {
-                if (!driverViewModel.isInteractionAllowed.value) {
-                    Log.info("[EmulationFragment] Intent launch: waiting for driver initialization")
-                    // Driver is still initializing, wait for it
-                    lifecycleScope.launch {
-                        driverViewModel.isInteractionAllowed.collect { allowed ->
-                            if (allowed && holder.surface.isValid) {
-                                emulationState.newSurface(holder.surface)
-                            }
-                        }
-                    }
-                    return
-                }
-            }
-
-            emulationState.newSurface(holder.surface)
+            startEmulationForNewlyValidSurface(holder.surface)
         } else {
             // Surface changed due to rotation/config change
             // Only update surface reference, don't trigger state changes
             emulationState.updateSurfaceReference(holder.surface)
         }
         updatePausedFrameVisibility()
+    }
+
+    /**
+     * Eden Duo: the first-surface start, factored out of [surfaceChanged] so
+     * [completeViewSetupCatchUpSurface] can reach it too. An intent launch (EmuReady, or the
+     * async-resolved URI intent from [resolveIntentGameAsync]) finishes game setup well after
+     * the view - and its SurfaceView - already exist, so `holder.addCallback(this)` in
+     * [completeViewSetup] can run after the surface already turned valid; that catch-up path
+     * calls this directly instead of waiting for a callback that will now never fire.
+     */
+    private fun startEmulationForNewlyValidSurface(surface: Surface) {
+        emulationStarted = true
+
+        // For intent launches, wait for driver initialization to complete
+        if (isCustomSettingsIntent || intentGame != null) {
+            if (!driverViewModel.isInteractionAllowed.value) {
+                Log.info("[EmulationFragment] Intent launch: waiting for driver initialization")
+                // Driver is still initializing, wait for it
+                lifecycleScope.launch {
+                    driverViewModel.isInteractionAllowed.collect { allowed ->
+                        if (allowed && surface.isValid) {
+                            emulationState.newSurface(surface)
+                        }
+                    }
+                }
+                return
+            }
+        }
+
+        emulationState.newSurface(surface)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
