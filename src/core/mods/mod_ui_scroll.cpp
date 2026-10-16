@@ -7,6 +7,9 @@
 // and the scrollbar thumb. Pure functions; the drag and fling are in mod_input.cpp.
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <optional>
 
 #include "core/mods/mod_ui.h"
 
@@ -14,6 +17,10 @@ namespace Core::Mods {
 
 std::string ScrollOffsetKey(const std::string& id) {
     return "@scroll:" + id;
+}
+
+std::string ScrollOffsetXKey(const std::string& id) {
+    return "@scroll_x:" + id;
 }
 
 const ScrollRegion* FindScrollRegion(const Page& page, const std::string& id) {
@@ -81,8 +88,48 @@ ScrollMetrics MeasureScroll(const Page& page, const ScrollRegion& region,
             }
         }
     }
-    m.max_offset =
-        static_cast<s32>(std::clamp<s64>(m.content_h - std::max(0, region.rect[3]), 0, 1'000'000));
+    // Two-axis regions: a declared extent replaces the computed one on that axis, so a single
+    // pane picture (or a table wider than its rect) scrolls over its whole size. Without one, the
+    // x extent is what the templates span: each template's offset in the rect plus its columns.
+    const auto declared = [&snapshot](s32 constant, const std::string& bind) -> std::optional<s64> {
+        if (!bind.empty()) {
+            if (const auto v = SnapshotNumber(snapshot, bind)) {
+                return std::max<s64>(0, static_cast<s64>(std::llround(*v)));
+            }
+        }
+        if (constant > 0) {
+            return constant;
+        }
+        return std::nullopt;
+    };
+    if (const auto h = declared(region.content_h, region.content_h_bind)) {
+        m.content_h = *h;
+    }
+    if ((region.axes & ScrollRegion::AxisX) != 0) {
+        if (const auto w = declared(region.content_w, region.content_w_bind)) {
+            m.content_w = *w;
+        } else {
+            for (const auto& w : page.widgets) {
+                if (w.repeat <= 0 || w.scroll != region.id ||
+                    (w.scroll_follow & ScrollRegion::AxisX) == 0) {
+                    continue;
+                }
+                const s64 n = RepeatElementCount(w, snapshot);
+                const s64 across = w.repeat_cols > 0 ? std::min<s64>(n, w.repeat_cols)
+                                   : (w.repeat_dy == 0 && w.repeat_dx != 0 ? n : 1);
+                const s64 span = across > 0 ? (across - 1) * std::abs(w.repeat_dx) + w.rect[2] : 0;
+                m.content_w = std::max<s64>(m.content_w, w.rect[0] - region.rect[0] + span);
+            }
+        }
+        m.max_offset_x = static_cast<s32>(
+            std::clamp<s64>(m.content_w - std::max(0, region.rect[2]), 0, 1'000'000));
+    }
+    if ((region.axes & ScrollRegion::AxisY) == 0) {
+        m.max_offset = 0; // an x-only region never moves its rows
+    } else {
+        m.max_offset = static_cast<s32>(
+            std::clamp<s64>(m.content_h - std::max(0, region.rect[3]), 0, 1'000'000));
+    }
     return m;
 }
 
@@ -107,6 +154,21 @@ float FollowOffset(const ScrollMetrics& m, s32 view_h, s64 index, float offset) 
 s32 ScrollOffset(const ScrollRegion& region, const StateSnapshot& snapshot) {
     const s64 v = snapshot.GetInt(ScrollOffsetKey(region.id));
     return static_cast<s32>(std::clamp<s64>(v, 0, 1'000'000));
+}
+
+s32 ScrollOffsetX(const ScrollRegion& region, const StateSnapshot& snapshot) {
+    if ((region.axes & ScrollRegion::AxisX) == 0) {
+        return 0;
+    }
+    const s64 v = snapshot.GetInt(ScrollOffsetXKey(region.id));
+    return static_cast<s32>(std::clamp<s64>(v, 0, 1'000'000));
+}
+
+std::array<s32, 2> ScrollShift(const Widget& widget, const ScrollRegion& region, s32 offset_x,
+                               s32 offset_y) {
+    const u8 on = static_cast<u8>(widget.scroll_follow & region.axes);
+    return {(on & ScrollRegion::AxisX) != 0 ? offset_x : 0,
+            (on & ScrollRegion::AxisY) != 0 ? offset_y : 0};
 }
 
 std::pair<s64, s64> VisibleElementRange(const Widget& widget, const ScrollRegion& region,
@@ -164,6 +226,21 @@ std::array<s32, 4> ScrollBarThumb(const ScrollRegion& region, const ScrollMetric
                                           std::clamp(offset, 0, m.max_offset) / m.max_offset);
     const s32 bw = std::max(1, region.bar_w);
     return {region.rect[0] + region.rect[2] - bw, y, bw, thumb};
+}
+
+std::array<s32, 4> ScrollBarThumbX(const ScrollRegion& region, const ScrollMetrics& m,
+                                   s32 offset_x) {
+    if (region.bar_color == 0 || m.max_offset_x <= 0 || m.content_w <= 0 || region.rect[2] <= 0) {
+        return {0, 0, 0, 0};
+    }
+    const s32 track = region.rect[2];
+    const s32 thumb = std::clamp(static_cast<s32>(static_cast<s64>(track) * track / m.content_w),
+                                 std::min(track, 24), track);
+    const s32 x = region.rect[0] +
+                  static_cast<s32>(static_cast<s64>(track - thumb) *
+                                   std::clamp(offset_x, 0, m.max_offset_x) / m.max_offset_x);
+    const s32 bw = std::max(1, region.bar_w);
+    return {x, region.rect[1] + region.rect[3] - bw, thumb, bw};
 }
 
 const ScrollMetrics& ScrollMemo::Get(const Page& page, const ScrollRegion& region,

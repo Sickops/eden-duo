@@ -184,6 +184,10 @@ namespace Core::Mods {
 ///          (a compass minimap whose up is the camera); markers, labels and pins stay upright,
 ///          marker_rotate_bind turns with the map, taps / drags / pinches are turned back into
 ///          the map frame. Older runtimes ignore the key and draw north-up.
+///          Also (same unreleased version): two-axis scroll regions -- ScrollRegion "axes",
+///          "lock_axis", "content_w"/"content_h"[_bind], Widget "scroll_follow", the published
+///          "@scroll_x:<id>" / "@scroll_max_x:<id>", a horizontal thumb, and "payload": "$tap"
+///          (TapPayload). Older runtimes ignore the keys and scroll on y as before.
 inline constexpr u32 DualScreenRuntimeVersion = 22;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale
@@ -1788,6 +1792,10 @@ private:
         float offset{0.0f};   ///< px, content scrolled up out of the rect
         float velocity{0.0f}; ///< px/s while flinging (+ = content moving up)
         bool flinging{false};
+        // x axis (ScrollRegion::axes with AxisX): the same, content scrolled left out of the rect
+        float offset_x{0.0f};
+        float velocity_x{0.0f};
+        bool flinging_x{false};
         bool has_reset{false};
         s64 reset_value{0}; ///< last reset_bind value seen
         bool has_follow{false};
@@ -1803,8 +1811,14 @@ private:
     bool scroll_caught{false};   ///< the finger landed on a gliding list: stopping it is not a tap
     float scroll_anchor_offset{0.0f};
     s32 scroll_anchor_y{0};
+    float scroll_anchor_offset_x{0.0f};
+    s32 scroll_anchor_x{0};
+    /// lock_axis regions: the axis this drag follows (ScrollRegion::Axis*), decided where the
+    /// finger leaves the tap slop; 0 = not yet / free.
+    u8 scroll_axis_lock{0};
     struct ScrollSample {
         std::chrono::steady_clock::time_point t;
+        s32 x;
         s32 y;
     };
     std::vector<ScrollSample> scroll_samples; ///< recent finger positions, for the fling speed
@@ -1814,8 +1828,8 @@ private:
     /// "@scroll_max:<id>", "@scroll_on:<id>", "@scroll_first:<id>" for the current page.
     void PublishScroll(StateSnapshot& snapshot, bool advance);
     /// Fold one frame of the gesture into the scroll target (called from UpdateGestures).
-    void UpdateScrollGesture(const StateSnapshot& snapshot, size_t fingers, s32 y, bool moved,
-                             bool released);
+    void UpdateScrollGesture(const StateSnapshot& snapshot, size_t fingers, s32 x, s32 y,
+                             bool moved, bool released);
 
     struct PendingDrop {
         std::string action;

@@ -595,6 +595,8 @@ size_t ExpandRepeatTemplateInto(const Page& page, const Widget& source,
 
 /// Drag-to-scroll lists (Page::scrolls). The snapshot key holding a region's pixel offset.
 std::string ScrollOffsetKey(const std::string& id);
+/// "@scroll_x:<id>": the region's x offset (two-axis regions; absent / 0 on a y-only one).
+std::string ScrollOffsetXKey(const std::string& id);
 /// The region of this id on the page, or nullptr.
 const ScrollRegion* FindScrollRegion(const Page& page, const std::string& id);
 /// Elements a repeat template draws this tick (repeat_bind / repeat_div, capped by repeat).
@@ -607,6 +609,10 @@ struct ScrollMetrics {
     s32 cols{1};
     s64 content_h{0};  ///< px of content (rows * row_h + pad)
     s32 max_offset{0}; ///< largest valid offset (0 = everything fits)
+    // Two-axis regions (ScrollRegion::axes): the x extent and offset limit; 0 on a y-only
+    // region, so every caller that ignores x keeps today's behaviour.
+    s64 content_w{0};
+    s32 max_offset_x{0};
 };
 /// Content size of a region against the snapshot (count_bind, else the largest template count).
 ScrollMetrics MeasureScroll(const Page& page, const ScrollRegion& region,
@@ -629,6 +635,13 @@ struct ScrollMemo {
 };
 /// The scroll offset of a region clamped to [0, max_offset] from the snapshot.
 s32 ScrollOffset(const ScrollRegion& region, const StateSnapshot& snapshot);
+/// The region's published x offset ("@scroll_x:<id>"), clamped like ScrollOffset; 0 unless the
+/// region scrolls on x.
+s32 ScrollOffsetX(const ScrollRegion& region, const StateSnapshot& snapshot);
+/// The scroll offset a widget of the region applies, per its scroll_follow and the region's axes:
+/// {dx, dy} to subtract from its rect.
+std::array<s32, 2> ScrollShift(const Widget& widget, const ScrollRegion& region, s32 offset_x,
+                               s32 offset_y);
 /// Half-open element range [first, last) of a template whose rows touch the region's rect at the
 /// given offset (clamped to [0, rows)). Pure; shared by ExpandWidgets and tests. An element paints
 /// its rect's rows, widened to [paint_top, paint_bottom) relative to its rect's top when those
@@ -644,6 +657,9 @@ std::pair<s64, s64> VisibleElementRange(const Widget& widget, const ScrollRegion
 std::array<s32, 2> RowPaintSpan(const Widget& widget, const StateSnapshot& snapshot, s32 max_h);
 /// Thumb rect of a region's scrollbar, {0,0,0,0} when the list fits or no bar is configured.
 std::array<s32, 4> ScrollBarThumb(const ScrollRegion& region, const ScrollMetrics& m, s32 offset);
+/// The horizontal scrollbar thumb along the rect's bottom edge (two-axis regions); w/h 0 = none.
+std::array<s32, 4> ScrollBarThumbX(const ScrollRegion& region, const ScrollMetrics& m,
+                                   s32 offset_x);
 /// One axis of an x_bind/y_bind widget's live on-screen offset: `base` when `bind` is empty,
 /// otherwise `base + snapshot_value(bind) * scale` (clamped to a finite canvas-ish range) -- the
 /// exact formula ExpandWidgets' own `position()` lambda applies to `widget.rect[0]`/`rect[1]` at
@@ -751,5 +767,12 @@ s64 HitTestIndex(const std::vector<Widget>& expanded, const StateSnapshot& snaps
 /// The value a widget carries (`payload`, already "{i}"-expanded): a literal integer, or the
 /// published int a "$name" payload names. nullopt when there is none.
 std::optional<s64> WidgetPayload(const Widget& widget, const StateSnapshot& snapshot);
+/// WidgetPayload, plus "payload": "$tap" (unreleased runtime 22 addition): the tap point relative
+/// to the widget's content -- inside a scroll region, relative to the region's content origin
+/// (rect origin, plus the region's current offsets), so a tap on scrolled module art names the
+/// content pixel; elsewhere relative to the widget's rect. Packed like PackPanPayload: x in the
+/// high 32 bits, y in the low 32 (both signed).
+std::optional<s64> TapPayload(const Page& page, const Widget& widget, const StateSnapshot& snapshot,
+                              s32 x, s32 y);
 
 } // namespace Core::Mods

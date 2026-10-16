@@ -364,6 +364,10 @@ struct Widget {
     /// rows move with the region's drag offset, are clipped to the region's rect, and only the
     /// rows inside that rect are materialised ("{i}" stays the real element index).
     std::string scroll;
+    /// "scroll_follow" (unreleased runtime 22 addition): which of the region's offset axes move
+    /// this template -- "xy" (default), "y" (a frozen label column follows only the rows), "x"
+    /// (a frozen header row follows only the columns). Bits as ScrollRegion::Axis*.
+    u8 scroll_follow{3};
     /// Set by ExpandWidgets on a scrolled row (never parsed): {x, y, w, h} the row is drawn and
     /// hit-tested inside. w/h <= 0 = no clip.
     std::array<s32, 4> scroll_clip{0, 0, 0, 0};
@@ -561,6 +565,22 @@ struct ScrollRegion {
     /// reset_bind change re-applies the follow to the current value.
     std::string follow_bind;
     bool follow_open{false}; ///< "follow_open": also bring the element into view on page entry
+    // --- two-axis scrolling (unreleased runtime 22 addition) --------------------------------
+    /// "axes": which axes the finger moves the content on. Bit 1 = y (the default, today's
+    /// list), bit 2 = x, 3 = both (a table or one large pane picture). Old hosts ignore the key.
+    u8 axes{AxisY};
+    static constexpr u8 AxisY = 1;
+    static constexpr u8 AxisX = 2;
+    /// "lock_axis": a two-axis drag follows only the axis it starts along (frozen header rows
+    /// and label columns stay readable). false = free 2D drag.
+    bool lock_axis{false};
+    /// "content_w" / "content_h" (px) or "content_w_bind" / "content_h_bind" (a published value,
+    /// canvas px): the content extent on that axis, replacing the row_h * rows computation, so
+    /// a single element wider or taller than the rect scrolls its full extent.
+    s32 content_w{0};
+    s32 content_h{0};
+    std::string content_w_bind;
+    std::string content_h_bind;
 };
 
 /// A follow_bind change this soon after a finger was in the list is the list's own tap.

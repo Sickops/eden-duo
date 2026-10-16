@@ -82,6 +82,7 @@ endif()
 # materialisation, hit-test index mapping and clipped drawing. Own target, like
 # tsan_redraw_harness above.
 add_executable(dsmod_scroll_test
+    core/mods/scroll_2d.cpp
     core/mods/scroll_list.cpp
 )
 create_target_directory_groups(dsmod_scroll_test)

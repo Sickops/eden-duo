@@ -551,12 +551,14 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
             if (!scroll_target.empty()) {
                 gesture_target.clear();
                 auto& st = scroll_state[scroll_target];
-                if (st.flinging) {
+                if (st.flinging || st.flinging_x) {
                     st.flinging = false;
                     st.velocity = 0.0f;
+                    st.flinging_x = false;
+                    st.velocity_x = 0.0f;
                     scroll_caught = true;
-                    LOG_INFO(Core, "DSMod: scroll '{}' caught at offset {:.0f}", scroll_target,
-                             st.offset);
+                    LOG_INFO(Core, "DSMod: scroll '{}' caught at offset {:.0f},{:.0f}",
+                             scroll_target, st.offset_x, st.offset);
                 }
             }
         }
@@ -717,15 +719,22 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
     }
     // Horizontal swipe: judged when the finger leaves the slop; a horizontal start owns the
     // gesture, so a scroll region under it does not start a vertical drag.
+    // A region that scrolls on x owns horizontal drags too: the page swipe never arms over it.
+    bool scroll_takes_x = false;
+    if (!scroll_target.empty() && current_page < manifest.pages.size()) {
+        const ScrollRegion* const r =
+            FindScrollRegion(manifest.pages[current_page], scroll_target);
+        scroll_takes_x = r != nullptr && (r->axes & ScrollRegion::AxisX) != 0;
+    }
     if (!now.empty()) {
         swipe_tracker.Move(SteadyMs(), now.front().x, now.front().y,
                            now.size() > 1 || drag_state.active || gesture_ignored ||
                                page_anim.active || page_anim_request.has_value() ||
-                               hold_tracker.Fired(),
+                               hold_tracker.Fired() || scroll_takes_x,
                            current_page);
     }
     if (!scroll_target.empty() && !now.empty()) {
-        UpdateScrollGesture(snapshot, now.size(), now.front().y,
+        UpdateScrollGesture(snapshot, now.size(), now.front().x, now.front().y,
                             gesture_moved && !swipe_tracker.OwnsGesture(), false);
     }
     // Press-and-hold: fires once, on the tick the still single finger reaches hold_ms.
@@ -769,7 +778,8 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         callback_target = {};
         const SwipeDir swipe_dir = swipe_tracker.Up();
         if (!scroll_target.empty()) {
-            UpdateScrollGesture(snapshot, 0, live_fingers.front().y, gesture_moved, true);
+            UpdateScrollGesture(snapshot, 0, live_fingers.front().x, live_fingers.front().y,
+                                gesture_moved, true);
         }
         if (scroll_caught && !gesture_moved) {
             LOG_INFO(Core, "DSMod: aux touch at canvas({},{}) stopped a scrolling list (no tap)",
@@ -935,7 +945,8 @@ std::string ModRuntime::ScrollRegionAt(const StateSnapshot& snapshot, s32 x, s32
             continue;
         }
         // A list that fits its rect has nothing to scroll: the touch stays an ordinary one.
-        if (MeasureScroll(page, r, snapshot).max_offset <= 0) {
+        const ScrollMetrics m = MeasureScroll(page, r, snapshot);
+        if (m.max_offset <= 0 && m.max_offset_x <= 0) {
             continue;
         }
         return r.id;
@@ -943,8 +954,8 @@ std::string ModRuntime::ScrollRegionAt(const StateSnapshot& snapshot, s32 x, s32
     return {};
 }
 
-void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t fingers, s32 y,
-                                     bool moved, bool released) {
+void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t fingers, s32 x,
+                                     s32 y, bool moved, bool released) {
     if (current_page >= manifest.pages.size()) {
         return;
     }
@@ -955,6 +966,11 @@ void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t finge
     }
     auto& st = scroll_state[scroll_target];
     const auto now = std::chrono::steady_clock::now();
+    // The axes this drag moves: the region's, narrowed by lock_axis once the finger has chosen.
+    const u8 axes = scroll_axis_lock != 0 ? static_cast<u8>(region->axes & scroll_axis_lock)
+                                          : region->axes;
+    const bool on_x = (axes & ScrollRegion::AxisX) != 0;
+    const bool on_y = (axes & ScrollRegion::AxisY) != 0;
     if (released) {
         if (scroll_dragging && region->fling && !scroll_samples.empty()) {
             // Speed over the ~100 ms before the lift (measured back from the lift itself, so a
@@ -972,23 +988,39 @@ void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t finge
             const float dt = std::chrono::duration<float>(last.t - first->t).count();
             // Rested = the finger has been still for 50 ms or more when it lifts.
             auto still_since = last.t;
-            for (auto it = scroll_samples.rbegin(); it != scroll_samples.rend() && it->y == last.y;
-                 ++it) {
+            for (auto it = scroll_samples.rbegin();
+                 it != scroll_samples.rend() && it->y == last.y && it->x == last.x; ++it) {
                 still_since = it->t;
             }
             const bool rested = now - still_since >= std::chrono::milliseconds{50};
-            float v = dt > 0.008f && !rested ? -static_cast<float>(last.y - first->y) / dt : 0.0f;
-            v = std::clamp(v, -8000.0f, 8000.0f);
-            if (std::fabs(v) > 150.0f) {
-                st.velocity = v;
-                st.flinging = true;
+            const auto speed = [&](s32 from, s32 to) {
+                const float v = dt > 0.008f && !rested ? -static_cast<float>(to - from) / dt : 0.0f;
+                return std::clamp(v, -8000.0f, 8000.0f);
+            };
+            if (on_y) {
+                const float v = speed(first->y, last.y);
+                if (std::fabs(v) > 150.0f) {
+                    st.velocity = v;
+                    st.flinging = true;
+                }
+            }
+            if (on_x) {
+                const float v = speed(first->x, last.x);
+                if (std::fabs(v) > 150.0f) {
+                    st.velocity_x = v;
+                    st.flinging_x = true;
+                }
             }
         }
         if (scroll_dragging) {
-            LOG_INFO(Core, "DSMod: scroll '{}' released at offset {:.0f}{}", scroll_target,
-                     st.offset,
-                     st.flinging ? fmt::format(", fling {:.0f} px/s", st.velocity) : std::string{});
+            std::string fling;
+            if (st.flinging || st.flinging_x) {
+                fling = fmt::format(", fling {:.0f},{:.0f} px/s", st.velocity_x, st.velocity);
+            }
+            LOG_INFO(Core, "DSMod: scroll '{}' released at offset {:.0f},{:.0f}{}", scroll_target,
+                     st.offset_x, st.offset, fling);
         }
+        scroll_axis_lock = 0;
         return;
     }
     if (fingers >= 2) {
@@ -996,7 +1028,7 @@ void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t finge
         scroll_samples.clear();
         return;
     }
-    scroll_samples.push_back({now, y});
+    scroll_samples.push_back({now, x, y});
     while (scroll_samples.size() > 2 &&
            now - scroll_samples.front().t > std::chrono::milliseconds{200}) {
         scroll_samples.erase(scroll_samples.begin());
@@ -1008,19 +1040,45 @@ void ModRuntime::UpdateScrollGesture(const StateSnapshot& snapshot, size_t finge
         // Anchor where the slop was crossed so the list does not jump by the slop distance.
         scroll_dragging = true;
         scroll_anchor_y = y;
+        scroll_anchor_x = x;
         scroll_anchor_offset = st.offset;
+        scroll_anchor_offset_x = st.offset_x;
         st.flinging = false;
         st.velocity = 0.0f;
-        LOG_INFO(Core, "DSMod: scroll '{}' drag from offset {:.0f}", scroll_target, st.offset);
+        st.flinging_x = false;
+        st.velocity_x = 0.0f;
+        if (region->lock_axis && region->axes == (ScrollRegion::AxisX | ScrollRegion::AxisY)) {
+            // The direction the finger left the slop along is the axis this drag follows.
+            const s32 dx = std::abs(x - gesture_down_x);
+            const s32 dy = std::abs(y - gesture_down_y);
+            scroll_axis_lock = dx > dy ? ScrollRegion::AxisX : ScrollRegion::AxisY;
+        }
+        LOG_INFO(Core, "DSMod: scroll '{}' drag from offset {:.0f},{:.0f}{}", scroll_target,
+                 st.offset_x, st.offset,
+                 scroll_axis_lock == ScrollRegion::AxisX   ? " (x only)"
+                 : scroll_axis_lock == ScrollRegion::AxisY ? " (y only)"
+                                                           : "");
         return;
     }
-    const float max_offset = static_cast<float>(MeasureScroll(page, *region, snapshot).max_offset);
-    const float wanted = scroll_anchor_offset - static_cast<float>(y - scroll_anchor_y);
-    st.offset = std::clamp(wanted, 0.0f, max_offset);
-    if (st.offset != wanted) {
-        // Pinned at an end: re-anchor so reversing direction moves the list at once.
-        scroll_anchor_offset = st.offset;
-        scroll_anchor_y = y;
+    const ScrollMetrics m = MeasureScroll(page, *region, snapshot);
+    if (on_y) {
+        const float max_offset = static_cast<float>(m.max_offset);
+        const float wanted = scroll_anchor_offset - static_cast<float>(y - scroll_anchor_y);
+        st.offset = std::clamp(wanted, 0.0f, max_offset);
+        if (st.offset != wanted) {
+            // Pinned at an end: re-anchor so reversing direction moves the list at once.
+            scroll_anchor_offset = st.offset;
+            scroll_anchor_y = y;
+        }
+    }
+    if (on_x) {
+        const float max_offset_x = static_cast<float>(m.max_offset_x);
+        const float wanted = scroll_anchor_offset_x - static_cast<float>(x - scroll_anchor_x);
+        st.offset_x = std::clamp(wanted, 0.0f, max_offset_x);
+        if (st.offset_x != wanted) {
+            scroll_anchor_offset_x = st.offset_x;
+            scroll_anchor_x = x;
+        }
     }
 }
 
@@ -1054,15 +1112,20 @@ void ModRuntime::PublishScroll(StateSnapshot& snapshot, bool advance) {
         if (!region.reset_bind.empty()) {
             const s64 v = snapshot.GetInt(region.reset_bind);
             was_reset = st.has_reset && v != st.reset_value;
-            if (was_reset && st.offset != 0.0f) {
+            if (was_reset && (st.offset != 0.0f || st.offset_x != 0.0f)) {
                 LOG_INFO(Core, "DSMod: scroll '{}' reset ({} {} -> {})", region.id,
                          region.reset_bind, st.reset_value, v);
                 st.offset = 0.0f;
                 st.flinging = false;
                 st.velocity = 0.0f;
+                st.offset_x = 0.0f;
+                st.flinging_x = false;
+                st.velocity_x = 0.0f;
                 if (scroll_target == region.id && scroll_dragging) {
                     scroll_anchor_offset = 0.0f;
                     scroll_anchor_y = live_fingers.empty() ? 0 : live_fingers.front().y;
+                    scroll_anchor_offset_x = 0.0f;
+                    scroll_anchor_x = live_fingers.empty() ? 0 : live_fingers.front().x;
                 }
             }
             st.has_reset = true;
@@ -1118,11 +1181,33 @@ void ModRuntime::PublishScroll(StateSnapshot& snapshot, bool advance) {
                 st.velocity = 0.0f;
             }
         }
+        // The x axis of a two-axis region: the same fling, clamp and publish.
+        const float max_offset_x = static_cast<float>(m.max_offset_x);
+        if (st.flinging_x && dt > 0.0f) {
+            st.offset_x += st.velocity_x * dt;
+            st.velocity_x *= std::pow(region.friction, dt);
+            if (std::fabs(st.velocity_x) < 20.0f) {
+                st.flinging_x = false;
+                st.velocity_x = 0.0f;
+            }
+        }
+        if (st.offset_x <= 0.0f || st.offset_x >= max_offset_x) {
+            st.offset_x = std::clamp(st.offset_x, 0.0f, max_offset_x);
+            if (st.flinging_x) {
+                st.flinging_x = false;
+                st.velocity_x = 0.0f;
+            }
+        }
         const s32 offset = static_cast<s32>(std::lround(st.offset));
-        const bool on =
-            m.max_offset > 0 && (region.show.Empty() || GateOpen(region.show, snapshot));
+        const s32 offset_x = static_cast<s32>(std::lround(st.offset_x));
+        const bool on = (m.max_offset > 0 || m.max_offset_x > 0) &&
+                        (region.show.Empty() || GateOpen(region.show, snapshot));
         snapshot.ints[ScrollOffsetKey(region.id)] = offset;
         snapshot.ints["@scroll_max:" + region.id] = m.max_offset;
+        if ((region.axes & ScrollRegion::AxisX) != 0) {
+            snapshot.ints[ScrollOffsetXKey(region.id)] = offset_x;
+            snapshot.ints["@scroll_max_x:" + region.id] = m.max_offset_x;
+        }
         snapshot.ints["@scroll_on:" + region.id] = on ? 1 : 0;
         snapshot.ints["@scroll_count:" + region.id] = m.count;
         snapshot.ints["@scroll_first:" + region.id] =
@@ -1471,8 +1556,8 @@ void ModRuntime::DrainTaps(const StateSnapshot& snapshot) {
                 }
             }
             if (!w.on_tap.empty()) {
-                const Ran ran =
-                    run_named(w.on_tap, WidgetPayload(w, snapshot), "tap", tap.x, tap.y, &w.rect);
+                const Ran ran = run_named(w.on_tap, TapPayload(page, w, snapshot, tap.x, tap.y),
+                                          "tap", tap.x, tap.y, &w.rect);
                 tap_haptic(ran, w.haptic, std::nullopt, "tap '" + w.on_tap + "'");
             }
             continue;
@@ -1490,8 +1575,9 @@ void ModRuntime::DrainTaps(const StateSnapshot& snapshot) {
             LOG_WARNING(Core, "DSMod: widget references unknown action '{}'", action_name);
             continue;
         }
-        // A widget with a payload hands it to its on_tap action (a picker cell -> set_value).
-        const auto carried = WidgetPayload(tapped, snapshot);
+        // A widget with a payload hands it to its on_tap action (a picker cell -> set_value);
+        // "$tap" carries the content-relative tap point instead (TapPayload).
+        const auto carried = TapPayload(page, tapped, snapshot, tap.x, tap.y);
         const std::string suffix = carried ? fmt::format(" payload {}", *carried) : std::string{};
         LOG_INFO(Core, "DSMod: tap ({},{}) -> action '{}'{}", tap.x, tap.y, action_name, suffix);
         if (const char* const p = Common::DSMod::DevEnvironment("EDEN_DSMOD_CMD")) {

@@ -994,6 +994,15 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                 continue;
             }
             const ScrollMetrics m = MeasureScroll(page, region, snapshot);
+            // Two-axis regions: a thumb along the bottom edge for x (plain colour, no art).
+            const auto thumb_x = ScrollBarThumbX(region, m, ScrollOffsetX(region, snapshot));
+            if (thumb_x[2] > 0 && thumb_x[3] > 0) {
+                if (region.bar_track != 0) {
+                    canvas.FillRect(region.rect[0], thumb_x[1], region.rect[2], thumb_x[3],
+                                    region.bar_track);
+                }
+                canvas.FillRect(thumb_x[0], thumb_x[1], thumb_x[2], thumb_x[3], region.bar_color);
+            }
             const auto thumb = ScrollBarThumb(region, m, ScrollOffset(region, snapshot));
             if (thumb[2] <= 0 || thumb[3] <= 0) {
                 continue;

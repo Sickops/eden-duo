@@ -9,6 +9,7 @@
 // its viewport); WidgetPayload reads the value a widget carries.
 
 #include <algorithm>
+#include <bit>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
@@ -66,24 +67,47 @@ size_t ExpandTemplateInto(const Page& page, const Widget& source, const StateSna
         // the region's offset. A template naming an unknown region expands as before.
         const ScrollRegion* const region =
             source.scroll.empty() ? nullptr : FindScrollRegion(page, source.scroll);
-        s32 scroll_offset = 0;
+        s32 scroll_offset = 0;   // y, after this template's scroll_follow
+        s32 scroll_offset_x = 0; // x, two-axis regions only
         s64 cell_first = 0;
         s64 cell_end = std::numeric_limits<s64>::max();
+        // The clip a scrolled element draws and hit-tests inside: the region's rect, unbounded on
+        // an axis the template does not follow (a frozen header row sits above the rect and a
+        // label column beside it; they are placed like any other widget on that axis).
+        std::array<s32, 4> scroll_clip{0, 0, 0, 0};
         if (region != nullptr) {
-            const s32 max_offset = memo != nullptr
-                                       ? memo->Get(page, *region, snapshot).max_offset
-                                       : MeasureScroll(page, *region, snapshot).max_offset;
-            scroll_offset = std::min(ScrollOffset(*region, snapshot), max_offset);
-            // y_bind moves a template as a whole; take it into the visibility maths too.
-            const s32 base_y =
-                ResolveBindOffset(source.rect[1], source.y_bind, source.y_scale, snapshot);
-            // A label's text can show below its (zero or short) rect: cull by what it paints,
-            // so a half-visible row keeps its text (clipped) as well as its icon.
-            const auto paint = RowPaintSpan(source, snapshot, region->rect[3]);
-            const auto range = VisibleElementRange(source, *region, base_y, scroll_offset, rows,
-                                                   paint[0], paint[1]);
-            cell_first = range.first;
-            cell_end = range.second;
+            const ScrollMetrics m = memo != nullptr ? memo->Get(page, *region, snapshot)
+                                                    : MeasureScroll(page, *region, snapshot);
+            const auto shift =
+                ScrollShift(source, *region, std::min(ScrollOffsetX(*region, snapshot), m.max_offset_x),
+                            std::min(ScrollOffset(*region, snapshot), m.max_offset));
+            scroll_offset_x = shift[0];
+            scroll_offset = shift[1];
+            const u8 follows = static_cast<u8>(source.scroll_follow & region->axes);
+            scroll_clip = region->rect;
+            constexpr s32 Unbounded = 1 << 20;
+            if ((follows & ScrollRegion::AxisX) == 0 && (region->axes & ScrollRegion::AxisX) != 0) {
+                scroll_clip[0] = -Unbounded;
+                scroll_clip[2] = 2 * Unbounded;
+            }
+            if ((follows & ScrollRegion::AxisY) == 0 && (region->axes & ScrollRegion::AxisY) != 0) {
+                scroll_clip[1] = -Unbounded;
+                scroll_clip[3] = 2 * Unbounded;
+            }
+            // Rows are culled by the viewport only when they move with it (a y-following
+            // template); a header row or an x-only strip keeps every element.
+            if ((follows & ScrollRegion::AxisY) != 0) {
+                // y_bind moves a template as a whole; take it into the visibility maths too.
+                const s32 base_y =
+                    ResolveBindOffset(source.rect[1], source.y_bind, source.y_scale, snapshot);
+                // A label's text can show below its (zero or short) rect: cull by what it
+                // paints, so a half-visible row keeps its text (clipped) as well as its icon.
+                const auto paint = RowPaintSpan(source, snapshot, region->rect[3]);
+                const auto range = VisibleElementRange(source, *region, base_y, scroll_offset,
+                                                       rows, paint[0], paint[1]);
+                cell_first = range.first;
+                cell_end = range.second;
+            }
         }
         s64 placed = 0; // grid position after packing out the skipped elements
         // Without packing, element i sits in cell i: jump straight to the first visible one.
@@ -165,6 +189,7 @@ size_t ExpandTemplateInto(const Page& page, const Widget& source, const StateSna
                         clone.rect[1] += static_cast<s32>(cell) * source.repeat_dy;
                     }
                     if (region != nullptr) {
+                        clone.rect[0] -= scroll_offset_x;
                         clone.rect[1] -= scroll_offset;
                     }
                     if (source.auto_w) {
@@ -283,8 +308,9 @@ size_t ExpandTemplateInto(const Page& page, const Widget& source, const StateSna
                 clone.rect[1] += static_cast<s32>(cell) * source.repeat_dy;
             }
             if (region != nullptr) {
+                clone.rect[0] -= scroll_offset_x;
                 clone.rect[1] -= scroll_offset;
-                clone.scroll_clip = region->rect;
+                clone.scroll_clip = scroll_clip;
             }
             if (source.pack) {
                 // already gated here; don't let the draw pass hide it again
@@ -519,6 +545,30 @@ s64 HitTestIndex(const std::vector<Widget>& expanded, const StateSnapshot& snaps
         }
     }
     return -1;
+}
+
+std::optional<s64> TapPayload(const Page& page, const Widget& widget, const StateSnapshot& snapshot,
+                              s32 x, s32 y) {
+    std::string_view text = widget.payload;
+    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front()))) {
+        text.remove_prefix(1);
+    }
+    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back()))) {
+        text.remove_suffix(1);
+    }
+    if (text != "$tap") {
+        return WidgetPayload(widget, snapshot);
+    }
+    s32 cx = x - widget.rect[0];
+    s32 cy = y - widget.rect[1];
+    if (!widget.scroll.empty()) {
+        if (const ScrollRegion* const region = FindScrollRegion(page, widget.scroll)) {
+            const ScrollMetrics m = MeasureScroll(page, *region, snapshot);
+            cx = x - region->rect[0] + std::min(ScrollOffsetX(*region, snapshot), m.max_offset_x);
+            cy = y - region->rect[1] + std::min(ScrollOffset(*region, snapshot), m.max_offset);
+        }
+    }
+    return std::bit_cast<s64>((u64{static_cast<u32>(cx)} << 32) | static_cast<u32>(cy));
 }
 
 std::optional<s64> WidgetPayload(const Widget& widget, const StateSnapshot& snapshot) {

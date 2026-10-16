@@ -574,6 +574,23 @@ std::optional<ScrollRegion> ParseScrollRegion(const nlohmann::json& j) {
     r.bar_track = ParseColor(j, "bar_track", 0);
     r.bar_w =
         std::max<s32>(1, static_cast<s32>(j.contains("bar_w") ? ParseNumber(j.at("bar_w")) : 6));
+    // Two-axis scrolling (unreleased runtime 22 addition); every key optional.
+    if (j.contains("axes")) {
+        const std::string axes = j.at("axes").is_string() ? j.at("axes").get<std::string>() : "";
+        if (axes == "x") {
+            r.axes = ScrollRegion::AxisX;
+        } else if (axes == "xy" || axes == "yx") {
+            r.axes = ScrollRegion::AxisX | ScrollRegion::AxisY;
+        } else if (axes != "y") {
+            LOG_WARNING(Core, "DSMod: scroll region '{}': \"axes\" must be \"x\", \"y\" or \"xy\"; using y",
+                        r.id);
+        }
+    }
+    r.lock_axis = j.value("lock_axis", false);
+    r.content_w = static_cast<s32>(j.contains("content_w") ? ParseNumber(j.at("content_w")) : 0);
+    r.content_h = static_cast<s32>(j.contains("content_h") ? ParseNumber(j.at("content_h")) : 0);
+    r.content_w_bind = j.value("content_w_bind", std::string{});
+    r.content_h_bind = j.value("content_h_bind", std::string{});
     if (r.rect[2] <= 0 || r.rect[3] <= 0) {
         LOG_WARNING(Core, "DSMod: scroll region '{}' has an empty rect", r.id);
     }
@@ -1673,6 +1690,21 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                             if (FindScrollRegion(page, region->id) == nullptr) {
                                 page.scrolls.push_back(std::move(*region));
                             }
+                        }
+                    }
+                    if (w.contains("scroll_follow")) {
+                        const std::string f = w.at("scroll_follow").is_string()
+                                                  ? w.at("scroll_follow").get<std::string>()
+                                                  : "";
+                        if (f == "x") {
+                            widget.scroll_follow = ScrollRegion::AxisX;
+                        } else if (f == "y") {
+                            widget.scroll_follow = ScrollRegion::AxisY;
+                        } else if (f != "xy" && f != "yx") {
+                            LOG_WARNING(Core,
+                                        "DSMod: widget '{}': \"scroll_follow\" must be \"x\", \"y\" or "
+                                        "\"xy\"; using xy",
+                                        widget.id);
                         }
                     }
                     widget.repeat_dx =

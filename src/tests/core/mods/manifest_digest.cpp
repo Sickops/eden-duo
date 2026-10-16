@@ -490,6 +490,7 @@ std::string R(const Widget& o) {
     F(repeat_row_dy);
     F(pack);
     F(scroll);
+    if (o.scroll_follow != 3) { F(scroll_follow); }
     F(scroll_clip);
     F(keep_min_i);
     F(keep_max_i);
@@ -597,6 +598,12 @@ std::string R(const ScrollRegion& o) {
     F(bar_w);
     if (!o.follow_bind.empty()) { F(follow_bind); }
     if (o.follow_open) { F(follow_open); }
+    if (o.axes != ScrollRegion::AxisY) { F(axes); }
+    if (o.lock_axis) { F(lock_axis); }
+    if (o.content_w != 0) { F(content_w); }
+    if (o.content_h != 0) { F(content_h); }
+    if (!o.content_w_bind.empty()) { F(content_w_bind); }
+    if (!o.content_h_bind.empty()) { F(content_h_bind); }
     DUMP_END;
 }
 std::string R(const ActionValue& o) {
@@ -1239,7 +1246,7 @@ void CheckLayouts() {
         {"Widget", sizeof(Widget), 2336},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
-        {"ScrollRegion", sizeof(ScrollRegion), 296},
+        {"ScrollRegion", sizeof(ScrollRegion), 368},
         {"MapWidgetExtras", sizeof(MapWidgetExtras), 480},
         {"MapWidgetExtras::Group", sizeof(MapWidgetExtras::Group), 112},
         {"MapWidgetExtras::LabelStyle", sizeof(MapWidgetExtras::LabelStyle), 24},

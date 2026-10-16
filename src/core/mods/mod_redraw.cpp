@@ -604,6 +604,11 @@ u64 ModRuntime::RepeatTemplateDependencyHash(const Page& page, size_t index,
                          (static_cast<u64>(static_cast<u32>(ScrollOffset(*region, s))) << 40) ^
                          static_cast<u64>(static_cast<u32>(m.row_h)));
             h ^= MixHash(0x5C0111000ULL + static_cast<u64>(s.GetInt("@scroll_on:" + region->id)));
+            if (m.max_offset_x > 0 || (region->axes & ScrollRegion::AxisX) != 0) {
+                h ^= MixHash(0x5C0112000ULL ^
+                             (static_cast<u64>(static_cast<u32>(ScrollOffsetX(*region, s))) << 8) ^
+                             (static_cast<u64>(static_cast<u32>(m.max_offset_x)) << 40));
+            }
         }
     }
     // ...and every element exactly as ExpandWidgets builds it this tick: which ones exist, where,
