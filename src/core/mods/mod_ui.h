@@ -217,6 +217,12 @@ public:
     void DrawImageTransformed(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy, s32 sw,
                               s32 sh, u32 tint, float degrees, float scale, float pivot_x,
                               float pivot_y, bool flip_x = false, bool flip_y = false);
+    /// Runtime 22: DrawImageTransformed at scale 1 for big pictures (a turned map's base and
+    /// tiles): the source position is stepped along each row in 32.32 fixed point instead of
+    /// recomputed and divided per pixel, and only the row span inside the rect is visited. Up to
+    /// one texel / one edge pixel may differ from DrawImageTransformed; opaque texels are stored.
+    void DrawImageTurned(s32 x, s32 y, s32 w, s32 h, const Image& image, s32 sx, s32 sy, s32 sw,
+                         s32 sh, u32 tint, float degrees, float pivot_x, float pivot_y);
     /// Draws only the bottom `fraction` of the image (or of one atlas cell), so a sprite can act
     /// as a gauge. The tint's alpha multiplies the image like DrawImageRegion.
     void DrawImageFilled(s32 x, s32 y, s32 w, s32 h, const Image& image, u32 tint, float fraction,

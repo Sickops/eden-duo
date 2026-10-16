@@ -714,8 +714,8 @@ void GeometryMapDraw::blit_turned(const Image& img, float qx, float qy, float qw
         return;
     }
     canvas.SetClip(l, t, r - l, b - t);
-    canvas.DrawImageTransformed(ix, iy, iw, ih, img, sx, sy, sw, sh, tint, turn, 1.0f,
-                                cxpix - static_cast<float>(ix), cypix - static_cast<float>(iy));
+    canvas.DrawImageTurned(ix, iy, iw, ih, img, sx, sy, sw, sh, tint, turn,
+                           cxpix - static_cast<float>(ix), cypix - static_cast<float>(iy));
     canvas.SetClip(clip[0], clip[1], clip[2], clip[3]);
 }
 

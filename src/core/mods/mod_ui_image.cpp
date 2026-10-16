@@ -412,6 +412,18 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
         from = std::max(from, t0);
         to = std::min(to, t1);
     };
+    const bool full_opacity = EffectiveOpacity() >= 1.0f; // ApplyDrawOpacity's no-op case
+    // The rect-to-source column / row of every whole rect pixel, the same integer formula as
+    // before, looked up instead of divided per canvas pixel.
+    thread_local std::vector<s32> col_of, row_of;
+    col_of.resize(static_cast<size_t>(rw));
+    row_of.resize(static_cast<size_t>(rh));
+    for (s32 i = 0; i < rw; ++i) {
+        col_of[static_cast<size_t>(i)] = static_cast<s32>(static_cast<s64>(i) * sw / rw);
+    }
+    for (s32 i = 0; i < rh; ++i) {
+        row_of[static_cast<size_t>(i)] = static_cast<s32>(static_cast<s64>(i) * sh / rh);
+    }
     for (s32 py = y0; py < y1; ++py) {
         u32* const dst = pixels.data() + static_cast<size_t>(py) * w;
         const float dy = static_cast<float>(py) + 0.5f - ay;
@@ -431,8 +443,9 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
             if (!(lx >= 0.0f && lx < fw && ly >= 0.0f && ly < fh)) {
                 continue;
             }
-            const s32 off_x = static_cast<s32>(static_cast<s64>(lx) * sw / rw);
-            const s32 off_y = static_cast<s32>(static_cast<s64>(ly) * sh / rh);
+            // lx in [0, rw) and ly in [0, rh): the truncation indexes the tables.
+            const s32 off_x = col_of[static_cast<size_t>(std::min(static_cast<s32>(lx), rw - 1))];
+            const s32 off_y = row_of[static_cast<size_t>(std::min(static_cast<s32>(ly), rh - 1))];
             const s32 src_x = flip_x ? sx + (sw - 1) - off_x : sx + off_x;
             const s32 src_y = flip_y ? sy + (sh - 1) - off_y : sy + off_y;
             if (src_x < 0 || src_x >= iw || src_y < 0 || src_y >= ih) {
@@ -442,7 +455,91 @@ void Canvas::DrawImageTransformed(s32 x, s32 y, s32 rw, s32 rh, const Image& ima
             if (!plain) {
                 texel = Tint(texel, tint);
             }
-            dst[px] = Blend(dst[px], ApplyDrawOpacity(texel));
+            dst[px] = Blend(dst[px], full_opacity ? texel : ApplyDrawOpacity(texel));
+        }
+    }
+}
+
+void Canvas::DrawImageTurned(s32 x, s32 y, s32 rw, s32 rh, const Image& image, s32 sx, s32 sy,
+                             s32 sw, s32 sh, u32 tint, float degrees, float pivot_x,
+                             float pivot_y) {
+    if (!image.Valid() || rw <= 0 || rh <= 0 || sw <= 0 || sh <= 0 || !std::isfinite(degrees) ||
+        !std::isfinite(pivot_x) || !std::isfinite(pivot_y)) {
+        return;
+    }
+    const s32 iw = static_cast<s32>(image.w), ih = static_cast<s32>(image.h);
+    // The source window must lie inside the picture (the map passes whole pictures or levels).
+    if (sx < 0 || sy < 0 || sx + sw > iw || sy + sh > ih) {
+        DrawImageTransformed(x, y, rw, rh, image, sx, sy, sw, sh, tint, degrees, 1.0f, pivot_x,
+                             pivot_y);
+        return;
+    }
+    double deg = std::fmod(static_cast<double>(degrees), 360.0);
+    if (deg < 0.0) {
+        deg += 360.0;
+    }
+    const double ax = static_cast<double>(x) + pivot_x, ay = static_cast<double>(y) + pivot_y;
+    const auto box = TransformedImageBounds(x, y, rw, rh, static_cast<float>(deg), 1.0f, pivot_x,
+                                            pivot_y);
+    const s32 x0 = std::max(clip_x0, box[0]), x1 = std::min(clip_x1, box[2]);
+    const s32 y0 = std::max(clip_y0, box[1]), y1 = std::min(clip_y1, box[3]);
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    const double rad = deg * 3.14159265358979323846 / 180.0;
+    const double c = std::cos(rad), s = std::sin(rad);
+    const double kx = static_cast<double>(sw) / rw, ky = static_cast<double>(sh) / rh;
+    const double frw = static_cast<double>(rw), frh = static_cast<double>(rh);
+    const bool plain = tint == 0xFFFFFFFFu;
+    const bool full_opacity = EffectiveOpacity() >= 1.0f;
+    // Rect-local (lx, ly) of a canvas pixel centre is linear along the row: lx = lx0 + t c,
+    // ly = ly0 - t s for pixel x0 + t. The inside test is on the rect (whose integer edges
+    // neighbouring tiles share), the texel is (lx kx, ly ky).
+    for (s32 py = y0; py < y1; ++py) {
+        const double dy = static_cast<double>(py) + 0.5 - ay;
+        const double dx0 = static_cast<double>(x0) + 0.5 - ax;
+        const double lx0 = dx0 * c + dy * s + pivot_x;
+        const double ly0 = -dx0 * s + dy * c + pivot_y;
+        double from = 0.0, to = static_cast<double>(x1 - x0);
+        const auto span = [&](double b, double a, double hi) {
+            if (std::fabs(a) < 1e-12) {
+                if (!(b >= 0.0 && b < hi)) {
+                    from = 1.0;
+                    to = 0.0;
+                }
+                return;
+            }
+            double t0 = -b / a, t1 = (hi - b) / a;
+            if (t0 > t1) {
+                std::swap(t0, t1);
+            }
+            from = std::max(from, t0);
+            to = std::min(to, t1);
+        };
+        span(lx0, c, frw);
+        span(ly0, -s, frh);
+        if (!(to > from)) {
+            continue;
+        }
+        const s32 first = std::max(0, static_cast<s32>(std::floor(from)) - 1);
+        const s32 last = std::min(x1 - x0, static_cast<s32>(std::ceil(to)) + 1);
+        u32* const dst = pixels.data() + static_cast<size_t>(py) * w + x0;
+        for (s32 t = first; t < last; ++t) {
+            const double lx = lx0 + t * c, ly = ly0 - t * s;
+            if (!(lx >= 0.0 && lx < frw && ly >= 0.0 && ly < frh)) {
+                continue;
+            }
+            const s32 ui = std::min(sw - 1, static_cast<s32>(lx * kx));
+            const s32 vi = std::min(sh - 1, static_cast<s32>(ly * ky));
+            u32 texel = image.pixels[static_cast<size_t>(sy + vi) * image.w +
+                                     static_cast<size_t>(sx + ui)];
+            if (!plain) {
+                texel = Tint(texel, tint);
+            }
+            if (!full_opacity) {
+                texel = ApplyDrawOpacity(texel);
+            }
+            dst[t] = Blend(dst[t], texel);
         }
     }
 }

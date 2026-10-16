@@ -4,6 +4,7 @@
 // base picture and overlays drawn turned about the widget centre and clipped to it, markers placed
 // through the turn but upright, marker_rotate_bind relative to the turned map, the draw record's
 // inverse mapping (taps) and the live-marker dirty prediction.
+#include <chrono>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -445,5 +446,111 @@ TEST_CASE("DSMod image transform: the row-span walk paints exactly the full-box 
                 }
             }
         }
+    }
+}
+
+TEST_CASE("DSMod map view turn: draw cost, turned vs unturned (bench, hidden)",
+          "[.][bench][runtime22]") {
+    // The BOTW Ready circle's shape: an 800 px follow window over 1000-unit native tiles of 840 px,
+    // a 1x1 clear base picture. Prints the mean widget draw time for a few turns.
+    CompassMap map;
+    auto& w = map.widget();
+    w.rect = {0, 0, 800, 800};
+    w.follow_window = 900.0f;
+    w.marker_x_bind = "me.x";
+    w.marker_y_bind = "me.y";
+    w.pan_zoom = false;
+    MapArea area;
+    area.min_x = -6000.0f;
+    area.max_x = 6000.0f;
+    area.min_y = -5000.0f;
+    area.max_y = 5000.0f;
+    area.image = "img.clear";
+    map.manifest.map_areas["c"] = area;
+    auto clear = std::make_shared<Image>();
+    clear->w = clear->h = 1;
+    clear->pixels = {0u};
+    map.pics["img.clear"] = clear;
+    auto tile = std::make_shared<Image>();
+    tile->w = tile->h = 840;
+    for (u32 i = 0; i < 840u * 840u; ++i) {
+        tile->pixels.push_back(0xFF000000u | (i * 2654435761u >> 8));
+    }
+    map.pics["img.tile"] = tile;
+    auto extras = std::make_shared<MapWidgetExtras>(*w.map_extras);
+    extras->overlays.clear();
+    for (int ty = -5; ty < 5; ++ty) {
+        for (int tx = -6; tx < 6; ++tx) {
+            MapWidgetExtras::Overlay ov;
+            ov.src = "img.tile";
+            ov.x0 = tx * 1000.0f;
+            ov.x1 = ov.x0 + 1000.0f;
+            ov.y0 = ty * 1000.0f;
+            ov.y1 = ov.y0 + 1000.0f;
+            extras->overlays.push_back(ov);
+        }
+    }
+    w.map_extras = extras;
+    StateSnapshot s;
+    s.floats["me.x"] = 1520.0;
+    s.floats["me.y"] = 2340.0;
+    for (const float deg : {0.0f, 1.0f, 37.0f, 90.0f, 213.0f}) {
+        s.floats["turn"] = deg;
+        Canvas canvas;
+        canvas.Resize(800, 800);
+        const auto t0 = std::chrono::steady_clock::now();
+        constexpr int N = 20;
+        for (int i = 0; i < N; ++i) {
+            RenderPage(canvas, map.manifest, map.page, s, map.Images());
+        }
+        const double ms =
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count() /
+            N;
+        WARN("turn " << deg << ": " << ms << " ms per Ready-sized map draw");
+    }
+}
+
+TEST_CASE("DSMod image turned: the fast turned blit matches the exact transform but for edges",
+          "[dsmod][runtime22][image]") {
+    // A 60x40 picture of 4 colour quadrants drawn at 1:1.3 into a 78x52 rect.
+    Image img;
+    img.w = 60;
+    img.h = 40;
+    for (u32 yy = 0; yy < 40; ++yy) {
+        for (u32 xx = 0; xx < 60; ++xx) {
+            img.pixels.push_back(xx < 30 ? (yy < 20 ? Red : Green) : (yy < 20 ? Blue : White));
+        }
+    }
+    for (const float deg : {0.5f, 17.0f, 45.0f, 90.0f, 133.0f, 250.0f}) {
+        Canvas exact, fast;
+        for (Canvas* c : {&exact, &fast}) {
+            c->Resize(160, 160);
+            c->Clear(Black);
+            c->SetClip(10, 10, 140, 140);
+        }
+        exact.DrawImageTransformed(40, 50, 78, 52, img, 0, 0, 60, 40, 0xFFFFFFFFu, deg, 1.0f, 41.0f,
+                                   27.0f);
+        fast.DrawImageTurned(40, 50, 78, 52, img, 0, 0, 60, 40, 0xFFFFFFFFu, deg, 41.0f, 27.0f);
+        unsigned differ = 0, painted = 0;
+        for (s32 y = 0; y < 160; ++y) {
+            for (s32 x = 0; x < 160; ++x) {
+                const u32 a = Px(exact, x, y), b = Px(fast, x, y);
+                painted += a != Black;
+                if (a == b) {
+                    continue;
+                }
+                ++differ;
+                // Only at a colour or rect boundary: some 4-neighbour of the exact picture differs.
+                bool boundary = false;
+                for (const auto& [ox, oy] : {std::pair{1, 0}, std::pair{-1, 0}, std::pair{0, 1},
+                                             std::pair{0, -1}}) {
+                    boundary = boundary || Px(exact, x + ox, y + oy) != a;
+                }
+                REQUIRE(boundary);
+                REQUIRE((x >= 10 && x < 150 && y >= 10 && y < 150)); // the clip holds
+            }
+        }
+        REQUIRE(painted > 3000);
+        REQUIRE(differ * 50 < painted); // under 2 %
     }
 }
