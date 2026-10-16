@@ -340,8 +340,13 @@ void ModRuntime::StartModuleAssetWorker() {
                        [](void* receiver, u32 width, u32 height, const u8* rgba, size_t size) {
                            const u64 bytes = u64{width} * height * 4;
                            if (!rgba || width == 0 || height == 0 || width > 4096 ||
-                               height > 4096 || bytes > MaxImageBytes || size != bytes)
+                               height > 4096 || bytes > MaxImageBytes || size != bytes) {
+                               LOG_WARNING(Core,
+                                           "DSMod: module image refused: {}x{}, {} bytes (limits: "
+                                           "4096 px a side, {} bytes, size = w*h*4)",
+                                           width, height, size, MaxImageBytes);
                                return;
+                           }
                            auto& image = *static_cast<Image*>(receiver);
                            image.w = width;
                            image.h = height;
@@ -459,8 +464,13 @@ bool ModRuntime::LoadModuleImageSync(const std::string& key, Image& out) {
             [](void* receiver, u32 width, u32 height, const u8* rgba, size_t size) {
                 const u64 bytes = u64{width} * height * 4;
                 if (!rgba || width == 0 || height == 0 || width > 4096 || height > 4096 ||
-                    bytes > MaxImageBytes || size != bytes)
+                    bytes > MaxImageBytes || size != bytes) {
+                    LOG_WARNING(Core,
+                                "DSMod: module image refused: {}x{}, {} bytes (limits: 4096 px a "
+                                "side, {} bytes, size = w*h*4)",
+                                width, height, size, MaxImageBytes);
                     return;
+                }
                 auto& image = *static_cast<Image*>(receiver);
                 image.w = width;
                 image.h = height;
