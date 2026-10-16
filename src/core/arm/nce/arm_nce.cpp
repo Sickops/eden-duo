@@ -41,6 +41,30 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
     return reinterpret_cast<fpsimd_context*>(header);
 }
 
+// Eden Duo: forward a host (non-guest) fault to whatever action was previously installed
+// for it. If no real previous handler was ever captured (sa_sigaction/sa_handler left
+// null, or explicitly SIG_DFL/SIG_IGN), restore the default disposition and re-raise so
+// the kernel delivers its default action, producing a normal crash and tombstone instead
+// of jumping through a null function pointer.
+void ForwardHostFaultOrCrash(int sig, const struct sigaction& orig_action, void* raw_info,
+                              void* raw_context) {
+    if ((orig_action.sa_flags & SA_SIGINFO) && orig_action.sa_sigaction != nullptr) {
+        orig_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+        return;
+    }
+
+    if (orig_action.sa_handler != nullptr && orig_action.sa_handler != SIG_DFL &&
+        orig_action.sa_handler != SIG_IGN) {
+        orig_action.sa_handler(sig);
+        return;
+    }
+
+    struct sigaction default_action {};
+    default_action.sa_handler = SIG_DFL;
+    Common::SigAction(sig, &default_action, nullptr);
+    raise(sig);
+}
+
 using namespace Common::Literals;
 constexpr u32 StackSize = 128_KiB;
 
@@ -175,11 +199,13 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
 }
 
 void ArmNce::HandleHostAlignmentFault(int sig, void* raw_info, void* raw_context) {
-    return g_orig_bus_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+    // Eden Duo: g_orig_bus_action may be unset if no previous SIGBUS handler was ever
+    // installed; guard against calling through a null sa_sigaction.
+    ForwardHostFaultOrCrash(sig, g_orig_bus_action, raw_info, raw_context);
 }
 
 void ArmNce::HandleHostAccessFault(int sig, void* raw_info, void* raw_context) {
-    return g_orig_segv_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+    ForwardHostFaultOrCrash(sig, g_orig_segv_action, raw_info, raw_context);
 }
 
 void ArmNce::LockThread(Kernel::KThread* thread) {
@@ -323,7 +349,10 @@ void ArmNce::Initialize() {
         alignment_fault_action.sa_sigaction =
             reinterpret_cast<HandlerType>(&ArmNce::GuestAlignmentFaultSignalHandler);
         alignment_fault_action.sa_mask = signal_mask;
-        Common::SigAction(GuestAlignmentFaultSignal, &alignment_fault_action, nullptr);
+        // Eden Duo: save the previous SIGBUS action (was nullptr, leaving
+        // g_orig_bus_action unset) so HandleHostAlignmentFault can forward real host
+        // faults instead of calling through a null handler.
+        Common::SigAction(GuestAlignmentFaultSignal, &alignment_fault_action, &g_orig_bus_action);
 
         struct sigaction access_fault_action {};
         access_fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;

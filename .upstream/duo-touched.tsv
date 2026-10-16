@@ -50,7 +50,7 @@ duo-only	A	-	141	0	src/core/mods/mod_input_tokens.h
 duo-only	A	-	1422	0	src/tests/core/mods/manifest_digest.cpp
 duo-only	A	-	145	0	src/tests/core/mods/runtime15_persist.cpp
 duo-only	A	-	147	0	src/core/mods/mod_load_plan.h
-duo-only	A	-	147	0	.upstream/DIVERGENCES.md
+duo-only	A	-	148	0	.upstream/DIVERGENCES.md
 duo-only	A	-	149	0	src/tests/core/mods/duo_tests.cmake
 duo-only	A	-	15	0	.github/FUNDING.yml
 duo-only	A	-	15	0	src/android/app/src/duo/res/values/duo_branding.xml
@@ -340,6 +340,7 @@ upstream-hook	M	4	13	11	src/video_core/renderer_vulkan/vk_pipeline_cache.cpp
 upstream-hook	M	4	16	3	src/video_core/texture_cache/texture_cache.h
 upstream-hook	M	4	18	11	src/video_core/renderer_vulkan/vk_texture_cache.cpp
 upstream-hook	M	4	194	0	src/shader_recompiler/frontend/maxwell/translate_program.cpp
+upstream-hook	M	4	32	3	src/core/arm/nce/arm_nce.cpp
 upstream-hook	M	4	47	9	src/video_core/renderer_base.cpp
 upstream-hook	M	4	48	22	src/android/app/src/main/java/org/yuzu/yuzu_emu/model/AddonViewModel.kt
 upstream-hook	M	4	5	2	src/core/arm/dynarmic/arm_dynarmic_32.cpp
