@@ -473,6 +473,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         // Vertical swipe (unreleased runtime 15 addition): the same widget choice; never armed
         // over a scroll region that can scroll (a vertical drag scrolls the list there).
         hold_action.clear();
+        std::optional<s64> hold_payload;
         swipe_left_action.clear();
         swipe_right_action.clear();
         swipe_up_action.clear();
@@ -514,11 +515,12 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                     HoldArmsOverDrag(hold_hit, drag_state.candidate ? drag_state.source : -1)) {
                     const Widget& hw = expanded[static_cast<size_t>(hold_hit)];
                     hold_action = hw.on_hold;
+                    hold_payload = WidgetPayload(hw, snapshot);
                     need_ms = hw.hold_ms;
                     has_hold = true;
                 }
             }
-            hold_tracker.Down(SteadyMs(), has_hold, need_ms, current_page);
+            hold_tracker.Down(SteadyMs(), has_hold, need_ms, current_page, hold_payload);
             swipe_tracker.Down(SteadyMs(), gesture_down_x, gesture_down_y, swipe_left, swipe_right,
                                swipe_px, current_page, swipe_up, swipe_down);
         }
@@ -692,7 +694,8 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                                             gesture_ignored || page_anim.active ||
                                             page_anim_request.has_value(),
                             current_page)) {
-        const PendingTap hold{gesture_down_x, gesture_down_y, hold_action};
+        PendingTap hold{gesture_down_x, gesture_down_y, hold_action};
+        hold.hold_payload = hold_tracker.Payload();
         LOG_INFO(Core, "DSMod: aux hold at canvas({},{}) -> '{}'", hold.x, hold.y, hold_action);
         if (drag_state.candidate) {
             // Runtime 16: the hold fired first, so this touch does not drag.
@@ -1337,7 +1340,7 @@ void ModRuntime::DrainTaps(const StateSnapshot& snapshot) {
         if (!tap.hold_action.empty()) {
             // A fired press-and-hold (runtime 13): the on_hold widget's action, no hit test; the
             // hold haptic (manifest haptics "hold", strength "heavy" by default) when it ran.
-            const Ran ran = run_named(tap.hold_action, std::nullopt, "hold", tap.x, tap.y);
+            const Ran ran = run_named(tap.hold_action, tap.hold_payload, "hold", tap.x, tap.y);
             if (ran.result == ActionResult::Done) {
                 // The hold's own strength (not the action's tap haptic): stronger than a tap.
                 QueueHaptic(HapticKind::Hold, -1, -1, "hold '" + tap.hold_action + "'");

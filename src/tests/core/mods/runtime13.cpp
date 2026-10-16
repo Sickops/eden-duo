@@ -157,6 +157,31 @@ TEST_CASE("DSMod hold: fires once after hold_ms, cancels, eats the tap",
     REQUIRE_FALSE(h.Up());
 }
 
+TEST_CASE("DSMod hold: pointer-down payload survives delayed firing and clears on cancel",
+          "[dsmod][runtime13][hold]") {
+    HoldTracker h;
+    s64 displayed_token = 41;
+    h.Down(0, true, 500, 1, displayed_token);
+    // A row changes after pointer-down; a delayed frame must still carry token41.
+    displayed_token = 82;
+    REQUIRE(h.Update(700, false, 1));
+    REQUIRE(h.Payload() == 41);
+    PendingTap queued{0, 0, "hold"};
+    queued.hold_payload = h.Payload();
+    REQUIRE(h.Up());
+    REQUIRE_FALSE(h.Payload());
+    REQUIRE(queued.hold_payload == 41);
+    h.Down(1000, true, 500, 1, displayed_token);
+    REQUIRE_FALSE(h.Update(1600, true, 1));
+    REQUIRE_FALSE(h.Payload());
+    h.Down(2000, true, 500, 1, displayed_token);
+    REQUIRE_FALSE(h.Update(2600, false, 2));
+    REQUIRE_FALSE(h.Payload());
+    h.Down(3000, true, 500, 1);
+    REQUIRE(h.Update(3500, false, 1));
+    REQUIRE_FALSE(h.Payload());
+}
+
 TEST_CASE("DSMod hold: manifest keys on_hold / hold_ms", "[dsmod][runtime13][hold]") {
     const auto json = nlohmann::json::parse(R"({"format":1,"min_runtime":13,"pages":[{"id":"p",
         "widgets":[{"type":"rect","rect":[0,0,10,10],"on_tap":"a","on_hold":"b","hold_ms":800},

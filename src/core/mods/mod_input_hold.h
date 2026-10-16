@@ -14,6 +14,7 @@
 // the tap slop); a hold that fires first drops the drag candidate, so that touch never drags.
 
 #include <cstdint>
+#include <optional>
 
 namespace Core::Mods {
 
@@ -31,12 +32,14 @@ class HoldTracker {
 public:
     /// A new gesture's first finger landed at `now_ms` on page `page`. `has_target`: an on_hold
     /// widget is under it; `hold_ms` its hold time (<= 0 means the default).
-    void Down(std::int64_t now_ms, bool has_target, std::int32_t hold_ms, std::uint64_t page = 0) {
+    void Down(std::int64_t now_ms, bool has_target, std::int32_t hold_ms, std::uint64_t page = 0,
+              std::optional<std::int64_t> payload = std::nullopt) {
         armed = has_target;
         fired = false;
         start_ms = now_ms;
         need_ms = hold_ms > 0 ? hold_ms : DefaultHoldMs;
         start_page = page;
+        captured_payload = has_target ? payload : std::nullopt;
     }
     /// Once per frame while fingers are down. `cancel`: the gesture stopped qualifying (moved past
     /// the slop, a second finger, a drag/scroll/pan took it, a page transition). Returns true on
@@ -49,6 +52,7 @@ public:
         }
         if (cancel || page != start_page) {
             armed = false;
+            captured_payload.reset();
             return false;
         }
         if (now_ms - start_ms >= need_ms) {
@@ -62,7 +66,12 @@ public:
         const bool consumed = fired;
         armed = false;
         fired = false;
+        captured_payload.reset();
         return consumed;
+    }
+    /// The widget payload captured at pointer-down, never re-resolved at firing.
+    std::optional<std::int64_t> Payload() const {
+        return captured_payload;
     }
     bool Fired() const {
         return fired;
@@ -77,6 +86,7 @@ private:
     std::int64_t start_ms{0};
     std::int32_t need_ms{DefaultHoldMs};
     std::uint64_t start_page{0};
+    std::optional<std::int64_t> captured_payload;
 };
 
 } // namespace Core::Mods

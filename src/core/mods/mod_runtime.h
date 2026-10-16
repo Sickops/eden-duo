@@ -282,6 +282,8 @@ struct PendingTap {
     /// Continuous module-owned view callback, carrying its documented ABI1 integer payload.
     std::string gesture_action;
     std::optional<s64> gesture_payload;
+    /// Optional widget payload captured when the hold gesture began.
+    std::optional<s64> hold_payload;
 };
 
 class ModRuntime {
