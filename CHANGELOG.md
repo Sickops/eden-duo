@@ -7,6 +7,7 @@
 - For companion makers (see the [Package Format](https://github.com/igawa6/eden-duo-companions/blob/main/docs/PACKAGE_FORMAT.md)):
   - Runtime 21: companions can show the device's battery level and charging state and the game's FPS, emulation speed and frame time. Module ABI 1 stays compatible with existing companions.
   - Runtime 22: a map widget can turn with the game's camera (`view_rotate_bind`, degrees clockwise): the map picture and its tiles rotate about the widget centre; markers, labels and pins keep their place but stay upright; a marker heading (`marker_rotate_bind`) turns with the map; taps, drags and pinches work on the turned map. Older Eden Duo versions ignore the key and show the map north-up.
+  - Image widgets: `pan_bounds` limits pan/zoom to part of the picture (a padded picture can no longer be dragged to show its padding; the default view and the Reset button follow the same bounds). Older runtimes ignore the key.
 
 **Fixed**
 

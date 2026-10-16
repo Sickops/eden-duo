@@ -14,6 +14,7 @@ target_sources(tests PRIVATE
     core/mods/map_room_category.cpp
     core/mods/image_fallback.cpp
     core/mods/mod_load_plan.cpp
+    core/mods/pan_bounds.cpp
     core/mods/render_golden.cpp
     core/mods/runtime14.cpp
     core/mods/runtime18.cpp

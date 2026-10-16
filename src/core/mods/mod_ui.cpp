@@ -37,6 +37,7 @@
 #include "common/logging.h"
 #include "core/mods/mod_ui.h"
 #include "core/mods/mod_ui_internal.h"
+#include "core/mods/mod_view_default.h"
 
 namespace Core::Mods {
 
@@ -193,16 +194,17 @@ void DrawImage(const WidgetDrawContext& ctx) {
     std::shared_ptr<const Image> image = images(*source);
     // Pan and zoom on a picture is a narrower window onto it: at 2x we sample half the
     // source across the same rectangle. Panning is clamped so the content cannot be
-    // dragged off its own frame and leave the user staring at nothing.
+    // dragged off its own frame and leave the user staring at nothing -- off its "pan_bounds"
+    // when the package names the part of the picture worth looking at (ClampPanAxis,
+    // mod_view_default.h; the whole picture without them, as before).
     std::array<float, 4> eff = widget.src_rect;
     if (widget.pan_zoom && widget.rect[2] > 0 && widget.rect[3] > 0) {
         const float zoom = std::max(view.zoom, 0.01f);
         const float span_u = (eff[2] - eff[0]) / zoom;
         const float span_v = (eff[3] - eff[1]) / zoom;
-        const float max_pan_x = static_cast<float>(widget.rect[2]) * (1.0f - 1.0f / zoom);
-        const float max_pan_y = static_cast<float>(widget.rect[3]) * (1.0f - 1.0f / zoom);
-        const float px = std::clamp(view.pan_x, 0.0f, std::max(0.0f, max_pan_x));
-        const float py = std::clamp(view.pan_y, 0.0f, std::max(0.0f, max_pan_y));
+        float px = view.pan_x;
+        float py = view.pan_y;
+        ClampViewPan(widget, zoom, px, py);
         const float u0 = eff[0] + (px / static_cast<float>(widget.rect[2])) * (eff[2] - eff[0]);
         const float v0 = eff[1] + (py / static_cast<float>(widget.rect[3])) * (eff[3] - eff[1]);
         eff = {u0, v0, u0 + span_u, v0 + span_v};

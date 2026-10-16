@@ -178,7 +178,8 @@ namespace Core::Mods {
 ///   21     device and emulator values: "@device.battery_present" / "battery_pct" / "charging" and
 ///          "@perf.fps" / "speed_pct" / "frametime_ms" / "frametime_x10" (mod_host_values.h),
 ///          published for a package that names them and answered to a module's get_i64 /
-///          get_f64; ABI 1 stays.
+///          get_f64; ABI 1 stays. Image "pan_bounds" limits a pan_zoom picture's view window to
+///          part of it (mod_view_default.h ClampPanAxis).
 ///   22     map "view_rotate_bind": the whole map view turns clockwise about the widget centre
 ///          (a compass minimap whose up is the camera); markers, labels and pins stay upright,
 ///          marker_rotate_bind turns with the map, taps / drags / pinches are turned back into

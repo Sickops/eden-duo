@@ -575,6 +575,7 @@ std::string R(const Widget& o) {
     F(fill_dir);
     F(fill_image);
     F(chart);
+    if (o.pan_bounds) { F(pan_bounds); }
     DUMP_END;
 }
 std::string R(const ScrollRegion& o) {
@@ -1235,7 +1236,7 @@ void CheckLayouts() {
     const Size sizes[] = {
         {"Manifest", sizeof(Manifest), 2448},
         {"Page", sizeof(Page), 160},
-        {"Widget", sizeof(Widget), 2312},
+        {"Widget", sizeof(Widget), 2336},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
         {"ScrollRegion", sizeof(ScrollRegion), 296},

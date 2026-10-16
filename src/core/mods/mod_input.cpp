@@ -636,6 +636,9 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                 // Drag moves the content with the finger, so pan travels the other way.
                 view.pan_x -= dx / view.zoom;
                 view.pan_y -= dy / view.zoom;
+                if (const auto* w = FindWidgetByKey(gesture_target)) {
+                    ClampViewToBounds(*w, view); // pan_bounds: no hidden overshoot past them
+                }
             }
         }
     }
@@ -693,6 +696,9 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
                 view.zoom = after;
                 view.pan_x = anchor_x - ox / after;
                 view.pan_y = anchor_y - oy / after;
+                if (const auto* w = FindWidgetByKey(gesture_target)) {
+                    ClampViewToBounds(*w, view);
+                }
             }
         }
         gesture_span = span;
@@ -866,12 +872,11 @@ void ModRuntime::ReturnIdleViews() {
     std::scoped_lock lk{view_mutex};
     for (auto& [key, view] : view_state) {
         // away from its home: its bound default view, else zoom 1 / no pan (mod_view_default.h)
-        const bool custom = !view.gliding && ViewAwayFromHome(view);
-        if (view.gliding || !custom || (!live_fingers.empty() && gesture_target == key)) {
+        if (view.gliding || (!live_fingers.empty() && gesture_target == key)) {
             continue;
         }
         const Widget* const widget = FindWidgetByKey(key);
-        if (widget == nullptr || widget->view_idle_ms == 0) {
+        if (widget == nullptr || widget->view_idle_ms == 0 || !ViewAwayFromHome(view, *widget)) {
             continue;
         }
         const auto touched = view_touched.find(key);
@@ -903,7 +908,7 @@ void ModRuntime::ApplyViewDefaults(const StateSnapshot& snapshot) {
         const auto home =
             DefaultView(w.rect[2], w.rect[3], SnapshotNumber(snapshot, b.zoom_bind),
                         SnapshotNumber(snapshot, b.cx_bind), SnapshotNumber(snapshot, b.cy_bind),
-                        w.min_zoom, w.max_zoom);
+                        w.min_zoom, w.max_zoom, w.pan_bounds);
         const auto reset = b.reset_bind.empty() ? std::optional<f64>{}
                                                 : SnapshotNumber(snapshot, b.reset_bind);
         const bool held = !live_fingers.empty() && gesture_target == key;

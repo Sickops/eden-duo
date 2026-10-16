@@ -13,6 +13,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -527,6 +528,11 @@ struct Widget {
     // --- runtime 17 ------------------------------------------------------------------------------
     /// Chart: sampling and scale (null on every other type).
     std::shared_ptr<const ChartSpec> chart;
+    // --- pan bounds ------------------------------------------------------------------------------
+    /// Image, pan_zoom ("pan_bounds"): {u0, v0, u1, v1}, fractions (0..1) of the src_rect picture
+    /// the pan / zoom window may show (ClampPanAxis, mod_view_default.h). A padded picture can
+    /// then be panned only over its content. nullopt = the whole picture, as before.
+    std::optional<std::array<float, 4>> pan_bounds;
 };
 
 /// A drag-to-scroll list region on a page (page "scrolls", or a widget's inline "scroll" object).

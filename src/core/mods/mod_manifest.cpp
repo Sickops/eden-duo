@@ -1703,6 +1703,39 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                                 std::make_shared<const ViewDefaultBinds>(std::move(vd));
                         }
                     }
+                    // Image "pan_bounds" {u0, v0, u1, v1}: the part of the src_rect picture the
+                    // pan / zoom window may show (fractions, each clamped to 0..1). Older runtimes
+                    // ignore the key.
+                    if (w.contains("pan_bounds")) {
+                        const auto& pb = w.at("pan_bounds");
+                        std::array<float, 4> bounds{0.0f, 0.0f, 1.0f, 1.0f};
+                        bool numbers = pb.is_array() && pb.size() == 4;
+                        for (size_t i = 0; numbers && i < 4; ++i) {
+                            numbers = pb[i].is_number();
+                            if (numbers) {
+                                bounds[i] =
+                                    std::clamp(static_cast<float>(pb[i].get<double>()), 0.0f, 1.0f);
+                            }
+                        }
+                        if (!numbers) {
+                            LOG_WARNING(Core,
+                                        "DSMod: widget '{}': pan_bounds needs four numbers "
+                                        "[u0, v0, u1, v1]; ignored",
+                                        widget.id);
+                        } else if (bounds[2] <= bounds[0] || bounds[3] <= bounds[1]) {
+                            LOG_WARNING(Core,
+                                        "DSMod: widget '{}': pan_bounds [{}, {}, {}, {}] is empty "
+                                        "or inverted (u1 <= u0 or v1 <= v0); ignored",
+                                        widget.id, bounds[0], bounds[1], bounds[2], bounds[3]);
+                        } else if (widget.type != WidgetType::Image || !widget.pan_zoom) {
+                            LOG_WARNING(Core,
+                                        "DSMod: widget '{}': pan_bounds needs a pan_zoom image "
+                                        "widget; ignored",
+                                        widget.id);
+                        } else {
+                            widget.pan_bounds = bounds;
+                        }
+                    }
                     // Tap-select / drag-and-drop.
                     if (w.contains("payload")) {
                         const auto& pv = w.at("payload");

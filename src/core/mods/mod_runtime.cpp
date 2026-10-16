@@ -708,7 +708,10 @@ void ModRuntime::Tick() {
     {
         std::scoped_lock lock{view_mutex};
         for (const auto& [key, view] : view_state) {
-            snapshot.ints[view_custom_keys(key)] = ViewAwayFromHome(view) ? 1 : 0;
+            // As drawn: an Image's pan_bounds clamp the pan compared (mod_view_default.h).
+            const Widget* const widget = FindWidgetByKey(key);
+            snapshot.ints[view_custom_keys(key)] =
+                (widget ? ViewAwayFromHome(view, *widget) : ViewAwayFromHome(view)) ? 1 : 0;
         }
     }
 
