@@ -22,6 +22,7 @@ target_sources(tests PRIVATE
     core/mods/runtime22.cpp
     core/mods/runtime16_image.cpp
     core/mods/text_markup.cpp
+    core/mods/text_slant.cpp
     core/mods/runtime17_text.cpp
     core/mods/ui_render.cpp
     core/mods/widget_position.cpp

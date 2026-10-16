@@ -589,6 +589,31 @@ const std::vector<std::string>& Canvas::LayoutLines(std::string_view text, s32 s
     return layout.lru.front().out;
 }
 
+void Canvas::BlitGlyph(s32 x, s32 y, s32 w, s32 h, const Image& atlas, s32 sx, s32 sy, s32 sw,
+                       s32 sh, u32 argb, f32 baseline, bool mask) {
+    if (text_slant_tan == 0.0f || h <= 0 || sh <= 0) {
+        if (mask) {
+            DrawImageMask(x, y, w, h, atlas, sx, sy, sw, sh, argb);
+        } else {
+            DrawImageRegion(x, y, w, h, atlas, sx, sy, sw, sh, argb);
+        }
+        return;
+    }
+    // Sheared: every destination scanline takes the atlas row the whole blit would have
+    // sampled (nearest, row * sh / h) and moves right by its height above the baseline, so a
+    // glyph keeps its shape and the line keeps its baseline.
+    for (s32 row = 0; row < h; ++row) {
+        const s32 src_row = sy + static_cast<s32>(static_cast<s64>(row) * sh / h);
+        const f32 above = baseline - static_cast<f32>(y + row) - 1.0f;
+        const s32 lean = static_cast<s32>(std::lround(above * text_slant_tan));
+        if (mask) {
+            DrawImageMask(x + lean, y + row, w, 1, atlas, sx, src_row, sw, 1, argb);
+        } else {
+            DrawImageRegion(x + lean, y + row, w, 1, atlas, sx, src_row, sw, 1, argb);
+        }
+    }
+}
+
 void Canvas::DrawTextBlock(s32 x, s32 y, std::string_view text, s32 scale, u32 argb, s32 align,
                            s32 wrap_width, s32 max_lines, s32 line_gap) {
     if (scale <= 0) {
@@ -722,12 +747,14 @@ void Canvas::DrawText(s32 x, s32 y, std::string_view text, s32 scale, u32 argb) 
                         const f32 r = static_cast<f32>(text_outline_px);
                         for (int k = 0; k < 16; ++k) {
                             const f32 a = static_cast<f32>(k) * 0.39269908f; // 2*pi/16
-                            DrawImageMask(gx + static_cast<s32>(std::lround(r * std::cos(a))),
-                                          gy + static_cast<s32>(std::lround(r * std::sin(a))), gw,
-                                          gh, *atlas, g->x, sy, g->w, g->h, text_outline);
+                            BlitGlyph(gx + static_cast<s32>(std::lround(r * std::cos(a))),
+                                      gy + static_cast<s32>(std::lround(r * std::sin(a))), gw, gh,
+                                      *atlas, g->x, sy, g->w, g->h, text_outline, baseline - lift,
+                                      true);
                         }
                     } else {
-                        DrawImageRegion(gx, gy, gw, gh, *atlas, g->x, sy, g->w, g->h, argb);
+                        BlitGlyph(gx, gy, gw, gh, *atlas, g->x, sy, g->w, g->h, argb,
+                                  baseline - lift, false);
                     }
                 }
                 pen += static_cast<f32>(g->advance) * ratio;
@@ -755,9 +782,15 @@ void Canvas::DrawText(s32 x, s32 y, std::string_view text, s32 scale, u32 argb) 
         }
         const auto& g = Glyph(cp < 0x80 ? static_cast<char>(cp) : ' ');
         for (s32 row = 0; row < 5; ++row) {
+            // Leaning text: the built-in glyph's baseline is its bottom (row 5); each cell row
+            // shifts right by its height above it.
+            const s32 lean =
+                text_slant_tan != 0.0f
+                    ? static_cast<s32>(std::lround(static_cast<f32>((5 - row) * scale) * text_slant_tan))
+                    : 0;
             for (s32 bit = 0; bit < 3; ++bit) {
                 if ((g[static_cast<size_t>(row)] & (4 >> bit)) != 0) {
-                    FillRect(cx + bit * scale, y + row * scale, scale, scale, argb);
+                    FillRect(cx + lean + bit * scale, y + row * scale, scale, scale, argb);
                 }
             }
         }

@@ -172,6 +172,12 @@ public:
         text_outline_px = outline_px;
         text_rise = rise;
     }
+    /// Forward lean for the next DrawText calls, in degrees (Widget::text_slant): each glyph
+    /// scanline is shifted right by (baseline - row) * tan(slant), so the baseline stays put and
+    /// descenders lean back. Both fonts; inline icons stay upright. 0 = upright.
+    void SetTextSlant(float degrees) {
+        text_slant_tan = degrees != 0.0f ? std::tan(degrees * 0.017453292f) : 0.0f;
+    }
     /// Runtime 17: the pages of a paged font (FontMetrics::page_h > 0), loaded on demand; a
     /// glyph whose page is not resident yet draws blank (TakeGlyphsPending turns true).
     void SetFontPages(FontPages* pages) {
@@ -237,6 +243,11 @@ public:
     u32 text_outline{0};
     s32 text_outline_px{0};
     float text_rise{0.0f};
+    float text_slant_tan{0.0f};
+    /// DrawImageRegion / DrawImageMask of a glyph, one scanline at a time when the text leans
+    /// (text_slant_tan != 0), each shifted by its distance above `baseline`; one blit otherwise.
+    void BlitGlyph(s32 x, s32 y, s32 w, s32 h, const Image& atlas, s32 sx, s32 sy, s32 sw, s32 sh,
+                   u32 argb, f32 baseline, bool mask);
     [[nodiscard]] u32 Height() const {
         return h;
     }

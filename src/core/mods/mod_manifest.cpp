@@ -1659,6 +1659,14 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                     }
                     if (w.contains("rise") && w.at("rise").is_number())
                         widget.text_rise = std::clamp(w.at("rise").get<float>(), -8.0f, 8.0f);
+                    // Leaning text (unreleased runtime 22 addition): "slant_deg", or the common
+                    // 9 degree "italic": true.
+                    if (w.contains("slant_deg") && w.at("slant_deg").is_number()) {
+                        widget.text_slant =
+                            std::clamp(w.at("slant_deg").get<float>(), -30.0f, 30.0f);
+                    } else if (w.value("italic", false)) {
+                        widget.text_slant = 9.0f;
+                    }
                     widget.text_scale = static_cast<s32>(w.value("text_scale", 3));
                     widget.on_tap = w.value("on_tap", std::string{});
                     widget.on_hold = w.value("on_hold", std::string{});

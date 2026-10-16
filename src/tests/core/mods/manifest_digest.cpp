@@ -454,6 +454,7 @@ std::string R(const Widget& o) {
     C(text_outline);
     F(text_outline_px);
     F(text_rise);
+    if (o.text_slant != 0.0f) { F(text_slant); }
     F(align);
     F(flip_x);
     F(flip_y);
@@ -1243,7 +1244,7 @@ void CheckLayouts() {
     const Size sizes[] = {
         {"Manifest", sizeof(Manifest), 2448},
         {"Page", sizeof(Page), 160},
-        {"Widget", sizeof(Widget), 2336},
+        {"Widget", sizeof(Widget), 2344},
         {"ChartSpec", sizeof(ChartSpec), 64},
         {"ViewDefaultBinds", sizeof(ViewDefaultBinds), 128},
         {"ScrollRegion", sizeof(ScrollRegion), 368},

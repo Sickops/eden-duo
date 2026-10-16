@@ -305,6 +305,11 @@ struct Widget {
     u32 text_outline{0};
     s32 text_outline_px{0};
     float text_rise{0.0f};
+    /// "slant_deg" (unreleased runtime 22 addition): the text leans forward by this many
+    /// degrees, sheared about its baseline (a BFLYT text pane's italic). "italic": true is the
+    /// common 9 degree lean. Advances and measuring are unchanged; the top of a line overhangs
+    /// to the right by cap_height * tan(slant). 0 = upright; older runtimes ignore the key.
+    float text_slant{0.0f};
     s32 align{0};       ///< text anchor: 0 left (x is the left edge), 1 centre, 2 right
     bool flip_x{false}; ///< image: mirror horizontally (a diagonal skin piece the other way)
     bool flip_y{false}; ///< image: mirror vertically (a corner piece for the lower corners)

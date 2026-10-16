@@ -188,6 +188,8 @@ namespace Core::Mods {
 ///          "lock_axis", "content_w"/"content_h"[_bind], Widget "scroll_follow", the published
 ///          "@scroll_x:<id>" / "@scroll_max_x:<id>", a horizontal thumb, and "payload": "$tap"
 ///          (TapPayload). Older runtimes ignore the keys and scroll on y as before.
+///          Also: leaning text -- Widget "slant_deg" / "italic" (Canvas::SetTextSlant, a
+///          per-scanline shear about the baseline). Older runtimes draw upright.
 inline constexpr u32 DualScreenRuntimeVersion = 22;
 
 /// Regions a redraw-worker job painted into its canvas but did not publish because it went stale

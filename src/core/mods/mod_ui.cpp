@@ -1414,6 +1414,7 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
                                     .maximum = maximum,
                                     .image_fallback = image_fallback};
         canvas.SetTextEffects(widget.text_outline, widget.text_outline_px, widget.text_rise);
+        canvas.SetTextSlant(widget.text_slant);
         switch (widget.type) {
         case WidgetType::Image:
             DrawImage(ctx);
@@ -1444,6 +1445,7 @@ bool RenderPage(Canvas& canvas, const Manifest& manifest, const Page& page,
             break;
         }
         canvas.SetTextEffects(0, 0, 0.0f);
+        canvas.SetTextSlant(0.0f);
         if (own_clip) {
             canvas.SetClip(frame_clip[0], frame_clip[1], frame_clip[2], frame_clip[3]);
             canvas.SetLayerOpacity(1.0f);
