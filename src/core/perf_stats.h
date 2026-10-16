@@ -51,6 +51,15 @@ public:
      */
     double GetLastFrameTimeScale() const;
 
+    /// Eden Duo: running totals since construction, never reset (GetAndResetStats does not touch
+    /// them), so the dual-screen runtime can sample FPS without disturbing other readers.
+    struct Totals {
+        u64 game_frames;
+        u64 system_frames;
+        Clock::duration frametime; ///< accumulated like accumulated_frametime (excluding waits)
+    };
+    Totals GetTotals() const;
+
 private:
     mutable std::mutex object_mutex;
 
@@ -82,6 +91,11 @@ private:
     Clock::duration previous_frame_length = Clock::duration::zero();
     /// Previously computed fps
     double previous_fps = 0;
+
+    /// Eden Duo: GetTotals counters
+    std::atomic<u64> total_game_frames = 0;
+    u64 total_system_frames = 0;
+    Clock::duration total_frametime = Clock::duration::zero();
 };
 
 class SpeedLimiter {

@@ -78,6 +78,8 @@ void PerfStats::EndSystemFrame() {
     }
     accumulated_frametime += frame_time;
     system_frames += 1;
+    total_frametime += frame_time; // Eden Duo: GetTotals
+    total_system_frames += 1;
 
     previous_frame_length = frame_end - previous_frame_end;
     previous_frame_end = frame_end;
@@ -85,6 +87,14 @@ void PerfStats::EndSystemFrame() {
 
 void PerfStats::EndGameFrame() {
     game_frames.fetch_add(1, std::memory_order_relaxed);
+    total_game_frames.fetch_add(1, std::memory_order_relaxed); // Eden Duo: GetTotals
+}
+
+// Eden Duo
+PerfStats::Totals PerfStats::GetTotals() const {
+    std::scoped_lock lock{object_mutex};
+    return {total_game_frames.load(std::memory_order_relaxed), total_system_frames,
+            total_frametime};
 }
 
 double PerfStats::GetMeanFrametime() const {
