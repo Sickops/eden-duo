@@ -442,13 +442,26 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun onEmulationStarted() {
-        sEmulationActivity.get()!!.onEmulationStarted()
+        // Eden Duo: the activity can be gone (HOME, then another game started while the previous
+        // session was still unwinding) when the native emulation thread calls back; crashing the
+        // process here took the new session down with it.
+        val activity = sEmulationActivity.get()
+        if (activity == null) {
+            Log.warning("[NativeLibrary] onEmulationStarted without an EmulationActivity")
+            return
+        }
+        activity.onEmulationStarted()
     }
 
     @Keep
     @JvmStatic
     fun onEmulationStopped(status: Int) {
-        sEmulationActivity.get()!!.onEmulationStopped(status)
+        val activity = sEmulationActivity.get()
+        if (activity == null) {
+            Log.warning("[NativeLibrary] onEmulationStopped($status) without an EmulationActivity")
+            return
+        }
+        activity.onEmulationStopped(status)
     }
 
     @Keep

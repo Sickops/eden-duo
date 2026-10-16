@@ -18,6 +18,7 @@ Android::Android(std::string input_engine_) : InputEngine(std::move(input_engine
     vibration_thread = std::jthread([this](std::stop_token token) {
         Common::SetCurrentThreadName("Android_Vibration");
         auto env = Common::Android::GetEnvForThread();
+        Common::SetCurrentThreadName("Android_Vibration"); // Eden Duo: ART renames on attach
         using namespace std::chrono_literals;
         while (!token.stop_requested()) {
             SendVibrations(env, token);

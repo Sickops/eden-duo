@@ -184,6 +184,7 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     // a fiber stack makes JNI calls (SAF file access); attaching from there makes ART treat the
     // fiber's heap address as the stack top and madvise(MADV_DONTNEED) everything in between.
     Common::Android::GetEnvForThread();
+    Common::SetCurrentThreadName(name.c_str()); // ART renamed the thread on attach
 #endif
     data.host_context = Common::Fiber::ThreadToFiber();
 
