@@ -8,6 +8,7 @@
 
 #include <filesystem>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -181,6 +182,12 @@ private:
 
     std::optional<FunctionInfoBase> FindRequest(u32 key) override;
     SystemSettings m_system_settings{};
+    // Eden Duo: the firmware version is resolved once per service instance. It cannot change
+    // while the process runs, and some games poll it thousands of times a second (each call
+    // used to read the firmware NCA again or synthesize the SystemVersion archive).
+    Result GetCachedFirmwareVersion(FirmwareVersionFormat& out_firmware,
+                                    GetFirmwareVersionType type);
+    std::optional<FirmwareVersionFormat> m_firmware_version{};
     PrivateSettings m_private_settings{};
     DeviceSettings m_device_settings{};
     ApplnSettings m_appln_settings{};

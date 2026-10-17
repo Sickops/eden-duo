@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fstream>
+#include <mutex>
 
 #include "common/assert.h"
 #include "common/fs/file.h"
@@ -20,6 +21,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
+#include "core/hle/api_version.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -78,6 +80,19 @@ Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System&
     if (nca) {
         if (auto nca_romfs = nca->GetRomFS(); nca_romfs) {
             romfs = FileSys::ExtractRomFS(nca_romfs);
+        } else {
+            // Eden Duo: an installed firmware whose SystemVersion cannot be read (usually keys
+            // that predate the firmware's key generation) silently fell back to the built-in
+            // version; say so once, so a user can tell why the frontend shows another version.
+            static std::once_flag warned;
+            std::call_once(warned, [&] {
+                LOG_WARNING(Service_SET,
+                            "The installed firmware's SystemVersion archive is unreadable (NCA "
+                            "status {}, key generation {}); using the built-in '{}' instead. A "
+                            "prod.keys that covers this firmware's key generation fixes it.",
+                            static_cast<int>(nca->GetStatus()), nca->GetKeyGeneration(),
+                            HLE::ApiVersion::DISPLAY_TITLE);
+            });
         }
     }
     if (!romfs) {
@@ -488,14 +503,30 @@ Result ISystemSettingsServer::GetFirmwareVersion(
     OutLargeData<FirmwareVersionFormat, BufferAttr_HipcPointer> out_firmware_data) {
     LOG_DEBUG(Service_SET, "called");
 
-    R_RETURN(GetFirmwareVersionImpl(*out_firmware_data, system, GetFirmwareVersionType::Version1));
+    R_RETURN(GetCachedFirmwareVersion(*out_firmware_data, GetFirmwareVersionType::Version1));
 }
 
 Result ISystemSettingsServer::GetFirmwareVersion2(
     OutLargeData<FirmwareVersionFormat, BufferAttr_HipcPointer> out_firmware_data) {
     LOG_DEBUG(Service_SET, "called");
 
-    R_RETURN(GetFirmwareVersionImpl(*out_firmware_data, system, GetFirmwareVersionType::Version2));
+    R_RETURN(GetCachedFirmwareVersion(*out_firmware_data, GetFirmwareVersionType::Version2));
+}
+
+Result ISystemSettingsServer::GetCachedFirmwareVersion(FirmwareVersionFormat& out_firmware,
+                                                       GetFirmwareVersionType type) {
+    if (!m_firmware_version) {
+        FirmwareVersionFormat resolved{};
+        R_TRY(GetFirmwareVersionImpl(resolved, system, GetFirmwareVersionType::Version2));
+        m_firmware_version = resolved;
+    }
+    out_firmware = *m_firmware_version;
+    // GetFirmwareVersion (as opposed to GetFirmwareVersion2) zeroes REVISION_MINOR, as
+    // GetFirmwareVersionImpl does for Version1.
+    if (type == GetFirmwareVersionType::Version1) {
+        out_firmware.revision_minor = 0;
+    }
+    R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetLockScreenFlag(Out<bool> out_lock_screen_flag) {
