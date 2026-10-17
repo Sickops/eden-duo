@@ -783,7 +783,7 @@ s64 HitTestIndex(const std::vector<Widget>& expanded, const StateSnapshot& snaps
 /// The value a widget carries (`payload`, already "{i}"-expanded): a literal integer, or the
 /// published int a "$name" payload names. nullopt when there is none.
 std::optional<s64> WidgetPayload(const Widget& widget, const StateSnapshot& snapshot);
-/// WidgetPayload, plus "payload": "$tap" (unreleased runtime 22 addition): the tap point relative
+/// WidgetPayload, plus "payload": "$tap" (runtime 22): the tap point relative
 /// to the widget's content -- inside a scroll region, relative to the region's content origin
 /// (rect origin, plus the region's current offsets), so a tap on scrolled module art names the
 /// content pixel; elsewhere relative to the widget's rect. Packed like PackPanPayload: x in the

@@ -485,7 +485,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         // Horizontal swipe (runtime 14): the topmost swipe widget under the first finger arms the
         // swipe, chosen the same way; never on a map / pan_zoom widget, over a pannable widget
         // (the finger pans it) or on a draggable one (the finger drags it).
-        // Vertical swipe (unreleased runtime 15 addition): the same widget choice; never armed
+        // Vertical swipe (runtime 15): the same widget choice; never armed
         // over a scroll region that can scroll (a vertical drag scrolls the list there).
         hold_action.clear();
         std::optional<s64> hold_payload;

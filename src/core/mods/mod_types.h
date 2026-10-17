@@ -142,7 +142,7 @@ struct Manifest {
     NavConfig nav;
     /// Republish rate while an animation runs ("anim_hz": 60 = every tick, else the idle 30 Hz).
     u32 anim_hz{60};
-    /// "preload" (unreleased runtime 22 addition): picture sources decoded right after the package
+    /// "preload" (runtime 22): picture sources decoded right after the package
     /// loads, behind the first page's own requests, so the pages that use them never pop them in.
     std::vector<std::string> preload;
     /// Value search, for a device where no environment variable can reach the runtime.

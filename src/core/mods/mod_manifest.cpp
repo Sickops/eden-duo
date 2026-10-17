@@ -574,7 +574,7 @@ std::optional<ScrollRegion> ParseScrollRegion(const nlohmann::json& j) {
     r.bar_track = ParseColor(j, "bar_track", 0);
     r.bar_w =
         std::max<s32>(1, static_cast<s32>(j.contains("bar_w") ? ParseNumber(j.at("bar_w")) : 6));
-    // Two-axis scrolling (unreleased runtime 22 addition); every key optional.
+    // Two-axis scrolling (runtime 22); every key optional.
     if (j.contains("axes")) {
         const std::string axes = j.at("axes").is_string() ? j.at("axes").get<std::string>() : "";
         if (axes == "x") {
@@ -1225,7 +1225,7 @@ void ParseMapAreasInto(const nlohmann::json& areas,
                 dm.frame_color_bind = d.value("frame_color_bind", std::string{});
                 dm.frame_px = static_cast<s32>(d.value("frame_px", 0));
                 dm.tint_bind = d.value("tint_bind", std::string{});
-                // Time-animated markers (unreleased runtime 22 addition).
+                // Time-animated markers (runtime 22).
                 if (d.contains("frames") && d.at("frames").is_array()) {
                     for (const auto& f : d.at("frames")) {
                         if (f.is_string() && !f.get<std::string>().empty() &&
@@ -1692,7 +1692,7 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                     }
                     if (w.contains("rise") && w.at("rise").is_number())
                         widget.text_rise = std::clamp(w.at("rise").get<float>(), -8.0f, 8.0f);
-                    // Leaning text (unreleased runtime 22 addition): "slant_deg", or the common
+                    // Leaning text (runtime 22): "slant_deg", or the common
                     // 9 degree "italic": true.
                     if (w.contains("slant_deg") && w.at("slant_deg").is_number()) {
                         widget.text_slant =
@@ -1755,7 +1755,7 @@ void ParseManifestJson(const nlohmann::json& json, Manifest& manifest) {
                     widget.pan_zoom = w.value("pan_zoom", false);
                     widget.min_zoom = w.value("min_zoom", 1.0f);
                     widget.max_zoom = w.value("max_zoom", 8.0f);
-                    // Bound default view (unreleased runtime 15 addition, mod_view_default.h):
+                    // Bound default view (runtime 15, mod_view_default.h):
                     // a non-map pan_zoom widget only (a map has view_rect_*_bind).
                     if (w.contains("view_zoom_bind") || w.contains("view_cx_bind") ||
                         w.contains("view_cy_bind")) {

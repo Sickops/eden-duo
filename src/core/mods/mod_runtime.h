@@ -1798,7 +1798,7 @@ private:
     void ReturnIdleViews();
     /// Takes the "<key>#pan" corrections a clamped map left in map_follow_state into view_state.
     void ApplyViewCorrections();
-    /// Bound default views (unreleased runtime 15 addition, mod_view_default.h): each pan_zoom
+    /// Bound default views (runtime 15, mod_view_default.h): each pan_zoom
     /// widget of the current page with "view_zoom_bind" / "view_cx_bind" / "view_cy_bind" gets
     /// its home from this tick's values; a view at its old home follows. Takes view_mutex.
     void ApplyViewDefaults(const StateSnapshot& snapshot);

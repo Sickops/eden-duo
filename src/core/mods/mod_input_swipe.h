@@ -5,7 +5,7 @@
 // Horizontal swipe on the second screen (runtime 14): a widget with "on_swipe_left" /
 // "on_swipe_right" runs that action once when a single finger that landed on it travels at least
 // "swipe_px" (default 60 canvas px) sideways, mostly horizontally (|dx| > 2 |dy|), and lifts.
-// Vertical swipe (unreleased runtime 15 addition): "on_swipe_up" / "on_swipe_down" mirror them on
+// Vertical swipe (runtime 15): "on_swipe_up" / "on_swipe_down" mirror them on
 // the other axis (|dy| > 2 |dx|, same distance, speed and cancel rules). UpdateGestures never arms
 // a vertical swipe over a scroll region that can scroll (the list owns vertical drags there).
 //   - Direction lock: when the finger first leaves the 12 px tap slop, the gesture is judged. A

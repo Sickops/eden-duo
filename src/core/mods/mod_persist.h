@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-// Persisted runtime flags (unreleased runtime 15 addition; manifest top level
+// Persisted runtime flags (runtime 15; manifest top level
 // "persist_flags": ["<flag>", ...], next to "flags").
 //   - The listed runtime flags (ints: 0/1 or a small multi-state value, see ModRuntime::flags) are
 //     written whenever a flag action changes one of them, and restored when the package loads,
