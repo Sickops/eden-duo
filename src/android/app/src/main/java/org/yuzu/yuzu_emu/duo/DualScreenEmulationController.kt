@@ -50,9 +50,12 @@ class DualScreenEmulationController(
     // Eden Duo "No Companion: Off": this game gets no second-screen window (see NoCompanion).
     // Icon and Black need nothing here: the runtime builds the idle page when the game boots.
     // A change made in the in-game settings applies on return (reapplyNoCompanion), except
-    // Icon <-> Black, which shows from the next game start. Known limitation: a ROM swap inside a
-    // swapped session (game on the second display) into a game without a companion, with Off,
-    // closes the companion window and may leave the main display showing the Eden UI.
+    // Icon <-> Black, which shows from the next game start. A frontend's intent launch resolves
+    // the game asynchronously (EmulationFragment.resolveIntentGameAsync): onStart can show the
+    // window before isAuxOff has a programId to answer for, and onGameResolved then closes it
+    // once Off is decided for the resolved game. Known limitation: a ROM swap inside a swapped
+    // session (game on the second display) into a game without a companion, with Off, closes the
+    // companion window and may leave the main display showing the Eden UI.
     private var auxOff = false
     private var auxOffChecked = false
     // Eden Duo "No Companion: App": this boot already tried the chosen app (CompanionApp).
@@ -111,6 +114,25 @@ class DualScreenEmulationController(
     fun onGameConfigLoaded(customConfigGame: Game?) {
         SecondScreenPerGame.runningConfigGame = customConfigGame
         NativeLibrary.setNoCompanionOverride(NoCompanion.perGameValue(secondScreenTitle()) ?: -1)
+    }
+
+    /**
+     * The fragment's `game` is now known after an async intent resolution (see
+     * EmulationFragment.resolveIntentGameAsync); [isAuxOff] could not answer for this game before
+     * now, so [onStart] may have shown the second-screen window on the assumption that it was
+     * wanted. Closes it if No Companion turns out to hide it for the resolved game.
+     * launchCompanionApp is not called here: it only runs after boot, from dropIdleCompanion.
+     */
+    fun onGameResolved() {
+        val decidedBefore = auxOffChecked
+        val hidesNow = isAuxOff()
+        if (!AuxWindowRules.closesWindowOnResolve(decidedBefore, hidesNow)) return
+        Log.info(
+            "[EmulationFragment] DSMod: No Companion hides the second screen for this game; " +
+                "closing the window shown before the title was known"
+        )
+        dismissAuxPresentation()
+        AuxCompanionActivity.dismiss(fragment)
     }
 
     /** The game finished booting. */
@@ -191,6 +213,10 @@ class DualScreenEmulationController(
         auxHandler.removeCallbacks(idleRecheck)
         if (!emulationStarted()) return
         if (auxOff) {
+            // Closes the window regardless of how onGameResolved and showAuxPresentation raced
+            // against boot, so every ordering ends with it down.
+            dismissAuxPresentation()
+            AuxCompanionActivity.dismiss(fragment)
             launchCompanionApp()
             return
         }
@@ -287,4 +313,16 @@ class DualScreenEmulationController(
             Log.error("[EmulationFragment] DSMod: dismiss failed: ${e.message}")
         }
     }
+}
+
+/** The Android-free decision of DualScreenEmulationController.onGameResolved (unit tested). */
+object AuxWindowRules {
+    /**
+     * True when a window went up without knowing No Companion for this game ([decidedBefore]
+     * false) and it now turns out to hide the window ([hidesNow] true): that window must close.
+     * False when the decision was already made before the window was shown (an in-app launch, or
+     * a game whose title was known up front), or when No Companion resolves to Icon or Black.
+     */
+    fun closesWindowOnResolve(decidedBefore: Boolean, hidesNow: Boolean): Boolean =
+        !decidedBefore && hidesNow
 }

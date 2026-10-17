@@ -319,6 +319,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         finishGameSetup()
 
+        // Eden Duo: an intent launch's `game` was unknown while onStart may already have shown
+        // the second-screen window on the second-panel default; close it now if No Companion
+        // actually hides it for this game (see DualScreenEmulationController.onGameResolved).
+        if (intentGame != null) {
+            dualScreen.onGameResolved()
+        }
+
         // Eden Duo: onViewCreated() may already have run - and skipped view setup, since `game`
         // was still null at the time - while intentGame was resolving asynchronously above.
         // Finish it here instead, the same way the existing EmuReady intent path already does.
@@ -574,6 +581,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         withContext(Dispatchers.Main) {
                             try {
                                 finishGameSetup()
+                                // Same late resolution as the plain intent path above.
+                                dualScreen.onGameResolved()
                                 Log.info(
                                     "[EmulationFragment] Game setup complete for intent launch"
                                 )
@@ -1086,6 +1095,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
                 deferGameSetupUntilStopCompletes = false
                 finishGameSetup()
+                if (intentGame != null) {
+                    dualScreen.onGameResolved()
+                }
             }
         }
         emulationViewModel.drawerOpen.collect(viewLifecycleOwner) {
