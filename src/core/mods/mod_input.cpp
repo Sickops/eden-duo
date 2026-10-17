@@ -1711,7 +1711,7 @@ void ModRuntime::PublishFlags(StateSnapshot& snapshot) {
     }
 }
 
-std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const {
+std::optional<f64> PanZoomViewHostValueFrom(std::string_view name, const ViewState& states) {
     constexpr std::string_view Zoom = "@view_zoom:";
     constexpr std::string_view PanX = "@view_pan_x:";
     constexpr std::string_view PanY = "@view_pan_y:";
@@ -1723,15 +1723,20 @@ std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const
         return std::nullopt;
     }
     const std::string key{name.substr(prefix.size())};
-    std::scoped_lock lk{view_mutex};
-    const auto it = view_state.find(key);
-    if (it == view_state.end()) {
+    const auto it = states.find(key);
+    if (it == states.end()) {
         return std::nullopt;
     }
     return prefix == Zoom ? it->second.zoom : prefix == PanX ? it->second.pan_x : it->second.pan_y;
 }
 
-std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
+std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const {
+    std::scoped_lock lk{view_mutex};
+    return PanZoomViewHostValueFrom(name, view_state);
+}
+
+std::optional<f64> MapViewHostValueFrom(std::string_view name, const MapDrawRecords& records,
+                                         size_t records_page, size_t current_page) {
     constexpr std::string_view Prefix = "@map_view_";
     if (!name.starts_with(Prefix)) {
         return std::nullopt;
@@ -1742,11 +1747,10 @@ std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
     }
     const std::string_view field = name.substr(Prefix.size(), colon - Prefix.size());
     const std::string_view area = name.substr(colon + 1);
-    std::scoped_lock rlk{map_records_mutex};
-    if (map_records_page != current_page) {
+    if (records_page != current_page) {
         return std::nullopt;
     }
-    for (const auto& rec : map_draw_records_published) {
+    for (const auto& rec : records) {
         if (rec.area != area) {
             continue;
         }
@@ -1761,6 +1765,11 @@ std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
         return std::nullopt;
     }
     return std::nullopt;
+}
+
+std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
+    std::scoped_lock rlk{map_records_mutex};
+    return MapViewHostValueFrom(name, map_draw_records_published, map_records_page, current_page);
 }
 
 void ModRuntime::PublishMapState(StateSnapshot& snapshot, bool with_flags) {

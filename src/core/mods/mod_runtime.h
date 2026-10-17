@@ -300,6 +300,21 @@ struct PendingTap {
     std::optional<s64> hold_payload;
 };
 
+/// The pure "@map_view_<field>:<area>" lookup over a page's published map draw records --
+/// ModRuntime::MapViewHostValue's own matching logic (`records_page`/`current_page` are its
+/// `map_records_page`/`current_page` members: nullopt when they differ, the records are for a
+/// page other than the one now showing). Kept free of ModRuntime (like ClampPanAxis / DefaultView
+/// in mod_view_default.h) so it can be unit tested without a Core::System.
+[[nodiscard]] std::optional<f64> MapViewHostValueFrom(std::string_view name,
+                                                       const MapDrawRecords& records,
+                                                       size_t records_page, size_t current_page);
+
+/// The pure "@view_zoom:<id>" / "@view_pan_x:<id>" / "@view_pan_y:<id>" lookup over a pan_zoom
+/// widget's own ViewState map -- ModRuntime::PanZoomViewHostValue's own matching logic. Kept free
+/// of ModRuntime for the same reason as MapViewHostValueFrom above.
+[[nodiscard]] std::optional<f64> PanZoomViewHostValueFrom(std::string_view name,
+                                                           const ViewState& states);
+
 class ModRuntime {
 public:
     // --- lifecycle (mod_runtime.cpp) ---------------------------------------------------------
@@ -1351,12 +1366,14 @@ private:
     /// straight from the last-drawn map records, for a module's get_f64 / get_i64 from sample():
     /// the per-tick snapshot the module sees is cleared before the map state is published into
     /// it, so these keys were unreachable from a module until now. nullopt: not a map-view key,
-    /// unknown area, or the records are for another page. (mod_input.cpp)
+    /// unknown area, or the records are for another page. The field/area match itself is
+    /// MapViewHostValueFrom above (mod_input.cpp).
     [[nodiscard]] std::optional<f64> MapViewHostValue(std::string_view name) const;
     /// "@view_zoom:<id>" / "@view_pan_x:<id>" / "@view_pan_y:<id>": a pan_zoom widget's view as
     /// drawn (ViewTransform, zoom-1 widget px, already clamped to its pan_bounds), for a module's
     /// get_f64 from sample() -- the same one-tick-behind contract as MapViewHostValue. The tick
-    /// also publishes them for pages. nullopt: not such a key, or no view tracked for that id.
+    /// also publishes them for pages. nullopt: not such a key, or no view tracked for that id. The
+    /// key match itself is PanZoomViewHostValueFrom above (mod_input.cpp).
     [[nodiscard]] std::optional<f64> PanZoomViewHostValue(std::string_view name) const;
     /// Derived points: evaluated after sampling, published into ints and floats.
     /// `volatile_only`: the second, post-interaction evaluation of a tick. Only derived values that
