@@ -169,6 +169,21 @@ The dual-screen runtime lives in `src/core/mods/`. Each tick it:
 
 The package format, the module interface and the method used to build a companion for a new game are documented in the [Eden Duo Companions docs](https://github.com/igawa6/eden-duo-companions/tree/main/docs).
 
+## Repository Layout
+
+Eden Duo is upstream Eden plus a small, game-agnostic layer. Nothing in this repository knows about a particular game: no title IDs, memory offsets, asset formats or game names live in the runtime. Everything specific to a game is a companion package, loaded at run time from the companions repository.
+
+| Path | Contents |
+|------|----------|
+| `src/core/mods/` | The dual-screen runtime: manifest parser, sampling, derived values, page renderer, touch and controller input, the native-module host. Generic by design — every feature is driven by manifest keys and published values. |
+| `src/video_core/dsmod/` | The second-screen compositor and the aux-display routing in the renderer. |
+| `src/android/app/src/duo/`, `app/duo.gradle` | The Android branding and the Eden Duo app layer (library badges, companion fetch, second display). |
+| `src/yuzu_cmd/dsmod_harness.*` | The desktop test harness built into `eden-cli`: a virtual or windowed second screen (`--aux-virtual`, `--aux-window`), headless screenshots and scripted input, so a companion can be developed and tested on a PC before it reaches a device. |
+| `src/tests/core/mods/` | Unit and golden tests for the runtime. |
+| `tools/duo/`, `.upstream/` | How this fork tracks Eden nightly: the sync script, the ledger of upstream files Duo touches, and the list of deliberate divergences. |
+
+Reverse-engineering notes, per-game research, capture tooling and the maintainer's own workflow are not part of this repository; only the runtime, its tests and the tools needed to build and keep it in sync with upstream are published.
+
 ## Game Assets
 
 Eden Duo and its companions ship **no game assets**. Companion art and text are decoded at runtime from the player's own game files. Game data, keys, firmware and ROMs must not be uploaded to this repository or its releases.
