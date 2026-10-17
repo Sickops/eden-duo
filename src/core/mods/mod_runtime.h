@@ -1347,6 +1347,12 @@ private:
     /// Publishes @map_sel*, @map_tap_*, @slot_used/@slot_full (and @flag:* when `with_flags`);
     /// drops stale selections.
     void PublishMapState(StateSnapshot& snapshot, bool with_flags = true); // mod_input.cpp
+    /// A "@map_view_<field>:<area>" value (the same seven PublishMapState writes, plus "_rot")
+    /// straight from the last-drawn map records, for a module's get_f64 / get_i64 from sample():
+    /// the per-tick snapshot the module sees is cleared before the map state is published into
+    /// it, so these keys were unreachable from a module until now. nullopt: not a map-view key,
+    /// unknown area, or the records are for another page. (mod_input.cpp)
+    [[nodiscard]] std::optional<f64> MapViewHostValue(std::string_view name) const;
     /// Derived points: evaluated after sampling, published into ints and floats.
     /// `volatile_only`: the second, post-interaction evaluation of a tick. Only derived values that
     /// (transitively) read a key written between the two passes ("@..." interaction/flag state,

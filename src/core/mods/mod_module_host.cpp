@@ -342,6 +342,9 @@ void ModRuntime::InitializeGameModule() {
             if (value != rt.module_snapshot->ints.end()) {
                 return value->second;
             }
+            if (const auto view = rt.MapViewHostValue(name)) {
+                return static_cast<s64>(std::llround(*view)); // "@map_view_*", see get_f64
+            }
         }
         return fallback;
     };
@@ -354,6 +357,12 @@ void ModRuntime::InitializeGameModule() {
             const auto value = rt.module_snapshot->floats.find(name);
             if (value != rt.module_snapshot->floats.end()) {
                 return value->second;
+            }
+            // "@map_view_*": the per-tick snapshot is cleared before the map state is published
+            // into it, so a module's sample() never found these there; answer from the
+            // last-drawn records instead (one tick behind, like the published keys).
+            if (const auto view = rt.MapViewHostValue(name)) {
+                return *view;
             }
         }
         return fallback;

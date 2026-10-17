@@ -1711,6 +1711,38 @@ void ModRuntime::PublishFlags(StateSnapshot& snapshot) {
     }
 }
 
+std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
+    constexpr std::string_view Prefix = "@map_view_";
+    if (!name.starts_with(Prefix)) {
+        return std::nullopt;
+    }
+    const size_t colon = name.find(':', Prefix.size());
+    if (colon == std::string_view::npos || colon + 1 >= name.size()) {
+        return std::nullopt;
+    }
+    const std::string_view field = name.substr(Prefix.size(), colon - Prefix.size());
+    const std::string_view area = name.substr(colon + 1);
+    std::scoped_lock rlk{map_records_mutex};
+    if (map_records_page != current_page) {
+        return std::nullopt;
+    }
+    for (const auto& rec : map_draw_records_published) {
+        if (rec.area != area) {
+            continue;
+        }
+        if (field == "cx") return rec.cx;
+        if (field == "cy") return rec.cy;
+        if (field == "ppw") return rec.ppw;
+        if (field == "x") return rec.rect[0];
+        if (field == "y") return rec.rect[1];
+        if (field == "w") return rec.rect[2];
+        if (field == "h") return rec.rect[3];
+        if (field == "rot") return rec.rotation;
+        return std::nullopt;
+    }
+    return std::nullopt;
+}
+
 void ModRuntime::PublishMapState(StateSnapshot& snapshot, bool with_flags) {
     if (with_flags) {
         PublishFlags(snapshot);
@@ -1743,6 +1775,8 @@ void ModRuntime::PublishMapState(StateSnapshot& snapshot, bool with_flags) {
             snapshot.floats["@map_view_y:" + rec.area] = rec.rect[1];
             snapshot.floats["@map_view_w:" + rec.area] = rec.rect[2];
             snapshot.floats["@map_view_h:" + rec.area] = rec.rect[3];
+            // Runtime 22: the turn (view_rotate_bind), degrees clockwise; 0 = north-up.
+            snapshot.floats["@map_view_rot:" + rec.area] = rec.rotation;
         }
     }
     if (!map_selections.empty() && !manifest.pages.empty()) {
