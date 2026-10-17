@@ -150,7 +150,7 @@ struct DynamicMarkerDef {
     s32 frame_px{0}; ///< frame thickness in px; 0 = a sixteenth of the icon, at least 2
     /// Int point, ARGB: multiplies the icon's colour (alpha included); 0 or missing = none.
     std::string tint_bind;
-    // --- time-animated markers (unreleased runtime 22 addition), driven by the tick clock ---
+    // --- time-animated markers (runtime 22), driven by the tick clock ---
     /// "frames" + "frame_ms": every slot draws frames[(t / frame_ms) % n] (image keys) instead of
     /// its icon / icon_src_bind picture; per-slot tint still applies (one flame serves every pin
     /// colour). A frame still loading falls back to the slot's own picture.

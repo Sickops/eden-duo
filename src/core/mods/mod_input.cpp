@@ -485,7 +485,7 @@ void ModRuntime::UpdateGestures(const StateSnapshot& snapshot,
         // Horizontal swipe (runtime 14): the topmost swipe widget under the first finger arms the
         // swipe, chosen the same way; never on a map / pan_zoom widget, over a pannable widget
         // (the finger pans it) or on a draggable one (the finger drags it).
-        // Vertical swipe (unreleased runtime 15 addition): the same widget choice; never armed
+        // Vertical swipe (runtime 15): the same widget choice; never armed
         // over a scroll region that can scroll (a vertical drag scrolls the list there).
         hold_action.clear();
         std::optional<s64> hold_payload;
@@ -1711,7 +1711,7 @@ void ModRuntime::PublishFlags(StateSnapshot& snapshot) {
     }
 }
 
-std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const {
+std::optional<f64> PanZoomViewHostValueFrom(std::string_view name, const ViewState& states) {
     constexpr std::string_view Zoom = "@view_zoom:";
     constexpr std::string_view PanX = "@view_pan_x:";
     constexpr std::string_view PanY = "@view_pan_y:";
@@ -1723,15 +1723,20 @@ std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const
         return std::nullopt;
     }
     const std::string key{name.substr(prefix.size())};
-    std::scoped_lock lk{view_mutex};
-    const auto it = view_state.find(key);
-    if (it == view_state.end()) {
+    const auto it = states.find(key);
+    if (it == states.end()) {
         return std::nullopt;
     }
     return prefix == Zoom ? it->second.zoom : prefix == PanX ? it->second.pan_x : it->second.pan_y;
 }
 
-std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
+std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const {
+    std::scoped_lock lk{view_mutex};
+    return PanZoomViewHostValueFrom(name, view_state);
+}
+
+std::optional<f64> MapViewHostValueFrom(std::string_view name, const MapDrawRecords& records,
+                                         size_t records_page, size_t current_page) {
     constexpr std::string_view Prefix = "@map_view_";
     if (!name.starts_with(Prefix)) {
         return std::nullopt;
@@ -1742,14 +1747,13 @@ std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
     }
     const std::string_view field = name.substr(Prefix.size(), colon - Prefix.size());
     const std::string_view area = name.substr(colon + 1);
-    std::scoped_lock rlk{map_records_mutex};
-    if (map_records_page != current_page) {
+    if (records_page != current_page) {
         return std::nullopt;
     }
     // The last record of the area wins, exactly as PublishMapState's loop leaves the published
     // keys when two Map widgets draw the same area.
     const MapDrawRecord* found = nullptr;
-    for (const auto& rec : map_draw_records_published) {
+    for (const auto& rec : records) {
         if (rec.area == area) {
             found = &rec;
         }
@@ -1767,6 +1771,11 @@ std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
     if (field == "h") return rec.rect[3];
     if (field == "rot") return rec.rotation;
     return std::nullopt;
+}
+
+std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
+    std::scoped_lock rlk{map_records_mutex};
+    return MapViewHostValueFrom(name, map_draw_records_published, map_records_page, current_page);
 }
 
 void ModRuntime::PublishMapState(StateSnapshot& snapshot, bool with_flags) {

@@ -775,7 +775,7 @@ public:
 
     // ---------------- GPU compositor path (EDEN_DSMOD_GPU_COMPOSITE) ----------------
     // When enabled, the mod runtime publishes a small display list of textured quads plus up to
-    // NumAuxTex source textures (0=current map, 1=icon atlas, 2=HUD overlay, 3=item-room pulse,
+    // NumAuxTex source textures (0=current map, 1=icon atlas, 2=HUD overlay, 3=map pulse overlay,
     // 4=previous map endpoint, 5=map fade weights). The renderer composites
     // them on the GPU each frame, so a panning map or moving marker costs a few quad draws instead
     // of re-rasterising + re-uploading the whole ~5 MB canvas. Textures re-upload only when their

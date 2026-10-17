@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-// Bound default view of a pan_zoom widget (unreleased runtime 15 addition; widget keys
+// Bound default view of a pan_zoom widget (runtime 15; widget keys
 // "view_zoom_bind", "view_cx_bind", "view_cy_bind", "view_reset_bind", see ViewDefaultBinds in
 // mod_types_page.h). The map widget has its own bound base view (mod_map_view_rect.h); this one is
 // for the other pan_zoom widgets, whose view is a window onto their picture (RenderPage /

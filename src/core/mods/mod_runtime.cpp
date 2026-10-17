@@ -698,7 +698,7 @@ void ModRuntime::Tick() {
     }
     EvaluateDerived(snapshot); // after every source (points, sequences, module) is published
     // View gestures are a shared host feature, available to every package. Bound default views
-    // first (unreleased runtime 15 addition): "custom" is measured against each view's home
+    // first (runtime 15): "custom" is measured against each view's home
     // (zoom 1 / no pan without one).
     // Runtime 17 auto_w: from here on (hit tests, the dirty scan, the synchronous draw) text-sized
     // boxes are measured on the tick canvas, with its fonts, as the page draws them.

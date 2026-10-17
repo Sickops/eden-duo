@@ -1831,7 +1831,7 @@ void ModRuntime::PumpNxAssets(const StateSnapshot& snapshot) {
     // this lock does -- locals destruct in reverse declaration order), covering every touch of
     // the state_mutex bucket this function makes.
     std::scoped_lock state_lock{s.state_mutex};
-    // Manifest "preload" (unreleased runtime 22 addition): the package's fixed pictures are
+    // Manifest "preload" (runtime 22): the package's fixed pictures are
     // queued once, here, behind whatever the first page asked for, so a later page finds them
     // decoded instead of popping them in one by one on its first visit.
     // Queued on the second pump, not the first: the first page's own pictures are requested by

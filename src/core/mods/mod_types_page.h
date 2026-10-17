@@ -132,7 +132,7 @@ struct ViewTransform {
     float goal_zoom{1.0f};
     float goal_pan_x{0.0f};
     float goal_pan_y{0.0f};
-    /// Unreleased runtime 15 addition (mod_view_default.h): the view's home -- the bound default
+    /// Runtime 15 (mod_view_default.h): the view's home -- the bound default
     /// view last applied (ViewDefaultBinds), else zoom 1 / no pan -- and the "view_reset_bind"
     /// value it was applied for.
     float home_zoom{1.0f};
@@ -142,7 +142,7 @@ struct ViewTransform {
     double reset_value{0.0};
 };
 
-/// Unreleased runtime 15 addition: the published values that place a pan_zoom widget's DEFAULT
+/// Runtime 15: the published values that place a pan_zoom widget's DEFAULT
 /// view (the view it starts in, RESET / view_reset and view_idle_ms glide back to, and
 /// "view_custom:<id>" compares against). Widget keys "view_zoom_bind" (zoom, the widget's own
 /// zoom scale: 1 = the whole picture), "view_cx_bind" / "view_cy_bind" (the point of the
@@ -305,7 +305,7 @@ struct Widget {
     u32 text_outline{0};
     s32 text_outline_px{0};
     float text_rise{0.0f};
-    /// "slant_deg" (unreleased runtime 22 addition): the text leans forward by this many
+    /// "slant_deg" (runtime 22): the text leans forward by this many
     /// degrees, sheared about its baseline (a BFLYT text pane's italic). "italic": true is the
     /// common 9 degree lean. Advances and measuring are unchanged; the top of a line overhangs
     /// to the right by cap_height * tan(slant). 0 = upright; older runtimes ignore the key.
@@ -340,7 +340,7 @@ struct Widget {
     /// left, right for one moving right (mod_input_swipe.h). The lift is not a tap.
     std::string on_swipe_left;
     std::string on_swipe_right;
-    /// Unreleased runtime 15 addition: the same on the vertical axis -- up for a finger moving
+    /// Runtime 15: the same on the vertical axis -- up for a finger moving
     /// up, down for one moving down (|dy| > 2 |dx|, `swipe_px` travel). Never armed over a scroll
     /// region that can scroll (UpdateGestures).
     std::string on_swipe_up;
@@ -369,7 +369,7 @@ struct Widget {
     /// rows move with the region's drag offset, are clipped to the region's rect, and only the
     /// rows inside that rect are materialised ("{i}" stays the real element index).
     std::string scroll;
-    /// "scroll_follow" (unreleased runtime 22 addition): which of the region's offset axes move
+    /// "scroll_follow" (runtime 22): which of the region's offset axes move
     /// this template -- "xy" (default), "y" (a frozen label column follows only the rows), "x"
     /// (a frozen header row follows only the columns). Bits as ScrollRegion::Axis*.
     u8 scroll_follow{3};
@@ -384,7 +384,7 @@ struct Widget {
     bool pan_zoom{false};
     float min_zoom{1.0f};
     float max_zoom{8.0f};
-    /// Unreleased runtime 15 addition: a bound default view for a non-map pan_zoom widget
+    /// Runtime 15: a bound default view for a non-map pan_zoom widget
     /// (mod_view_default.h); null = the default view is zoom 1, no pan.
     std::shared_ptr<const ViewDefaultBinds> view_default;
     /// Image: where the picture comes from. "file:<name>" reads it out of the mod package;
@@ -570,7 +570,7 @@ struct ScrollRegion {
     /// reset_bind change re-applies the follow to the current value.
     std::string follow_bind;
     bool follow_open{false}; ///< "follow_open": also bring the element into view on page entry
-    // --- two-axis scrolling (unreleased runtime 22 addition) --------------------------------
+    // --- two-axis scrolling (runtime 22) --------------------------------
     /// "axes": which axes the finger moves the content on. Bit 1 = y (the default, today's
     /// list), bit 2 = x, 3 = both (a table or one large pane picture). Old hosts ignore the key.
     u8 axes{AxisY};
