@@ -38,6 +38,7 @@ Companions are separate, installable **`.dsmod.zip` packages**, one per game, so
 | 14 | [Yoru Tomosu](https://github.com/igawa6/eden-duo-companions#yoru-tomosu) | `0100C2901153C000` | 1.0.0 | 🥇 <a href="https://ko-fi.com/igawa6/commissions"><img src="https://img.shields.io/badge/Anon.-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Anon."></a> |
 | 15 | [Diablo III: Eternal Collection](https://github.com/igawa6/eden-duo-companions#diablo-iii-eternal-collection) | `01001B300B9BE000` | 2.7.7, 2.7.6 | 🥇 <a href="https://ko-fi.com/Z2B723BQK6"><img src="https://img.shields.io/badge/shy-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="shy"></a> |
 | 16 | [Farming Simulator: Nintendo Switch Edition](https://github.com/igawa6/eden-duo-companions#farming-simulator-nintendo-switch-edition) | `0100D04004176000` | 1.5.0.1 | 🥇 <a href="https://ko-fi.com/igawa6/commissions"><img src="https://img.shields.io/badge/Anon.-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Anon."></a> |
+| 17 | [VA-11 Hall-A: Cyberpunk Bartender Action](https://github.com/igawa6/eden-duo-companions#va-11-hall-a-cyberpunk-bartender-action) | `010086500D3C8000` | base game (no update) | ⭐ <a href="https://ko-fi.com/matinc"><img src="https://img.shields.io/badge/Mati-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Mati"></a> |
 
 ⭐ Companion contributor. Big thanks for your mods creation!
 
