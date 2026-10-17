@@ -210,7 +210,7 @@ object GameHelper {
                     onContainerFound
                 )
             } else {
-                val extension = FileUtil.getExtension(it.uri).lowercase()
+                val extension = ContainerNameRules.extension(it.filename)
                 if (externalContentExtensions.contains(extension)) {
                     onContainerFound(it)
                 }
@@ -241,7 +241,7 @@ object GameHelper {
                     contentIndex
                 )
             } else {
-                val extension = FileUtil.getExtension(it.uri).lowercase()
+                val extension = ContainerNameRules.extension(it.filename)
                 val filePath = it.uri.toString()
 
                 val mountedContainer = externalContentExtensions.contains(extension) &&
