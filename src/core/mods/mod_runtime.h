@@ -1353,6 +1353,11 @@ private:
     /// it, so these keys were unreachable from a module until now. nullopt: not a map-view key,
     /// unknown area, or the records are for another page. (mod_input.cpp)
     [[nodiscard]] std::optional<f64> MapViewHostValue(std::string_view name) const;
+    /// "@view_zoom:<id>" / "@view_pan_x:<id>" / "@view_pan_y:<id>": a pan_zoom widget's view as
+    /// drawn (ViewTransform, zoom-1 widget px, already clamped to its pan_bounds), for a module's
+    /// get_f64 from sample() -- the same one-tick-behind contract as MapViewHostValue. The tick
+    /// also publishes them for pages. nullopt: not such a key, or no view tracked for that id.
+    [[nodiscard]] std::optional<f64> PanZoomViewHostValue(std::string_view name) const;
     /// Derived points: evaluated after sampling, published into ints and floats.
     /// `volatile_only`: the second, post-interaction evaluation of a tick. Only derived values that
     /// (transitively) read a key written between the two passes ("@..." interaction/flag state,

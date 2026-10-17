@@ -1711,6 +1711,26 @@ void ModRuntime::PublishFlags(StateSnapshot& snapshot) {
     }
 }
 
+std::optional<f64> ModRuntime::PanZoomViewHostValue(std::string_view name) const {
+    constexpr std::string_view Zoom = "@view_zoom:";
+    constexpr std::string_view PanX = "@view_pan_x:";
+    constexpr std::string_view PanY = "@view_pan_y:";
+    const std::string_view prefix = name.starts_with(Zoom)   ? Zoom
+                                    : name.starts_with(PanX) ? PanX
+                                    : name.starts_with(PanY) ? PanY
+                                                             : std::string_view{};
+    if (prefix.empty() || name.size() <= prefix.size()) {
+        return std::nullopt;
+    }
+    const std::string key{name.substr(prefix.size())};
+    std::scoped_lock lk{view_mutex};
+    const auto it = view_state.find(key);
+    if (it == view_state.end()) {
+        return std::nullopt;
+    }
+    return prefix == Zoom ? it->second.zoom : prefix == PanX ? it->second.pan_x : it->second.pan_y;
+}
+
 std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
     constexpr std::string_view Prefix = "@map_view_";
     if (!name.starts_with(Prefix)) {

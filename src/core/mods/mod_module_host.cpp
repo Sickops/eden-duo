@@ -364,6 +364,10 @@ void ModRuntime::InitializeGameModule() {
             if (const auto view = rt.MapViewHostValue(name)) {
                 return *view;
             }
+            // "@view_zoom/pan_x/pan_y:<id>": a pan_zoom widget's view, the same way.
+            if (const auto view = rt.PanZoomViewHostValue(name)) {
+                return *view;
+            }
         }
         return fallback;
     };

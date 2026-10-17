@@ -712,6 +712,10 @@ void ModRuntime::Tick() {
             const Widget* const widget = FindWidgetByKey(key);
             snapshot.ints[view_custom_keys(key)] =
                 (widget ? ViewAwayFromHome(view, *widget) : ViewAwayFromHome(view)) ? 1 : 0;
+            // The view itself, for pages and (through PanZoomViewHostValue) modules.
+            snapshot.floats["@view_zoom:" + key] = view.zoom;
+            snapshot.floats["@view_pan_x:" + key] = view.pan_x;
+            snapshot.floats["@view_pan_y:" + key] = view.pan_y;
         }
     }
 
