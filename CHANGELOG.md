@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.1
+
+**Fixed**
+
+- A memory leak in the RomFS builder: every archive build kept about 300 bytes alive. A game that asks the system for its firmware version thousands of times a second (VA-11 Hall-A) while Eden Duo cannot read the installed firmware grew by about 60 MB a minute until Android stopped it with an out-of-memory abort after one to two hours.
+- The firmware version is now resolved once per game session instead of on every request, which removes the CPU cost of those requests altogether.
+- When firmware is installed but its version archive cannot be decrypted (a prod.keys older than the firmware's key generation, for example firmware 23.x with keys from 22.x), the log now says so once and names the key generation, instead of silently using the built-in version.
+- "No Companion" set to Off or App is now honoured when a frontend such as CocoonFE, ES-DE or Daijishō starts the game: the second-screen window is closed once the game is known, so the frontend's own artwork stays on that screen. Black already worked; Icon is unchanged.
+
 ## 1.3.0
 
 **New**
