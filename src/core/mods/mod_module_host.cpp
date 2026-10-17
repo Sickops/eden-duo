@@ -345,6 +345,9 @@ void ModRuntime::InitializeGameModule() {
             if (const auto view = rt.MapViewHostValue(name)) {
                 return static_cast<s64>(std::llround(*view)); // "@map_view_*", see get_f64
             }
+            if (const auto view = rt.PanZoomViewHostValue(name)) {
+                return static_cast<s64>(std::llround(*view)); // "@view_*", see get_f64
+            }
         }
         return fallback;
     };

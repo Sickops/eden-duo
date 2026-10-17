@@ -113,8 +113,8 @@ bool Index::Restore(const VirtualFile& file, const AddEntry& add) {
 
     std::unordered_map<std::string, VirtualFile> files;
     for (const auto& part : container.parts) {
-        if (part.offset + part.size > container.size) {
-            return false;
+        if (part.offset > container.size || part.size > container.size - part.offset) {
+            return false; // the subtraction form cannot wrap on a corrupt index
         }
         files.emplace(part.name, std::make_shared<OffsetVfsFile>(file, part.size, part.offset,
                                                                  part.name));

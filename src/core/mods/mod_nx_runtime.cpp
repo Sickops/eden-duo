@@ -509,7 +509,7 @@ struct NxAssetState {
     /// Containers already unpacked in memory, by chain: a Yaz0-compressed archive (a game's
     /// Common.sblarc) decoded once instead of on every job that reads a member of it (which was
     /// the ~70 ms fixed cost of every small texture decode), and a BFRES's embedded BNTX. Bounded
-    /// by ExpandedCacheBytes, oldest out first (io_mutex).
+    /// by ExpandedCacheBytes, least recently used out first (io_mutex).
     std::unordered_map<std::string, FileSys::VirtualFile> expanded;
     std::deque<std::string> expanded_order;
     size_t expanded_bytes{0};
@@ -535,7 +535,16 @@ struct NxAssetState {
     FileSys::VirtualFile FindExpanded(const std::string& chain) {
         std::scoped_lock lock{io_mutex};
         const auto it = expanded.find(chain);
-        return it != expanded.end() ? it->second : nullptr;
+        if (it == expanded.end()) {
+            return nullptr;
+        }
+        // Least recently used goes first: a hit moves the chain to the back of the order.
+        if (const auto at = std::find(expanded_order.begin(), expanded_order.end(), chain);
+            at != expanded_order.end() && std::next(at) != expanded_order.end()) {
+            expanded_order.erase(at);
+            expanded_order.push_back(chain);
+        }
+        return it->second;
     }
 
     // ---- worker only ----
@@ -1790,6 +1799,7 @@ bool ModRuntime::RequestNxFont() {
 void ModRuntime::ResetNxAssets() {
     auto& s = *nx_assets;
     std::scoped_lock state_lock{s.state_mutex}; // clears the whole bucket below
+    nx_preload_done = false;                     // a reloaded manifest's "preload" is queued again
     {
         std::scoped_lock lock{s.queue_mutex};
         ++s.generation;
@@ -1824,7 +1834,10 @@ void ModRuntime::PumpNxAssets(const StateSnapshot& snapshot) {
     // Manifest "preload" (unreleased runtime 22 addition): the package's fixed pictures are
     // queued once, here, behind whatever the first page asked for, so a later page finds them
     // decoded instead of popping them in one by one on its first visit.
-    if (!nx_preload_done && asset_sources) {
+    // Queued on the second pump, not the first: the first page's own pictures are requested by
+    // the first render, which runs after the first pump, and they must stay ahead of the preload
+    // burst on the single worker.
+    if (!nx_preload_done && asset_sources && tick_count >= 2) {
         nx_preload_done = true;
         for (const auto& src : manifest.preload) {
             GetImage(src);

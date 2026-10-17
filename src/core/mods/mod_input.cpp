@@ -1746,20 +1746,26 @@ std::optional<f64> ModRuntime::MapViewHostValue(std::string_view name) const {
     if (map_records_page != current_page) {
         return std::nullopt;
     }
+    // The last record of the area wins, exactly as PublishMapState's loop leaves the published
+    // keys when two Map widgets draw the same area.
+    const MapDrawRecord* found = nullptr;
     for (const auto& rec : map_draw_records_published) {
-        if (rec.area != area) {
-            continue;
+        if (rec.area == area) {
+            found = &rec;
         }
-        if (field == "cx") return rec.cx;
-        if (field == "cy") return rec.cy;
-        if (field == "ppw") return rec.ppw;
-        if (field == "x") return rec.rect[0];
-        if (field == "y") return rec.rect[1];
-        if (field == "w") return rec.rect[2];
-        if (field == "h") return rec.rect[3];
-        if (field == "rot") return rec.rotation;
+    }
+    if (found == nullptr) {
         return std::nullopt;
     }
+    const auto& rec = *found;
+    if (field == "cx") return rec.cx;
+    if (field == "cy") return rec.cy;
+    if (field == "ppw") return rec.ppw;
+    if (field == "x") return rec.rect[0];
+    if (field == "y") return rec.rect[1];
+    if (field == "w") return rec.rect[2];
+    if (field == "h") return rec.rect[3];
+    if (field == "rot") return rec.rotation;
     return std::nullopt;
 }
 
