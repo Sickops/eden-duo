@@ -8,6 +8,7 @@
 - The firmware version is now resolved once per game session instead of on every request, which removes the CPU cost of those requests altogether.
 - When firmware is installed but its version archive cannot be decrypted (a prod.keys older than the firmware's key generation, for example firmware 23.x with keys from 22.x), the log now says so once and names the key generation, instead of silently using the built-in version.
 - "No Companion" set to Off or App is now honoured when a frontend such as CocoonFE, ES-DE or Daijishō starts the game: the second-screen window is closed once the game is known, so the frontend's own artwork stays on that screen. Black already worked; Icon is unchanged.
+- Games started from ES-DE (and any frontend that hands the file over through its own FileProvider rather than the system document provider) load again. Since 1.3.0 they failed with "No bootable game present" because the file-exists check asked for a column such providers do not return.
 - The scan for update and DLC files next to a game no longer asks the storage provider for every file's name a second time (the folder listing already carries it): one round trip per file less at launch. The same files are found as before.
 
 ## 1.3.0

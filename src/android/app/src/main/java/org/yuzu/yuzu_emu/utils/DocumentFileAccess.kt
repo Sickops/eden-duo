@@ -88,11 +88,24 @@ object DocumentFileAccess {
         return current
     }
 
+    /**
+     * One column of [uri], or null when the row or the column is missing. A provider that is not
+     * a documents provider (a frontend's FileProvider: ES-DE hands games over as
+     * content://org.es_de.frontend.files/...) answers only the openable columns, so the column
+     * asked for may be absent from the cursor rather than null.
+     */
     private fun value(uri: Uri, column: String): String? =
-        resolver.query(uri, arrayOf(column), null, null, null)?.use { if (it.moveToFirst()) it.getString(0) else null }
+        resolver.query(uri, arrayOf(column), null, null, null)?.use {
+            val index = it.getColumnIndex(column)
+            if (index >= 0 && it.moveToFirst()) it.getString(index) else null
+        }
+
+    /** True when the provider answers a row for [uri], whatever columns it has. */
+    private fun hasRow(uri: Uri): Boolean =
+        resolver.query(uri, arrayOf(ID), null, null, null)?.use { it.count > 0 } ?: false
 
     fun exists(path: String): Boolean = runCatching {
-        resolve(path)?.let { value(it, ID) != null } ?: false
+        resolve(path)?.let { hasRow(it) } ?: false
     }.getOrDefault(false)
 
     fun isDirectory(path: String): Boolean = runCatching {
