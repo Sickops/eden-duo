@@ -35,6 +35,9 @@ Companions are separate, installable **`.dsmod.zip` packages**, one per game, so
 | 11 | [Crash Team Racing Nitro-Fueled](https://github.com/igawa6/eden-duo-companions#crash-team-racing-nitro-fueled) | `0100F9F00C696000` | 1.0.15 | |
 | 12 | [Dragon Quest III HD-2D Remake](https://github.com/igawa6/eden-duo-companions#dragon-quest-iii-hd-2d-remake) | `01003E601E324000` | 1.1.0.0 | 🥇 <a href="https://ko-fi.com/G0I027XSOG"><img src="https://img.shields.io/badge/jzc-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="jzc"></a> |
 | 13 | [Chained Echoes](https://github.com/igawa6/eden-duo-companions#chained-echoes) | `0100C510166F0000` | 1.41 | 🥇 <a href="https://ko-fi.com/U7U31RLL6S"><img src="https://img.shields.io/badge/Jadesigns-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Jadesigns"></a> |
+| 14 | [Yoru Tomosu](https://github.com/igawa6/eden-duo-companions#yoru-tomosu) | `0100C2901153C000` | 1.0.0 | 🥇 <a href="https://ko-fi.com/igawa6/commissions"><img src="https://img.shields.io/badge/Anon.-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Anon."></a> |
+| 15 | [Diablo III: Eternal Collection](https://github.com/igawa6/eden-duo-companions#diablo-iii-eternal-collection) | `01001B300B9BE000` | 2.7.7, 2.7.6 | 🥇 <a href="https://ko-fi.com/Z2B723BQK6"><img src="https://img.shields.io/badge/shy-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="shy"></a> |
+| 16 | [Farming Simulator: Nintendo Switch Edition](https://github.com/igawa6/eden-duo-companions#farming-simulator-nintendo-switch-edition) | `0100D04004176000` | 1.5.0.1 | 🥇 <a href="https://ko-fi.com/igawa6/commissions"><img src="https://img.shields.io/badge/Anon.-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Anon."></a> |
 
 ⭐ Companion contributor. Big thanks for your mods creation!
 
