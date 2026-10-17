@@ -197,7 +197,23 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_, VirtualDir ext_)
     VisitDirectory(base, ext, root);
 }
 
-RomFSBuildContext::~RomFSBuildContext() = default;
+RomFSBuildContext::~RomFSBuildContext() {
+    Unlink();
+}
+
+void RomFSBuildContext::Unlink() {
+    for (auto& dir : directories) {
+        dir->parent.reset();
+        dir->child.reset();
+        dir->sibling.reset();
+        dir->file.reset();
+    }
+    for (auto& file : files) {
+        file->parent.reset();
+        file->sibling.reset();
+    }
+    root.reset();
+}
 
 std::vector<std::pair<u64, VirtualFile>> RomFSBuildContext::Build() {
     const u64 dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);

@@ -11,6 +11,8 @@ target_sources(tests PRIVATE
     core/mods/map_cache_identity.cpp
     core/mods/map_overview.cpp
     core/mods/manifest_digest.cpp
+    core/mods/firmware_version_leak.cpp
+    core/mods/firmware_version_nca_path.cpp
     core/mods/map_pan_zoom_host_value.cpp
     core/mods/map_room_category.cpp
     core/mods/image_fallback.cpp
