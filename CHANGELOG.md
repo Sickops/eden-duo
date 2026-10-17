@@ -15,16 +15,15 @@
 
 **Fixed**
 
-- A pan/zoom picture's view (`@view_zoom/pan_x/pan_y:<id>`) is published for pages and readable by a companion's native module, so an overlay (a player marker) can stay in place while the picture is panned or zoomed.
-- A companion's native module can now read a map's last-drawn view (`@map_view_cx/cy/ppw/x/y/w/h:<area>`, plus the new `@map_view_rot`) from its periodic sample, the way the page already could; the values were unreachable from modules before.
+- For companion makers: a pan/zoom picture's view and a map's last-drawn view (including its turn) are now published for pages and readable by a native module from its periodic sample, so an overlay such as a player marker can stay in place while the picture or map is panned, zoomed or turned (`@view_zoom/pan_x/pan_y:<id>`, `@map_view_*:<area>` in the Package Format).
 - Companion pictures inside a compressed game archive (Breath of the Wild's `Common.sblarc`) no longer cost ~70 ms each to decode: the archive is unpacked once and kept, so icons appear at once instead of one by one over a second.
 - Images turned by exactly 90, 180 or 270 degrees draw several times faster (an integer axis swap instead of per-pixel trigonometry), which cuts the cost of a full-page rotated gradient.
 - Starting another game while the previous one was still loading or closing no longer leaves the previous game's emulator (renderer, GPU resources, memory) alive in the background.
 - Controller rumble no longer keeps one CPU core at 100% in the background (a rumble worker thread could spin forever once several threads sent rumble at the same time), which heated the device and caused throttling.
 - Press-and-hold actions on the second screen now receive the widget's value (captured when the hold starts), the same way taps do; companions whose hold actions use `$payload` work again.
-- **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory.
-- Games that draw to integer render targets now render correctly on all Vulkan drivers, not only on macOS.
-- Compute shaders that need more shared memory than the GPU provides now run in full instead of being cut short (seen in Trails through Daybreak II on Adreno).
+- **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory. Thanks to tapionallanaire for the investigation and the fix (eden-duo PR #12).
+- Games that draw to integer render targets now render correctly on all Vulkan drivers, not only on macOS (tapionallanaire, PR #12).
+- Compute shaders that need more shared memory than the GPU provides now run in full instead of being cut short (seen in Trails through Daybreak II on Adreno; tapionallanaire, PR #12).
 
 ## 1.2.1
 
