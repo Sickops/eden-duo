@@ -19,6 +19,7 @@
 - Companion pictures inside a compressed game archive (Breath of the Wild's `Common.sblarc`) no longer cost ~70 ms each to decode: the archive is unpacked once and kept, so icons appear at once instead of one by one over a second.
 - Images turned by exactly 90, 180 or 270 degrees draw several times faster (an integer axis swap instead of per-pixel trigonometry), which cuts the cost of a full-page rotated gradient.
 - Starting another game while the previous one was still loading or closing no longer leaves the previous game's emulator (renderer, GPU resources, memory) alive in the background.
+- A game no longer crashes in its first seconds when the device's motion sensor sends an event before the game has set up its controllers (seen on devices with a gyro, intermittently, in Crash Team Racing and Diablo III).
 - Controller rumble no longer keeps one CPU core at 100% in the background (a rumble worker thread could spin forever once several threads sent rumble at the same time), which heated the device and caused throttling.
 - Press-and-hold actions on the second screen now receive the widget's value (captured when the hold starts), the same way taps do; companions whose hold actions use `$payload` work again.
 - **Trails through Daybreak II**: character and environment textures no longer go stale, flicker or disappear after the game remaps GPU memory. Thanks to tapionallanaire for the investigation and the fix (eden-duo PR #12).
