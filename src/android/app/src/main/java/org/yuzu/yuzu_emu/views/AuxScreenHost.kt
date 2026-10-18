@@ -60,7 +60,7 @@ class AuxScreenHost(
     }
 
     fun start() {
-        if (followSystemBrightness) {
+        if (followSystemBrightness && !deviceLightsSecondScreen()) {
             // The two panels are lit independently on this hardware -- the same reason the
             // window flags have to be set on the second screen at all -- so it keeps its own
             // brightness unless it is told to follow. Left alone it sits at full while the main
@@ -128,6 +128,21 @@ class AuxScreenHost(
     }
 
     private var brightnessObserver: ContentObserver? = null
+
+    /// AYN's dual-screen devices (Thor, Odin 2 Portal) light the second panel from their own
+    /// slider: Settings.System "dual_screen_brightness_level", applied to the panel by the
+    /// vendor's assistant. A window brightness override on top of that drags the second screen
+    /// to the main screen's level and the user's own slider stops working (eden-duo #8), so the
+    /// window is left alone where that setting exists.
+    private fun deviceLightsSecondScreen(): Boolean = try {
+        val level = Settings.System.getInt(context.contentResolver, "dual_screen_brightness_level", -1)
+        if (level >= 0) {
+            Log.info("$logTag second screen lit by the device (level $level); not following main")
+        }
+        level >= 0
+    } catch (e: Exception) {
+        false
+    }
 
     /// The system's brightness as a window value in 0..1, or BRIGHTNESS_OVERRIDE_NONE when it
     /// cannot be known -- under automatic brightness the stored number is not what is on screen,
