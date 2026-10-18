@@ -773,8 +773,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         gpuModel = GpuDriverHelper.hookLibPath?.let { GpuDriverHelper.getGpuModel(hookLibPath = it).toString() } ?: "Unknown"
         fwVersion = NativeLibrary.firmwareVersion()
 
-        val buildVersion = NativeLibrary.getBuildVersion()
-        buildId = buildVersion.split("-").getOrNull(0) ?: ""
+        // Eden Duo: a release is named by its version in the overlay (DuoBuildLabel).
+        buildId = org.yuzu.yuzu_emu.duo.DuoBuildLabel.overlay(
+            org.yuzu.yuzu_emu.BuildConfig.VERSION_NAME,
+            NativeLibrary.getBuildVersion()
+        )
         driverInUse = driverViewModel.selectedDriverVersion.value
 
         updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
