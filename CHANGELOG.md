@@ -5,6 +5,7 @@
 **New**
 
 - The game library ends with "Dual-screen games not in your library": every game that has an Eden Duo companion but is not in your games folders, as a greyscale tile with its cover art and a "Not in library" chip. Tapping one explains how to add it; the tiles cannot be launched. The section stays with the "dual-screen games only" filter, is hidden while you search or sort by recently played/added, and can be switched off with "Show dual-screen games not in your library" in the library's sort/filter menu. Cover art comes from [GameTDB](https://www.gametdb.com) (downloaded once per game and kept; without a connection the tile shows the game's name instead). Shown in the grid, compact grid and list views, not in the carousel.
+- In-game companion toggle: hide the companion during a game so the second screen can be used for another app, and bring it back where it was. Tap the game screen with four fingers, use the new "Companion" Quick Settings tile, or "Hide companion" in the in-game menu. The gesture can be changed to a 5-finger pinch or a 3-finger swipe down, or turned off (Settings -> Graphics -> Second Screen -> Companion toggle gesture); while a gesture is in progress its touches do not reach the game. Every game starts with the companion shown.
 
 **Fixed**
 
