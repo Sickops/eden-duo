@@ -70,4 +70,15 @@
     <string name="about_next_game_poll">Next game poll</string>
     <string name="eden_duo_kofi_link" translatable="false">https://ko-fi.com/igawa6</string>
     <string name="eden_duo_poll_link" translatable="false">https://ko-fi.com/polls/3rd-Poll-Next-Switch-Game-on-Eden-Duo-C7J128KB48</string>
+    <!-- The library's "not in your library" section. -->
+    <string name="companion_unowned_header">Dual-screen games not in your library</string>
+    <string name="companion_unowned_covers_credit">Covers: GameTDB</string>
+    <string name="companion_unowned_chip">Not in library</string>
+    <string name="companion_unowned_dialog_title">Dual-screen companion available</string>
+    <string name="companion_unowned_dialog_message">Add this game to your games folder to play it with its companion.</string>
+    <string name="companion_unowned_dialog_link">Companion list</string>
+    <string name="companion_unowned_tile_description">%1$s, not in your library. Dual-screen companion available.</string>
+    <string name="companion_unowned_setting">Show dual-screen games not in your library</string>
+    <string name="companion_unowned_link" translatable="false">https://github.com/igawa6/eden-duo-companions#readme</string>
+    <string name="about_cover_art_credit" translatable="false">Game cover art: GameTDB (https://www.gametdb.com)</string>
 </resources>
