@@ -160,3 +160,5 @@ of everything else.
   merge of upstream `a594c8d`. Once `.upstream/eden.json` points at a nightly that
   includes `218c670`, delete the `#else` `RegisterHandlers` branch in `dsm.cpp` and the
   detection block in `duo_core.cmake` (define nothing, keep the `FindRequest` form).
+  Upstream reverted #4480 in #4532 (`e255c20`, nightly `de7e6e01d4`), so both forms are
+  kept again: drop one only after upstream has settled on a form for more than one nightly.
