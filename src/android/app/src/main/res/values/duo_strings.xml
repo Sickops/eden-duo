@@ -70,4 +70,9 @@
     <string name="about_next_game_poll">Next game poll</string>
     <string name="eden_duo_kofi_link" translatable="false">https://ko-fi.com/igawa6</string>
     <string name="eden_duo_poll_link" translatable="false">https://ko-fi.com/polls/3rd-Poll-Next-Switch-Game-on-Eden-Duo-C7J128KB48</string>
+    <string name="duo_task_failed">Something went wrong</string>
+    <string name="duo_task_failed_description">Eden Duo could not finish this task.\n\nDetails: %1$s</string>
+    <string name="duo_save_import_other_title">This save belongs to title %1$s, not to this game (%2$s). Import it from that game\'s properties.</string>
+    <string name="duo_save_import_error_description">The zip could not be read, so your current saves were kept.\n\nDetails: %1$s</string>
+    <string name="duo_save_import_failed_description">The saves in the zip could not be copied to %1$s.</string>
 </resources>
