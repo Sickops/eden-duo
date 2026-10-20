@@ -6,6 +6,12 @@
 
 - The game library ends with "Dual-screen games not in your library": every game that has an Eden Duo companion but is not in your games folders, as a greyscale tile with its cover art and a "Not in library" chip. Tapping one explains how to add it; the tiles cannot be launched. The section stays with the "dual-screen games only" filter, is hidden while you search or sort by recently played/added, and can be switched off with "Show dual-screen games not in your library" in the library's sort/filter menu. Cover art comes from [GameTDB](https://www.gametdb.com) (downloaded once per game and kept; without a connection the tile shows the game's name instead). Shown in the grid, compact grid and list views, not in the carousel.
 
+**Fixed**
+
+- Importing save data no longer crashes Eden Duo. A zip from Eden (the per-game save export, or any zip with a folder named after the game's title ID, at any depth, in any letter case) imports; any other zip shows what is wrong, including "This save belongs to title ..." when it holds another game's saves. Only the game's own folder is unpacked, and the current saves are replaced only after that worked.
+- "Import user data" no longer deletes the user folder before it has unpacked the backup: a damaged or unreadable zip now leaves your data and settings as they were and shows an error.
+- A failure inside any progress dialog task (importing, exporting, installing) now shows an error instead of closing the app.
+
 ## 1.3.1
 
 **Fixed**
