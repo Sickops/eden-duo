@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 (unreleased)
+
+**New**
+
+- In-game companion toggle: hide the companion during a game so the second screen can be used for another app, and bring it back where it was. Tap the game screen with four fingers, use the new "Companion" Quick Settings tile, or "Hide companion" in the in-game menu. The gesture can be changed to a 5-finger pinch or a 3-finger swipe down, or turned off (Settings -> Graphics -> Second Screen -> Companion toggle gesture); while a gesture is in progress its touches do not reach the game. Every game starts with the companion shown.
+
 ## 1.3.1
 
 **Fixed**
