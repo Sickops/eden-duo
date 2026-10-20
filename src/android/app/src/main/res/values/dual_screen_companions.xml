@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <!-- Published companions as of 2026-10-12, used before the first online catalog refresh. -->
+    <!-- Published companions as of 2026-10-20, used before the first online catalog refresh. -->
     <string-array name="dual_screen_supported_title_ids" translatable="false">
         <item>01005CA01580E000</item>
         <item>010093801237C000</item>
@@ -14,6 +14,10 @@
         <item>0100F9F00C696000</item>
         <item>01003E601E324000</item>
         <item>0100C510166F0000</item>
+        <item>01001B300B9BE000</item>
+        <item>010086500D3C8000</item>
+        <item>0100C2901153C000</item>
+        <item>0100D04004176000</item>
     </string-array>
 
     <style name="Widget.Eden.DualScreenBadge" parent="">
@@ -44,4 +48,5 @@
     <color name="dual_screen_badge_current">#2E7D32</color>
     <color name="dual_screen_badge_available">#1565C0</color>
     <dimen name="dual_screen_fetch_option_spacing">8dp</dimen>
+
 </resources>
