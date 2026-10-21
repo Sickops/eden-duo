@@ -13,6 +13,7 @@
 - Importing save data no longer crashes Eden Duo. A zip from Eden (the per-game save export, or any zip with a folder named after the game's title ID, at any depth, in any letter case) imports; any other zip shows what is wrong, including "This save belongs to title ..." when it holds another game's saves. Only the game's own folder is unpacked, and the current saves are replaced only after that worked.
 - "Import user data" no longer deletes the user folder before it has unpacked the backup: a damaged or unreadable zip now leaves your data and settings as they were and shows an error.
 - A failure inside any progress dialog task (importing, exporting, installing) now shows an error instead of closing the app.
+- A companion package whose manifest is larger than 4 MiB or is not valid JSON is no longer dropped without a word: the log names the file and why the package was not loaded.
 
 ## 1.3.1
 
