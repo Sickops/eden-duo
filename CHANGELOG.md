@@ -14,6 +14,8 @@
 - "Import user data" no longer deletes the user folder before it has unpacked the backup: a damaged or unreadable zip now leaves your data and settings as they were and shows an error.
 - A failure inside any progress dialog task (importing, exporting, installing) now shows an error instead of closing the app.
 - A companion package whose manifest is larger than 4 MiB or is not valid JSON is no longer dropped without a word: the log names the file and why the package was not loaded.
+- For companion makers: a font given as a member of an archive (`…FontData.szs#Title.bffnt`) now finds its own glyph sheets like a plain `.bffnt`, and a font without an atlas is reported in the log instead of silently falling back to the built-in font.
+- For companion makers: `text_center_h` now centres a value widget's text vertically, as it already did for labels.
 
 ## 1.3.1
 
