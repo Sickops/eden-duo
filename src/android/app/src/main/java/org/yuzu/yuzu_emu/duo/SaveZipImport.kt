@@ -151,10 +151,16 @@ object SaveZipImport {
         backup.deleteRecursively()
         target.parentFile?.mkdirs()
         if (target.exists() && !target.renameTo(backup)) {
+            // The storage refuses the rename: keep a copy of the old data before deleting it, so
+            // a failed copy of the new data can still be undone.
             return try {
+                if (!target.copyRecursively(backup, overwrite = true)) return false
                 target.deleteRecursively()
-                staged.copyRecursively(target, overwrite = true)
+                staged.copyRecursively(target, overwrite = true).also { copied ->
+                    if (copied) backup.deleteRecursively() else restore(backup, target)
+                }
             } catch (e: Exception) {
+                restore(backup, target)
                 false
             }
         }
@@ -170,6 +176,15 @@ object SaveZipImport {
             target.deleteRecursively()
             backup.renameTo(target)
             false
+        }
+    }
+
+    /** Puts [backup] back as [target] after a failed replacement (rename, else copy). */
+    private fun restore(backup: File, target: File) {
+        if (!backup.exists()) return
+        target.deleteRecursively()
+        if (!backup.renameTo(target)) {
+            runCatching { backup.copyRecursively(target, overwrite = true) }
         }
     }
 }

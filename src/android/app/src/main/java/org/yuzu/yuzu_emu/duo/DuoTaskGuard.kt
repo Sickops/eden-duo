@@ -14,7 +14,9 @@ suspend fun runGuardedTask(onError: (Exception) -> Unit, task: suspend () -> Any
         task()
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Exception) {
-        onError(e)
-        DuoTaskFailure(e)
+    } catch (e: Throwable) {
+        // An Error (out of memory during a large copy) must end the task too, not the app.
+        val error = e as? Exception ?: RuntimeException(e)
+        onError(error)
+        DuoTaskFailure(error)
     }

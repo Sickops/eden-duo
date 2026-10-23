@@ -397,9 +397,13 @@ object InstallableActions {
                 }
 
                 NativeConfig.unloadGlobalConfig()
-                val replaced = SaveZipImport.replaceDirectory(stagingDir, userDir)
-                NativeLibrary.initializeSystem(true)
-                NativeConfig.initializeGlobalConfig()
+                val replaced = try {
+                    SaveZipImport.replaceDirectory(stagingDir, userDir)
+                } finally {
+                    // The config is reloaded whatever happened, so the app never runs without it.
+                    NativeLibrary.initializeSystem(true)
+                    NativeConfig.initializeGlobalConfig()
+                }
                 if (!replaced) {
                     return@newInstance MessageDialogFragment.newInstance(
                         activity,

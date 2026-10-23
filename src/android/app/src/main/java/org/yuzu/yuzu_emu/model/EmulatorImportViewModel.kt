@@ -315,7 +315,8 @@ class EmulatorImportViewModel(application: Application) : AndroidViewModel(appli
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 action()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // Also an Error (out of memory during a large copy): busy must clear either way.
                 if (reset) {
                     session?.discard()
                     session = null
