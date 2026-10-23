@@ -80,8 +80,6 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
     /** Whether [position] (in this adapter) is the full-width header row. */
     fun isHeader(position: Int) = entries.isNotEmpty() && position == 0
 
-    val hasEntries get() = entries.isNotEmpty()
-
     override fun getItemCount() = if (entries.isEmpty()) 0 else entries.size + 1
 
     override fun getItemViewType(position: Int) = if (position == 0) TYPE_HEADER else tileType
