@@ -16,6 +16,9 @@
 - A companion package whose manifest is larger than 4 MiB or is not valid JSON is no longer dropped without a word: the log names the file and why the package was not loaded.
 - For companion makers: a font given as a member of an archive (`…FontData.szs#Title.bffnt`) now finds its own glyph sheets like a plain `.bffnt`, and a font without an atlas is reported in the log instead of silently falling back to the built-in font.
 - For companion makers: `text_center_h` now centres a value widget's text vertically, as it already did for labels.
+- The library's companion badges and the "not in your library" section no longer disappear when GitHub briefly answers with an empty release list; the games that come with Eden Duo always keep their badge.
+- Import from another emulator is easier to follow: plain names for each kind of data, "Share with the other emulator" or "Separate copy" for every folder (saves default to a separate copy), and a confirmation that lists what happens to each folder. A running game is reported before the copy starts instead of after it, Restore shows when the backup was made and its size, and after an import with several user profiles Eden Duo asks which one you play as. Importing one game's save names the profile it goes into.
+- For companion makers: a module can read a companion setting with `get_i64("@flag:<name>")` while it samples; it used to get the fallback value every time.
 
 ## 1.3.1
 
