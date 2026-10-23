@@ -9,7 +9,7 @@
 </p>
 
 <div align="center">
-  <a href="https://discord.gg/r6vBWKAqCK"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>&nbsp;<a href="https://ko-fi.com/igawa6"><img src="https://img.shields.io/badge/Support_me_on_Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>&nbsp;<a href="https://ko-fi.com/polls/4rd-Poll-Next-Switch-Game-on-Eden-Duo-I7Z428XZNI"><img src="https://img.shields.io/badge/%F0%9F%97%B3%EF%B8%8F_Next_Game_Poll-1ABC9C?style=for-the-badge" alt="Poll"></a>
+  <a href="https://discord.gg/r6vBWKAqCK"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>&nbsp;<a href="https://ko-fi.com/igawa6"><img src="https://img.shields.io/badge/Support_me_on_Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>&nbsp;<a href="https://ko-fi.com/polls/5th-Poll-Next-Switch-Game-on-Eden-Duo-Y2S729BJ48"><img src="https://img.shields.io/badge/%F0%9F%97%B3%EF%B8%8F_Next_Game_Poll-1ABC9C?style=for-the-badge" alt="Poll"></a>
 </div>
 
 ---
@@ -39,6 +39,7 @@ Companions are separate, installable **`.dsmod.zip` packages**, one per game, so
 | 15 | [Diablo III: Eternal Collection](https://github.com/igawa6/eden-duo-companions#diablo-iii-eternal-collection) | `01001B300B9BE000` | 2.7.7, 2.7.6 | 🥇 <a href="https://ko-fi.com/Z2B723BQK6"><img src="https://img.shields.io/badge/shy-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="shy"></a> |
 | 16 | [Farming Simulator: Nintendo Switch Edition](https://github.com/igawa6/eden-duo-companions#farming-simulator-nintendo-switch-edition) | `0100D04004176000` | 1.5.0.1 | 🥇 <a href="https://ko-fi.com/igawa6/commissions"><img src="https://img.shields.io/badge/Anon.-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Anon."></a> |
 | 17 | [VA-11 Hall-A: Cyberpunk Bartender Action](https://github.com/igawa6/eden-duo-companions#va-11-hall-a-cyberpunk-bartender-action) | `010086500D3C8000` | 1.0.0 | ⭐ <a href="https://ko-fi.com/matinc"><img src="https://img.shields.io/badge/Mati-F16061?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Mati"></a> |
+| 18 | [Castlevania: Belmont's Curse](https://github.com/igawa6/eden-duo-companions#castlevania-belmonts-curse) | `0100BA4026E94000` | 1.1.0 | 🥇 <a href="https://www.reddit.com/user/gymgooner123"><img src="https://img.shields.io/badge/gymgooner123-FF4500?style=flat-square&logo=reddit&logoColor=white" style="vertical-align: middle;" alt="gymgooner123"></a> |
 
 ⭐ Companion contributor. Big thanks for your mods creation!
 
