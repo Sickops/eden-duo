@@ -103,15 +103,20 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
             TYPE_LIST -> CardGameListBinding.inflate(inflater, parent, false).root
             else -> inflater.inflate(R.layout.card_game_unowned, parent, false)
         }
+        // The view remembers which of this adapter's layouts it is. Inside a ConcatAdapter,
+        // holder.itemViewType is the concat adapter's own (global) type, not this adapter's.
+        view.setTag(R.id.companion_unowned_tile_type, viewType)
         return object : RecyclerView.ViewHolder(view) {}
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (position == 0) return
-        val entry = entries[position - 1]
+        val entry = entries.getOrNull(position - 1) ?: return
         val root = holder.itemView
+        // A view this adapter did not create for a tile (reused from another adapter) is left alone.
+        val layoutType = root.getTag(R.id.companion_unowned_tile_type) as? Int ?: return
         val description = context.getString(R.string.companion_unowned_tile_description, entry.name)
-        when (holder.itemViewType) {
+        when (layoutType) {
             TYPE_GRID -> {
                 val image = root.findViewById<ImageView>(R.id.image_game_screen)
                 val fallback = root.findViewById<View>(R.id.fallback)

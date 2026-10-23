@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.3 (unreleased)
+
+**Fixed**
+
+- Eden Duo could close on start, and when returning from a game, with the library in the Compact grid or List view: a "Dual-screen games not in your library" tile was drawn with the Grid layout.
+
 ## 1.3.2
 
 **New**

@@ -52,6 +52,7 @@
     <!-- The library's "not in your library" section (UnownedCompanionGamesAdapter). -->
     <item name="companion_cover_title" type="id" />
     <item name="companion_unowned_toggle" type="id" />
+    <item name="companion_unowned_tile_type" type="id" />
     <color name="companion_unowned_fallback">#28282C</color>
     <color name="companion_unowned_glyph">#96969B</color>
     <color name="companion_unowned_title">#A0A0A0</color>
