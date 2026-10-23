@@ -106,4 +106,5 @@
     <string name="duo_save_import_other_title">This save belongs to title %1$s, not to this game (%2$s). Import it from that game\'s properties.</string>
     <string name="duo_save_import_error_description">The zip could not be read, so your current saves were kept.\n\nDetails: %1$s</string>
     <string name="duo_save_import_failed_description">The saves in the zip could not be copied to %1$s.</string>
+    <string name="duo_save_import_profile">Saves are imported into the profile %1$s.</string>
 </resources>

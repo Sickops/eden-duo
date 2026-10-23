@@ -428,7 +428,13 @@ class GamePropertiesFragment : Fragment() {
                             MessageDialogFragment.newInstance(
                                 requireActivity(),
                                 titleId = R.string.import_save_warning,
-                                descriptionId = R.string.import_save_warning_description,
+                                // Eden Duo: name the profile the saves go to (saves are per profile).
+                                descriptionString = getString(R.string.import_save_warning_description) +
+                                    "\n\n" + getString(
+                                        R.string.duo_save_import_profile,
+                                        NativeLibrary.getCurrentUser()?.let { NativeLibrary.getUserUsername(it) }
+                                            ?.takeIf { it.isNotBlank() } ?: "—"
+                                    ),
                                 positiveAction = { homeViewModel.setOpenImportSaves(true) }
                             ).show(parentFragmentManager, MessageDialogFragment.TAG)
                         },
