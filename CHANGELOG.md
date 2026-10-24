@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.2.2
+
+**Fixed**
+
+- Save import and export (one game, or all saves) now use the profile you play as, matching what the dialog says; they always used the first profile.
+- For companion makers: a companion reading the game's save file found nothing on Android, because the app looked under a stale account instead of the profile the game uses.
+
 ## 1.3.2.1
 
 **Fixed**
