@@ -2,6 +2,10 @@
 
 ## 1.3.2.2
 
+**New**
+
+- "Dual-screen games not in your library" now also appears in the Carousel view, as greyscale cards after your games.
+
 **Fixed**
 
 - Save import and export (one game, or all saves) now use the profile you play as, matching what the dialog says; they always used the first profile.

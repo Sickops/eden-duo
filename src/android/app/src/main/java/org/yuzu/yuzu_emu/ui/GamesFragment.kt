@@ -121,6 +121,7 @@ class GamesFragment : Fragment() {
             requireActivity() as AppCompatActivity
         )
         unownedAdapter = org.yuzu.yuzu_emu.duo.UnownedCompanionGamesAdapter(requireActivity())
+        unownedAdapter.cardSizeProvider = { gameAdapter.cardSize }
 
         applyGridGamesBinding()
 
@@ -230,7 +231,7 @@ class GamesFragment : Fragment() {
                 (this as? CarouselRecyclerView)?.setupCarousel(false)
             }
             // Eden Duo: the "not in your library" section follows the games, its header a full
-            // row; the carousel keeps GameAdapter alone.
+            // row (the carousel has no header and sizes its tiles like the game cards).
             unownedAdapter.setStyle(savedViewType)
             (layoutManager as? GridLayoutManager)?.let { grid ->
                 grid.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
@@ -238,11 +239,7 @@ class GamesFragment : Fragment() {
                         if (unownedAdapter.isHeader(position - gameAdapter.itemCount)) grid.spanCount else 1
                 }
             }
-            adapter = if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                gameAdapter
-            } else {
-                ConcatAdapter(gameAdapter, unownedAdapter)
-            }
+            adapter = ConcatAdapter(gameAdapter, unownedAdapter)
             lastViewType = savedViewType
             filterAndSearch() // Eden Duo: the empty notice depends on the section's visibility.
         }
@@ -286,7 +283,7 @@ class GamesFragment : Fragment() {
         dualScreenFilter.updateNotice(
             binding.noticeText,
             games,
-            unowned.isNotEmpty() && lastViewType != GameAdapter.VIEW_TYPE_CAROUSEL
+            unowned.isNotEmpty()
         )
         val attached = (binding.gridGames as? RecyclerView)?.adapter
         val adapter = gameAdapter.takeIf { attached === it || attached is ConcatAdapter }

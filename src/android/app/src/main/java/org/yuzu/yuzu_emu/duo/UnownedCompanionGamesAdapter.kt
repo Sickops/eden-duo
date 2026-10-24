@@ -25,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.CardGameGridCompactBinding
+import org.yuzu.yuzu_emu.databinding.CardGameCarouselBinding
 import org.yuzu.yuzu_emu.databinding.CardGameListBinding
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 
@@ -41,11 +42,18 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
         const val TYPE_GRID = 1
         const val TYPE_GRID_COMPACT = 2
         const val TYPE_LIST = 3
+        const val TYPE_CAROUSEL = 4
         const val ART_BRIGHTNESS = 0.78f
     }
 
     private var entries = emptyList<CompanionCatalog.Entry>()
     private var tileType = TYPE_GRID
+
+    /** The game cards' carousel size (GameAdapter.cardSize); carousel tiles match it. */
+    var cardSizeProvider: () -> Int = { 0 }
+
+    /** The carousel scrolls sideways: no full-width header row there. */
+    private val hasHeader get() = tileType != TYPE_CAROUSEL
 
     /** Greyscale, slightly dimmed (the H2 design); the badge and chip keep their colours. */
     private val greyscale = ColorMatrixColorFilter(
@@ -62,6 +70,7 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
         val type = when (gameViewType) {
             GameAdapter.VIEW_TYPE_GRID_COMPACT -> TYPE_GRID_COMPACT
             GameAdapter.VIEW_TYPE_LIST -> TYPE_LIST
+            GameAdapter.VIEW_TYPE_CAROUSEL -> TYPE_CAROUSEL
             else -> TYPE_GRID
         }
         if (type != tileType) {
@@ -78,11 +87,13 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
     }
 
     /** Whether [position] (in this adapter) is the full-width header row. */
-    fun isHeader(position: Int) = entries.isNotEmpty() && position == 0
+    fun isHeader(position: Int) = hasHeader && entries.isNotEmpty() && position == 0
 
-    override fun getItemCount() = if (entries.isEmpty()) 0 else entries.size + 1
+    override fun getItemCount() =
+        if (entries.isEmpty()) 0 else entries.size + if (hasHeader) 1 else 0
 
-    override fun getItemViewType(position: Int) = if (position == 0) TYPE_HEADER else tileType
+    override fun getItemViewType(position: Int) =
+        if (hasHeader && position == 0) TYPE_HEADER else tileType
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -101,6 +112,17 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
                 )
             }
             TYPE_LIST -> CardGameListBinding.inflate(inflater, parent, false).root
+            TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(inflater, parent, false).root.also {
+                val chip = inflater.inflate(R.layout.view_unowned_chip, parent, false)
+                (it as FrameLayout).addView(
+                    chip,
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        android.view.Gravity.TOP or android.view.Gravity.START
+                    ).apply { setMargins(8.dp, 8.dp, 0, 0) }
+                )
+            }
             else -> inflater.inflate(R.layout.card_game_unowned, parent, false)
         }
         // The view remembers which of this adapter's layouts it is. Inside a ConcatAdapter,
@@ -110,8 +132,8 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (position == 0) return
-        val entry = entries.getOrNull(position - 1) ?: return
+        if (hasHeader && position == 0) return
+        val entry = entries.getOrNull(position - if (hasHeader) 1 else 0) ?: return
         val root = holder.itemView
         // A view this adapter did not create for a tile (reused from another adapter) is left alone.
         val layoutType = root.getTag(R.id.companion_unowned_tile_type) as? Int ?: return
@@ -140,6 +162,21 @@ class UnownedCompanionGamesAdapter(private val context: Context) :
                 }
                 bindSmallArt(image, entry)
                 bindCard(root.findViewById(R.id.card_game_grid_compact), description)
+            }
+            TYPE_CAROUSEL -> {
+                val image = root.findViewById<ImageView>(R.id.image_game_screen)
+                root.findViewById<TextView>(R.id.text_game_title).apply {
+                    text = entry.name
+                    setTextColor(ContextCompat.getColor(context, R.color.companion_unowned_title))
+                    marquee()
+                }
+                bindSmallArt(image, entry)
+                bindCard(root, description)
+                // Like the game cards: the carousel sizes, scales and fades the card on layout.
+                val size = cardSizeProvider()
+                if (size > 0) root.layoutParams.width = size
+                root.scaleY = 0f
+                root.alpha = 0f
             }
             TYPE_LIST -> {
                 val image = root.findViewById<ImageView>(R.id.image_game_screen)
