@@ -43,6 +43,7 @@ Companions are separate, installable **`.dsmod.zip` packages**, one per game, so
 | 19 | [Castlevania: Belmont's Curse](https://github.com/igawa6/eden-duo-companions#castlevania-belmonts-curse) | `0100BA4026E94000` | 1.1.0 | 🥇<br><a href="https://www.reddit.com/user/gymgooner123"><img src="https://img.shields.io/badge/gymgooner123-FF4500?style=flat-square&logo=reddit&logoColor=white" style="vertical-align: middle;" alt="gymgooner123"></a> |
 | 20 | [Super Mario Odyssey](https://github.com/igawa6/eden-duo-companions#super-mario-odyssey) | `0100000000010000` | 1.4.1 | 🥈<br><a href="https://ko-fi.com/s/9e92af191b"><img src="https://img.shields.io/badge/Chip_In-C0C0C0?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Chip In"></a> |
 | 21 | [The Legend of Zelda: Echoes of Wisdom](https://github.com/igawa6/eden-duo-companions#the-legend-of-zelda-echoes-of-wisdom) | `01008CF01BAAC000` | 1.1.0 | 🗳️<br><a href="https://ko-fi.com/polls/3rd-Poll-Next-Switch-Game-on-Eden-Duo-C7J128KB48"><img src="https://img.shields.io/badge/Poll_Winner-1ABC9C?style=flat-square&logo=ko-fi&logoColor=white" style="vertical-align: middle;" alt="Poll Winner"></a> |
+| 22 | [Dave the Diver](https://github.com/igawa6/eden-duo-companions#dave-the-diver) | `010097F018538000` | 1.0.6.1267 | ⭐<br><a href="https://discord.gg/r6vBWKAqCK"><img src="https://img.shields.io/badge/jadesigns.-5865F2?style=flat-square&logo=discord&logoColor=white" style="vertical-align: middle;" alt="jadesigns."></a> |
 
 ⭐ Companion contributor. Big thanks for your mods creation!
 
