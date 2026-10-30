@@ -457,3 +457,5 @@ endif()
 target_link_libraries(yuzu PRIVATE OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3)
 
 create_target_directory_groups(yuzu)
+
+include(duo_qt.cmake) # Eden Duo Windows: second-screen window and .dsmod.zip installer

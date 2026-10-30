@@ -305,8 +305,8 @@ void ModRuntime::DriveCmdImpl() {
         // Write every cached area image whose key starts with the given prefix ("prefog:s010_cave",
         // "mapbase:s010_cave", "map:...") as a binary PPM next to <path>: what the map looks like
         // before / after each stage, for pixel-level comparison against the game's own map.
-        std::string prefix, path;
-        f >> prefix >> path;
+        std::string prefix, dump_path;
+        f >> prefix >> dump_path;
         u32 written = 0;
         // Debug console reader of image_cache (tick thread), racing GetImage on the redraw
         // worker. Snapshot the matching (key, shared_ptr) pairs under a short
@@ -327,7 +327,7 @@ void ModRuntime::DriveCmdImpl() {
             for (auto& ch : safe)
                 if (ch == '/' || ch == ':' || ch == '@' || ch == '#' || ch == ' ')
                     ch = '_';
-            std::ofstream o(path + "." + safe + ".ppm", std::ios::binary);
+            std::ofstream o(dump_path + "." + safe + ".ppm", std::ios::binary);
             if (!o)
                 continue;
             o << "P6\n" << img->w << " " << img->h << "\n255\n";
@@ -345,8 +345,8 @@ void ModRuntime::DriveCmdImpl() {
                 o.write(row.data(), static_cast<std::streamsize>(row.size()));
             }
             ++written;
-            emit(fmt::format("DSMod mapdump: wrote {} ({}x{}) for '{}'", path + "." + safe + ".ppm",
-                             img->w, img->h, key));
+            emit(fmt::format("DSMod mapdump: wrote {} ({}x{}) for '{}'",
+                             dump_path + "." + safe + ".ppm", img->w, img->h, key));
         }
         emit(fmt::format("DSMod mapdump '{}': {} image(s)", prefix, written));
     } else if (op == "walls") {
@@ -897,8 +897,8 @@ void ModRuntime::DriveCmdImpl() {
             }
         }
     } else if (op == "gridpgm") {
-        std::string path;
-        f >> path;
+        std::string grid_path;
+        f >> grid_path;
         // Debug console reader, tick thread, racing MarkVisitedAt on the redraw worker. Locked for
         // the whole block including the file write -- a rare, developer-only command, not a hot
         // path.
@@ -907,7 +907,7 @@ void ModRuntime::DriveCmdImpl() {
         if (grid == map_visited.end()) {
             emit("gridpgm: no published visibility grid");
         } else {
-            std::ofstream out(path, std::ios::binary);
+            std::ofstream out(grid_path, std::ios::binary);
             out << "P5\n" << VisitedGrid::Cols << " " << VisitedGrid::Rows << "\n255\n";
             for (u8 cell : grid->second.cells) {
                 out.put(static_cast<char>(cell * 127));

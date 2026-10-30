@@ -1003,10 +1003,16 @@ void OnGameLoaded(Session& session, Core::System& system) {
         }
     }
 
+#ifndef _WIN32
     std::signal(SIGUSR1, ScreenshotSignalHandler);
     std::signal(SIGUSR2, ButtonSignalHandler);
     LOG_INFO(Frontend, "screenshots: kill -USR1 {} writes {}-screen1.png / -screen2.png", getpid(),
              g_screenshot_prefix);
+#else
+    // Windows has no SIGUSR1/SIGUSR2: the .shot / .btn trigger files are the only path there.
+    LOG_INFO(Frontend, "screenshots: touch {}.shot to capture {}-screen1.png / -screen2.png",
+             g_screenshot_prefix, g_screenshot_prefix);
+#endif
 }
 
 void Iterate(Core::System& system, InputCommon::InputSubsystem& input_subsystem) {

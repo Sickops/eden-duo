@@ -41,6 +41,8 @@
 #include "ryujinx_dialog.h"
 #include "set_play_time_dialog.h"
 #include "util/util.h"
+#include "yuzu/duo/aux_window.h"
+#include "yuzu/duo/dsmod_installer.h"
 #include "yuzu/game/game_list.h"
 
 #include "applets/qt_amiibo_settings.h"
@@ -82,6 +84,7 @@
 #include <QProgressDialog>
 #include <QScreen>
 #include <QShortcut>
+#include <QSignalBlocker>
 #include <QStatusBar>
 #include <QtConcurrentRun>
 
@@ -360,6 +363,8 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()},
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
     QtCommon::Init(this);
+    // DSMod input actions use the same virtual controller as the desktop frontend.
+    QtCommon::system->SetInputSubsystem(input_subsystem.get());
 
     Common::FS::CreateEdenPaths();
     this->config = std::make_unique<QtConfig>();
@@ -926,6 +931,23 @@ void MainWindow::InitializeWidgets() {
     game_list_placeholder = new GameListPlaceholder(this);
     ui->horizontalLayout->addWidget(game_list_placeholder);
     game_list_placeholder->setVisible(false);
+
+    // Eden Duo: second screen toggle (View menu) and companion package installer (File menu).
+    // Both are created here instead of in main.ui so the fork stays easy to rebase.
+    second_screen_action = new QAction(tr("Second Screen (DSMod)"), this);
+    second_screen_action->setCheckable(true);
+    second_screen_action->setChecked(UISettings::values.enable_second_screen.GetValue());
+    second_screen_action->setToolTip(
+        tr("Show the dual-screen mod companion UI in its own window (Vulkan only)."));
+    ui->menu_View->insertAction(ui->action_Show_Game_Name, second_screen_action);
+    connect(second_screen_action, &QAction::toggled, this, &MainWindow::OnToggleSecondScreen);
+
+    auto* install_dsmod_action = new QAction(tr("Install Dual Screen Mod..."), this);
+    install_dsmod_action->setToolTip(
+        tr("Install a .dsmod.zip companion package for a game (Vulkan only)."));
+    ui->menu_File->insertAction(ui->action_Load_File, install_dsmod_action);
+    connect(install_dsmod_action, &QAction::triggered, this,
+            &MainWindow::OnMenuInstallDualScreenMod);
 
     loading_screen = new LoadingScreen(this);
     loading_screen->hide();
@@ -1869,6 +1891,13 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
     }
     current_game_path = filename;
 
+    // Eden Duo: the renderer now exists, so the second screen can be attached. LoadROM runs on the
+    // GUI thread before the emulation thread starts, which is exactly the window in which
+    // RendererBase::SetAuxWindow is allowed to publish the surface.
+    if (UISettings::values.enable_second_screen.GetValue()) {
+        CreateSecondScreen();
+    }
+
     return true;
 }
 
@@ -2068,6 +2097,11 @@ bool MainWindow::OnShutdownBegin() {
 
     AllowOSSleep();
 
+    // Eden Duo: tear the second screen down while the GPU thread is still alive, so the presenter
+    // can release its swapchain/surface from its own thread instead of racing the renderer
+    // teardown in ShutdownMainProcess.
+    DestroySecondScreen();
+
     // Disable unlimited frame rate and turbo/slow modes
     Settings::values.use_speed_limit.SetValue(true);
     Settings::values.current_speed_mode = Settings::SpeedMode::Standard;
@@ -2132,6 +2166,9 @@ void MainWindow::OnEmulationStopped() {
         QtCommon::emu_thread->wait();
         QtCommon::emu_thread.reset();
     }
+
+    // Normally already destroyed by OnShutdownBegin; keep the fallback for forced stops.
+    DestroySecondScreen();
 
     if (shutdown_dialog) {
         shutdown_dialog->deleteLater();
@@ -2924,6 +2961,93 @@ void MainWindow::OnMenuInstallToNAND() {
                                      "game_list");
     game_list->PopulateAsync(UISettings::values.game_dirs);
     ui->action_Install_File_NAND->setEnabled(true);
+}
+
+void MainWindow::OnMenuInstallDualScreenMod() {
+    const QString filename = QFileDialog::getOpenFileName(
+        this, tr("Install Dual Screen Mod"),
+        QString::fromStdString(UISettings::values.roms_path),
+        tr("Dual Screen Mod Package (*.dsmod.zip);;All Files (*)"));
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
+
+    const DSModInstaller::Result result = DSModInstaller::InstallArchive(filename);
+    if (!result.success) {
+        QMessageBox::critical(this, tr("Install Failed"), result.message);
+        return;
+    }
+
+    QMessageBox::information(
+        this, tr("Dual Screen Mod Installed"),
+        tr("%1\n\nStart the game, then enable View > Second Screen (DSMod).")
+            .arg(result.message));
+}
+
+void MainWindow::OnToggleSecondScreen(bool enabled) {
+    UISettings::values.enable_second_screen = enabled;
+    if (!emulation_running) {
+        return;
+    }
+    if (enabled) {
+        CreateSecondScreen();
+    } else {
+        DestroySecondScreen();
+    }
+}
+
+void MainWindow::CreateSecondScreen() {
+    if (!QtCommon::system->IsPoweredOn()) {
+        return;
+    }
+    if (Settings::values.renderer_backend.GetValue() != Settings::RendererBackend::Vulkan) {
+        LOG_WARNING(Frontend, "DSMod second screen needs the Vulkan renderer; ignoring request");
+        if (second_screen_action != nullptr) {
+            const QSignalBlocker blocker(second_screen_action);
+            second_screen_action->setChecked(false);
+        }
+        UISettings::values.enable_second_screen = false;
+        return;
+    }
+    if (second_screen != nullptr) {
+        // The user closed the window earlier in this session: just show it again.
+        second_screen->Attach();
+        return;
+    }
+
+    // Prefer a monitor that is not already showing the game window, so a real dual-screen setup
+    // puts the companion UI where the player expects it. With one monitor, it opens as a normal
+    // window instead.
+    QScreen* target_screen = nullptr;
+    const QScreen* const game_screen = render_window->screen();
+    for (QScreen* const screen : QGuiApplication::screens()) {
+        if (screen != game_screen) {
+            target_screen = screen;
+            break;
+        }
+    }
+
+    second_screen = std::make_unique<AuxRenderWindow>(*QtCommon::system, target_screen);
+    second_screen->SetCloseCallback([this] {
+        // Closing the window keeps the session running: remember that the user turned it off.
+        if (second_screen_action != nullptr) {
+            const QSignalBlocker blocker(second_screen_action);
+            second_screen_action->setChecked(false);
+        }
+        UISettings::values.enable_second_screen = false;
+    });
+    second_screen->Attach();
+}
+
+void MainWindow::DestroySecondScreen() {
+    if (second_screen == nullptr) {
+        return;
+    }
+    second_screen->Detach();
+    second_screen.reset();
 }
 
 ContentManager::InstallResult MainWindow::InstallNCA(const QString& filename) {

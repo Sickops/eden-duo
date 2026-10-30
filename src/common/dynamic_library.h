@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <string>
 
 namespace Common {
@@ -54,6 +55,10 @@ public:
     /// Loads (or replaces) the handle with the specified library file name.
     /// Returns true if the library was loaded and can be used.
     [[nodiscard]] bool Open(const char* filename);
+
+    /// Same as above for a filesystem path. On Windows the path is passed to the wide-character
+    /// loader, so a cache directory whose user name is not in the ANSI code page still loads.
+    [[nodiscard]] bool Open(const std::filesystem::path& filename);
 
     /// Unloads the library, any function pointers from this library are no longer valid.
     void Close();

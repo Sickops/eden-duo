@@ -44,6 +44,13 @@ if (ENABLE_OPENGL)
 endif()
 target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
+# Eden Duo: dsmod_harness.cpp parses the command line with getopt_long, which MSVC lacks. The
+# bundled implementation (externals/getopt, already built for MSVC) provides it; its INTERFACE
+# include directory comes with the link.
+if(MSVC)
+    target_link_libraries(yuzu-cmd PRIVATE getopt)
+endif()
+
 create_resource("../../dist/eden.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
 target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 

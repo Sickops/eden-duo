@@ -591,6 +591,47 @@ const std::vector<std::string>& Canvas::LayoutLines(std::string_view text, s32 s
 
 void Canvas::BlitGlyph(s32 x, s32 y, s32 w, s32 h, const Image& atlas, s32 sx, s32 sy, s32 sw,
                        s32 sh, u32 argb, f32 baseline, bool mask) {
+    // Filter a reduced glyph before the regular tint/opacity/shear path. Averaging premultiplied
+    // colours preserves antialiased edges without dark fringes from transparent atlas padding.
+    if (atlas.Valid() && w > 0 && h > 0 && sw > 0 && sh > 0 && w <= sw && h <= sh &&
+        (w < sw || h < sh) && sx >= 0 && sy >= 0 &&
+        static_cast<u64>(sx) + sw <= atlas.w && static_cast<u64>(sy) + sh <= atlas.h) {
+        Image reduced;
+        reduced.w = static_cast<u32>(w);
+        reduced.h = static_cast<u32>(h);
+        reduced.pixels.resize(static_cast<size_t>(w) * h);
+        for (s32 row = 0; row < h; ++row) {
+            const double y0 = static_cast<double>(row) * sh / h;
+            const double y1 = static_cast<double>(row + 1) * sh / h;
+            for (s32 col = 0; col < w; ++col) {
+                const double x0 = static_cast<double>(col) * sw / w;
+                const double x1 = static_cast<double>(col + 1) * sw / w;
+                double alpha = 0, red = 0, green = 0, blue = 0;
+                for (s32 iy = static_cast<s32>(y0); iy < static_cast<s32>(std::ceil(y1)); ++iy) {
+                    const double wy = std::min(y1, static_cast<double>(iy + 1)) -
+                                      std::max(y0, static_cast<double>(iy));
+                    for (s32 ix = static_cast<s32>(x0); ix < static_cast<s32>(std::ceil(x1)); ++ix) {
+                        const double weight = wy * (std::min(x1, static_cast<double>(ix + 1)) -
+                                                    std::max(x0, static_cast<double>(ix)));
+                        const u32 pixel = atlas.pixels[static_cast<size_t>(sy + iy) * atlas.w + sx + ix];
+                        const double a = (pixel >> 24) * weight;
+                        alpha += a;
+                        red += ((pixel >> 16) & 255) * a;
+                        green += ((pixel >> 8) & 255) * a;
+                        blue += (pixel & 255) * a;
+                    }
+                }
+                const u32 a = static_cast<u32>(std::clamp(std::lround(alpha / ((x1-x0)*(y1-y0))), 0l, 255l));
+                reduced.pixels[static_cast<size_t>(row) * w + col] = alpha > 0
+                    ? (a << 24) | (static_cast<u32>(std::lround(red / alpha)) << 16) |
+                      (static_cast<u32>(std::lround(green / alpha)) << 8) |
+                      static_cast<u32>(std::lround(blue / alpha))
+                    : 0;
+            }
+        }
+        BlitGlyph(x, y, w, h, reduced, 0, 0, w, h, argb, baseline, mask);
+        return;
+    }
     if (text_slant_tan == 0.0f || h <= 0 || sh <= 0) {
         if (mask) {
             DrawImageMask(x, y, w, h, atlas, sx, sy, sw, sh, argb);

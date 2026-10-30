@@ -127,11 +127,6 @@ public:
     void UpdatePagesCachedBatch(std::span<const std::pair<DAddr, size_t>> ranges, s32 delta);
 
 private:
-    struct TranslationEntry {
-        DAddr guest_page{};
-        u8* host_ptr{};
-    };
-
     // Internal helper that performs the update assuming the caller already holds the necessary lock.
     void UpdatePagesCachedCountNoLock(DAddr addr, size_t size, s32 delta);
 
@@ -204,8 +199,6 @@ private:
         tracked_entries.GetUnchecked(page_index).cpu_backing_address = address | (asid.id << asid_start_bit);
     }
 
-    std::array<TranslationEntry, 4> t_slot{};
-    u32 cache_cursor = 0;
     using CounterType = u8;
     using CounterAtomicType = std::atomic_uint8_t;
     static constexpr size_t subentries = 8 / sizeof(CounterType);

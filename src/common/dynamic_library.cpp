@@ -91,6 +91,15 @@ bool DynamicLibrary::Open(const char* filename) {
     return handle != nullptr;
 }
 
+bool DynamicLibrary::Open(const std::filesystem::path& filename) {
+#ifdef _WIN32
+    handle = reinterpret_cast<void*>(LoadLibraryW(filename.c_str()));
+#else
+    handle = dlopen(filename.c_str(), RTLD_NOW);
+#endif
+    return handle != nullptr;
+}
+
 void DynamicLibrary::Close() {
     if (!IsOpen())
         return;

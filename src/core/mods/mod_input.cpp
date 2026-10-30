@@ -220,21 +220,21 @@ void ModRuntime::UpdateNativePinch(const StateSnapshot& snapshot,
         }
         scale_product = 1.0;
     };
-    for (const auto& event : events) {
+    for (const auto& pinch : events) {
         using Phase = VideoCore::DSMod::AuxPinchEvent::Phase;
-        if (event.phase == Phase::End) {
+        if (pinch.phase == Phase::End) {
             flush();
             native_pinch_target = {};
             continue;
         }
-        if (!fit.Contains(event.x, event.y)) {
+        if (!fit.Contains(pinch.x, pinch.y)) {
             scale_product = 1.0;
             native_pinch_target = {};
             continue;
         }
-        const s32 x = VideoCore::DSMod::PanelToCanvas(event.x, fit.x, fit.w, canvas_w);
-        const s32 y = VideoCore::DSMod::PanelToCanvas(event.y, fit.y, fit.h, canvas_h);
-        if (event.phase == Phase::Begin) {
+        const s32 x = VideoCore::DSMod::PanelToCanvas(pinch.x, fit.x, fit.w, canvas_w);
+        const s32 y = VideoCore::DSMod::PanelToCanvas(pinch.y, fit.y, fit.h, canvas_h);
+        if (pinch.phase == Phase::Begin) {
             flush();
             native_pinch_target = {};
             const s64 hit = CallbackAt(expanded, snapshot, x, y);
@@ -251,7 +251,7 @@ void ModRuntime::UpdateNativePinch(const StateSnapshot& snapshot,
             native_pinch_target = {};
             continue;
         }
-        scale_product = std::clamp(scale_product * event.scale, 1.0 / 1024.0, 1024.0);
+        scale_product = std::clamp(scale_product * pinch.scale, 1.0 / 1024.0, 1024.0);
         anchor_x = x;
         anchor_y = y;
     }
@@ -284,13 +284,13 @@ void ModRuntime::UpdateWheel(const StateSnapshot& snapshot,
     const auto fit = TouchRect(panel_w, panel_h, canvas_w, canvas_h);
     const auto expanded = ExpandWidgets(manifest.pages[current_page], snapshot);
     size_t budget = 4; // consume the entire bounded queue, but never replay a burst for many ticks
-    for (const auto& event : events) {
-        if (!fit.Contains(event.x, event.y)) {
+    for (const auto& wheel_event : events) {
+        if (!fit.Contains(wheel_event.x, wheel_event.y)) {
             reset();
             continue;
         }
-        const s32 x = VideoCore::DSMod::PanelToCanvas(event.x, fit.x, fit.w, canvas_w);
-        const s32 y = VideoCore::DSMod::PanelToCanvas(event.y, fit.y, fit.h, canvas_h);
+        const s32 x = VideoCore::DSMod::PanelToCanvas(wheel_event.x, fit.x, fit.w, canvas_w);
+        const s32 y = VideoCore::DSMod::PanelToCanvas(wheel_event.y, fit.y, fit.h, canvas_h);
         const s64 hit = HitTestIndex(expanded, snapshot, x, y, [](const Widget& w) {
             return SwipeHitFilter(w) || w.draggable;
         });
@@ -308,11 +308,11 @@ void ModRuntime::UpdateWheel(const StateSnapshot& snapshot,
             wheel_target = target;
         }
         // Axis dominance prevents diagonal touchpad noise from paging two dimensions.
-        const bool horizontal = std::fabs(event.dx) > std::fabs(event.dy);
+        const bool horizontal = std::fabs(wheel_event.dx) > std::fabs(wheel_event.dy);
         float& residual = horizontal ? wheel_dx : wheel_dy;
         float& other = horizontal ? wheel_dy : wheel_dx;
         other = 0.0f;
-        const float delta = horizontal ? event.dx : event.dy;
+        const float delta = horizontal ? wheel_event.dx : wheel_event.dy;
         if (delta == 0.0f) {
             continue;
         }
@@ -1678,10 +1678,10 @@ void ModRuntime::FlushHaptic() {
     if (pending_haptic.strength == HapticStrength::Off) {
         return;
     }
-    const PendingHaptic event = std::exchange(pending_haptic, PendingHaptic{});
+    const PendingHaptic haptic = std::exchange(pending_haptic, PendingHaptic{});
     const std::string line = fmt::format(
-        "DSMod haptic {} ({}: {})", HapticStrengthNames[static_cast<size_t>(event.strength)],
-        HapticKindNames[static_cast<size_t>(event.kind)], event.source);
+        "DSMod haptic {} ({}: {})", HapticStrengthNames[static_cast<size_t>(haptic.strength)],
+        HapticKindNames[static_cast<size_t>(haptic.kind)], haptic.source);
     LOG_INFO(Core, "{}", line);
     if (const char* const p = Common::DSMod::DevEnvironment("EDEN_DSMOD_CMD")) {
         std::ofstream f(std::string(p) + ".out", std::ios::app);
@@ -1689,8 +1689,8 @@ void ModRuntime::FlushHaptic() {
             f << line << '\n';
         }
     }
-    system.GPU().DSModAux().RaiseHaptic({static_cast<u8>(event.strength),
-                                         static_cast<u8>(event.kind),
+    system.GPU().DSModAux().RaiseHaptic({static_cast<u8>(haptic.strength),
+                                         static_cast<u8>(haptic.kind),
                                          static_cast<u8>(manifest.haptics.respect_system ? 1 : 0)});
 }
 

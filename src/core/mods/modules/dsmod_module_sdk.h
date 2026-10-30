@@ -144,9 +144,21 @@ inline bool HostAbiMatches(const EdenDsmodHostApi* host) {
 // Each defines one extern "C" getter that returns &table when the host asks for exactly this
 // version and hash, else null. Use at global scope, once per table the module offers. Which
 // getters are visible in the .so is decided by the module's linker export list, not here.
+//
+// On ELF/Mach-O the attribute is what keeps the getter in the dynamic symbol table. MSVC has no
+// __attribute__: a Windows DLL exports the getters named by its linker export list instead
+// (/EXPORT:eden_dsmod_get_module ...), so the macro expands to nothing there. Declaring them
+// __declspec(dllexport) here would clash with dsmod_module_abi.h, which declares
+// eden_dsmod_get_module without it (C2375: redefinition with different linkage).
+#if defined(_MSC_VER)
+#define DSMOD_SDK_EXPORT
+#else
+#define DSMOD_SDK_EXPORT __attribute__((visibility("default")))
+#endif
+
 #define DSMOD_SDK_DEFINE_GETTER(symbol, Table, table_version, table_hash, table)                   \
-    extern "C" __attribute__((visibility("default"))) const Table* symbol(std::uint32_t version,   \
-                                                                          std::uint64_t hash) {    \
+    extern "C" DSMOD_SDK_EXPORT const Table* symbol(std::uint32_t version,                        \
+                                                     std::uint64_t hash) {                        \
         return version == (table_version) && hash == (table_hash) ? &(table) : nullptr;            \
     }
 #define DSMOD_SDK_EXPORT_MODULE(table)                                                             \

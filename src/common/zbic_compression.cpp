@@ -18,7 +18,18 @@
 
 #include "zstd.h"
 #define g_ZSTD_threading_useless_symbol g_ZSTD_zbic_threading_useless_symbol
+// Eden Duo Windows fork: the amalgamated zstd.c keeps static helpers that some configurations never
+// reference. MSVC 14.5x diagnoses each one with C4505 at /W4, and this project promotes C4505 to an
+// error (/we4505), which breaks the Windows build of upstream 1.3.2.2. Silence it for the vendor
+// code only; our own translation unit keeps the strict warning set.
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4505)
+#endif
 #include "zstd.c"
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 #undef g_ZSTD_threading_useless_symbol
 
 namespace Common::Compression {

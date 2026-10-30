@@ -34,7 +34,7 @@ target_sources(tests PRIVATE
     video_core/aux_routing.cpp
 )
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCHITECTURE_x86_64)
+if ((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32) AND ARCHITECTURE_x86_64)
     add_library(dsmod_test_module SHARED core/mods/fake_module.cpp)
     target_include_directories(dsmod_test_module PRIVATE ${PROJECT_SOURCE_DIR}/src)
     set_target_properties(dsmod_test_module PROPERTIES PREFIX "" OUTPUT_NAME "dsmod-test-module")
@@ -42,6 +42,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCHITECTURE_x86_64)
     target_include_directories(dsmod_test_bad_module PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_compile_definitions(dsmod_test_bad_module PRIVATE DSMOD_BAD_INTERFACE=1)
     set_target_properties(dsmod_test_bad_module PROPERTIES PREFIX "" OUTPUT_NAME "dsmod-test-bad-module")
+    if (WIN32)
+        # The ABI header declares the entry points with C linkage only, so a Windows DLL has to
+        # name its exports explicitly (dllexport on the definition would clash with the header).
+        foreach (module_target dsmod_test_module dsmod_test_bad_module)
+            target_link_options(${module_target} PRIVATE
+                /EXPORT:eden_dsmod_get_module
+                /EXPORT:eden_dsmod_get_data_extensions)
+        endforeach()
+    endif()
     target_sources(tests PRIVATE core/mods/module.cpp)
     target_compile_definitions(tests PRIVATE
         DSMOD_TEST_MODULE_PATH="$<TARGET_FILE:dsmod_test_module>"

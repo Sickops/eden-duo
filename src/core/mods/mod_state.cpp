@@ -1488,6 +1488,15 @@ void ModRuntime::ApplyEnforceRules(const StateSnapshot& snapshot) {
         }
         const auto action = manifest.actions.find(rule.action);
         if (action != manifest.actions.end()) {
+            // A closed polled action is idle, not a refused user interaction. Avoid
+            // logging every tick while a module waits to issue its next input pulse.
+            if (!action->second.enabled.Empty()) {
+                const auto gate = ResolveActionRef(action->second.enabled.point, snapshot, std::nullopt);
+                if (!gate || ((gate->f.value_or(static_cast<f64>(gate->i)) != 0.0) ==
+                              action->second.enabled.negate)) {
+                    continue;
+                }
+            }
             RunAction(action->second, snapshot);
         }
     }

@@ -545,15 +545,16 @@ std::vector<u8> ModRuntime::LoadModuleData(const std::string& key) {
     const auto host = module_worker_host; // off the tick thread: see InitializeGameModule
     std::vector<u8> result;
     try {
-        const bool ok = game_module->DataExtensions()->load_data(
-            game_module_instance, &host, key.c_str(), &result,
-            [](void* receiver, const u8* bytes, size_t size) {
-                if ((bytes == nullptr && size != 0) || size > MaxModuleData) {
-                    return;
-                }
-                auto& out = *static_cast<std::vector<u8>*>(receiver);
-                out.assign(bytes, bytes + size);
-            });
+        const bool ok =
+            game_module->DataExtensions()->load_data(
+                game_module_instance, &host, key.c_str(), &result,
+                [](void* receiver, const u8* bytes, size_t size) {
+                    if ((bytes == nullptr && size != 0) || size > MaxModuleData) {
+                        return;
+                    }
+                    auto& out = *static_cast<std::vector<u8>*>(receiver);
+                    out.assign(bytes, bytes + size);
+                }) != 0;
         if (!ok) {
             result.clear();
         }

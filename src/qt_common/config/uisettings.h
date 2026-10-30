@@ -154,6 +154,9 @@ struct Values {
                                            Category::UiGeneral};
 #endif
 
+    // Eden Duo: show the DSMod companion output in its own desktop window while emulating.
+    Setting<bool> enable_second_screen{linkage, false, "enable_second_screen", Category::Ui};
+
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, false, "enable_discord_presence", Category::Ui};
 

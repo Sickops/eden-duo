@@ -7,15 +7,20 @@
 #include <cerrno>
 #include <chrono>
 #include <cstring>
+#include <fstream>
 #include <mutex>
+#include <random>
 #include <stdexcept>
+#include <system_error>
 #include <vector>
 
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -40,12 +45,37 @@ std::string_view Platform() {
     return "android-arm64-v8a";
 #elif defined(__ANDROID__) && defined(__x86_64__)
     return "android-x86_64";
+#elif defined(_WIN32) && defined(_M_X64)
+    return "windows-x86_64";
+#elif defined(_WIN32) && defined(_M_ARM64)
+    return "windows-arm64";
 #elif defined(__linux__) && defined(__x86_64__)
     return "linux-x86_64";
 #elif defined(__linux__) && defined(__aarch64__)
     return "linux-aarch64";
 #else
     return {};
+#endif
+}
+
+/// The suffix a package uses for this platform's module image: shared objects (.so) on Linux and
+/// Android, PE DLLs (.dll) on Windows. Windows packages may also carry the shared packaging
+/// tools' ".so" spelling; the loader reads the image header, not the suffix, so both load.
+constexpr std::string_view ModuleExtension() {
+#ifdef _WIN32
+    return ".dll";
+#else
+    return ".so";
+#endif
+}
+
+/// Platform-specific detail for a failed library load, for the log and the error message.
+std::string LoaderDetail() {
+#ifdef _WIN32
+    return fmt::format("Windows error {}", static_cast<unsigned long>(GetLastError()));
+#else
+    const char* detail = dlerror();
+    return detail != nullptr ? std::string{detail} : std::string{"unknown loader error"};
 #endif
 }
 
@@ -87,7 +117,7 @@ const Ext* NegotiateExtension(const Common::DynamicLibrary& library, const char*
     return ext;
 }
 
-std::filesystem::path CacheDirectory() {
+[[maybe_unused]] std::filesystem::path CacheDirectory() {
     std::scoped_lock lock{cache_mutex};
 #ifdef __ANDROID__
     // External app storage is not an executable-code location. Do not silently fall back to it.
@@ -153,7 +183,35 @@ void StageModule(const std::vector<u8>& bytes, const std::string& title,
         throw std::runtime_error("cannot finish dual-screen module staging");
     }
 #else
-    throw std::runtime_error("native dual-screen modules are unsupported on this platform");
+    // Windows has no mkdtemp/O_NOFOLLOW equivalent for this, but it does not need them: the image
+    // is copied out of the package into a fresh directory of the private cache, so an in-place
+    // package update can never swap the file under a running module. LoadLibrary maps it from
+    // there; the directory is removed again once the library is unloaded.
+    const auto root = CacheDirectory();
+    std::error_code error;
+    std::filesystem::create_directories(root, error);
+    if (error) {
+        throw std::runtime_error("cannot create the dual-screen module cache directory");
+    }
+    std::mt19937_64 random{std::random_device{}()};
+    for (int attempt = 0; attempt < 32 && directory.empty(); ++attempt) {
+        const auto candidate = root / fmt::format("module-{:016x}", random());
+        error.clear();
+        if (std::filesystem::create_directory(candidate, error) && !error) {
+            directory = candidate;
+        }
+    }
+    if (directory.empty()) {
+        throw std::runtime_error("cannot create private module staging directory");
+    }
+    const auto filename = directory / (title + std::string{ModuleExtension()});
+    std::ofstream out{filename, std::ios::binary | std::ios::trunc};
+    out.write(reinterpret_cast<const char*>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+    out.close();
+    if (!out) {
+        throw std::runtime_error("cannot stage dual-screen module");
+    }
 #endif
 }
 } // namespace
@@ -238,24 +296,31 @@ std::unique_ptr<GameModule> GameModule::Load(FileSys::VirtualDir assets, u64 tit
             throw std::runtime_error(fmt::format("package has no {} module", platform));
         }
         const auto& entry = libraries.at(platform);
-        const auto expected_path = fmt::format("modules/{}/{}.so", platform, title);
-        if (entry.at("path").get<std::string>() != expected_path) {
+        const auto declared_path = entry.at("path").get<std::string>();
+        const auto canonical_path =
+            fmt::format("modules/{}/{}{}", platform, title, ModuleExtension());
+        bool path_ok = declared_path == canonical_path;
+#ifdef _WIN32
+        // Packaging tools shared with the Linux/Android builds always name the image ".so", so a
+        // Windows package may keep that spelling for the same DLL.
+        path_ok = path_ok || declared_path == fmt::format("modules/{}/{}.so", platform, title);
+#endif
+        if (!path_ok) {
             throw std::runtime_error("invalid title-ID module filename");
         }
         const auto expected_hash = entry.at("sha256").get<std::string>();
-        const auto bytes = ReadBounded(assets->GetFileRelative(expected_path), MaxNativeModuleBytes);
+        const auto bytes = ReadBounded(assets->GetFileRelative(declared_path), MaxNativeModuleBytes);
         if (!IsHex(expected_hash, 64) || Upper(Digest(bytes)) != Upper(expected_hash)) {
             throw std::runtime_error("dual-screen module checksum mismatch; reinstall the package");
         }
         auto loaded = std::unique_ptr<GameModule>{new GameModule};
         StageModule(bytes, title, loaded->staging_directory);
-        const auto filename = loaded->staging_directory / (title + ".so");
-        if (!loaded->library.Open(filename.string().c_str())) {
-#ifndef _WIN32
-            const char* detail = dlerror();
-            LOG_ERROR(Core, "DSMod module loader: {}", detail ? detail : "unknown loader error");
-#endif
-            throw std::runtime_error("cannot load dual-screen module for this device");
+        const auto filename = loaded->staging_directory / (title + std::string{ModuleExtension()});
+        if (!loaded->library.Open(filename)) {
+            const auto detail = LoaderDetail();
+            LOG_ERROR(Core, "DSMod module loader: {}", detail);
+            throw std::runtime_error(
+                fmt::format("cannot load dual-screen module for this device ({})", detail));
         }
         EdenDsmodGetModuleFn entrypoint{};
         if (!loaded->library.GetSymbol("eden_dsmod_get_module", &entrypoint)) {

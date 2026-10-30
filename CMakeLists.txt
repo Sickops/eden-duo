@@ -83,6 +83,18 @@ option(EDEN_DSMOD_BUILD_DEV_TOOLS "Build the DSMod RE/heap-analysis developer to
 option(ENABLE_DEBUG_TOOLS "Enable debugging tools (maxwell disassembler, SPIRV translator, etc)" OFF)
 option(ENABLE_WERROR "Enable -Werror diagnostics" ON)
 
+# MSVC 19.50 (Visual Studio 18) diagnoses extra shadowing and conversion warnings in code that was
+# written for 19.4x, and upstream promotes several MSVC warnings to errors. Keep that strictness
+# for the toolchains upstream was built against, but not for the newer one where it turns correct
+# code into build failures. Pass -DEDEN_MSVC_STRICT_WARNINGS=ON to opt back in.
+if (MSVC AND MSVC_VERSION GREATER_EQUAL 1950)
+    set(EDEN_MSVC_STRICT_WARNINGS_DEFAULT OFF)
+else()
+    set(EDEN_MSVC_STRICT_WARNINGS_DEFAULT ON)
+endif()
+option(EDEN_MSVC_STRICT_WARNINGS "Promote upstream's strict MSVC warning set to errors"
+       ${EDEN_MSVC_STRICT_WARNINGS_DEFAULT})
+
 # Lossless Scaling frame generation. Only Android.
 cmake_dependent_option(ENABLE_LSFG "Enable Lossless Scaling frame generation" ON "ANDROID" OFF)
 

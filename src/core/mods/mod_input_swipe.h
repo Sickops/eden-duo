@@ -105,9 +105,10 @@ public:
                 return;
             }
         }
-        const bool far = horizontal ? std::llabs(dx) >= need_px && Dominant(dx, dy)
-                                    : std::llabs(dy) >= need_px && Dominant(dy, dx);
-        if (!reached && far) {
+        // `far` is a legacy empty macro in the Windows SDK headers, so it cannot be a variable name.
+        const bool far_enough = horizontal ? std::llabs(dx) >= need_px && Dominant(dx, dy)
+                                           : std::llabs(dy) >= need_px && Dominant(dy, dx);
+        if (!reached && far_enough) {
             if (now_ms - lock_ms > SwipeMaxMs) {
                 armed = false; // too slow: a drag, not a swipe
                 return;

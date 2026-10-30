@@ -470,7 +470,18 @@ void DSModAuxPresenter::SyncAuxWindow() {
     }
     Core::Frontend::EmuWindow* const wanted = pending_aux_window.load();
     if (aux_window == wanted) {
-        return;
+        if (aux_window == nullptr) {
+            return;
+        }
+        // Same window, so this is either a spurious dirty flag or a panel resize. The swapchain is
+        // built from the layout captured at attach time, so rebuild everything when the window's
+        // framebuffer layout changed size (the Qt window calls SetAuxWindow on every resize).
+        const auto& layout = aux_window->GetFramebufferLayout();
+        if (aux_swapchain && aux_swapchain->GetWidth() == layout.width &&
+            aux_swapchain->GetHeight() == layout.height) {
+            return;
+        }
+        LOG_INFO(Render_Vulkan, "DSMod aux window resized to {}x{}", layout.width, layout.height);
     }
     auto& aux = gpu.DSModAux();
     if (aux_window != nullptr) {

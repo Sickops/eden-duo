@@ -1,0 +1,354 @@
+Add Windows (MSVC) support to the native companion build.
+
+Apply from the companion repository root:
+
+    git apply companions-windows.patch
+
+The Eden Duo checkout passed as EDEN_SOURCE_ROOT must provide the portable
+DSMOD_SDK_EXPORT macro from src/core/mods/modules/dsmod_module_sdk.h
+(__declspec/dllexport is not needed: the exports are named on the link line).
+
+What it changes:
+
+  native/modules/CMakeLists.txt
+    * project(... LANGUAGES C CXX): the ooz/zstd/lz4 sources are C.
+    * dsmod_add_module(): /utf-8 /bigobj and _USE_MATH_DEFINES/NOMINMAX on MSVC.
+    * dsmod_add_module(): /EXPORT:<symbol> for every EXPORTS entry (no version script).
+    * End of file: drops GCC/Clang-only compile options (-ffp-contract, -fno-*,
+      -ffile-prefix-map, -Wall/-Wextra/-Werror/-w, -O2) from the module targets
+      and from sources with per-file options.
+    * dsmod-belmont: the Castlevania module (built by belmont_build.sh upstream)
+      as a normal target, with lz4 from Eden's CPM cache.
+
+  native/modules/third_party/ooz/stdafx.h
+    * <intrin.h> on MSVC, builtin emulation and __forceinline macro skipped.
+
+  native/modules/01007EF00011E000.cpp
+    * BOTW_DSMOD_EXPORT instead of a bare __attribute__((visibility)) on the getters.
+
+  native/modules/acnh_publish_diag.cpp
+    * printf format attribute only on GCC/Clang.
+
+  native/modules/p5r_recipes.h
+    * _create_locale/_strtod_l (UCRT) instead of newlocale/strtod_l.
+
+  native/modules/p5r_inventory_reader.h
+    * pointer-based std::find, so the result compares with text.data() + 16.
+
+  tools/build_dualscreen_package.py
+    * windows-x86_64 is a supported module platform; its payload is <TITLEID>.dll
+      and the ELF section-name hygiene check is skipped for PE images.
+
+diff --git a/native/modules/01007EF00011E000.cpp b/native/modules/01007EF00011E000.cpp
+index 890893f..546a7ee 100644
+--- a/native/modules/01007EF00011E000.cpp
++++ b/native/modules/01007EF00011E000.cpp
+@@ -1,6 +1,9 @@
+ // SPDX-License-Identifier: GPL-3.0-or-later
+ // BOTW 1.6.0 private live slice with a guarded native UI-thread selection bridge.
+ #include <ctime>
++#if defined(_WIN32)
++#include <windows.h> // GetThreadTimes, for the fx telemetry's thread CPU clock
++#endif
+ #include "botw_runes.h"
+ #include "botw_gear.h"
+ #include "botw_bridge.h"
+@@ -1975,7 +1978,14 @@ EdenDsmodBool load_image(void*,const EdenDsmodHostApi* h,const char* key,void* r
+       out.resize(n);
+       return h->read_romfs(h->userdata,path,0,out.data(),n)==n;};
+     // Telemetry (thread CPU time): one line when the layouts load, then every 100 frames.
++#if defined(_WIN32)
++    const auto cpu_ms=[]{FILETIME created{},exited{},kernel{},user{};GetThreadTimes(GetCurrentThread(),&created,&exited,&kernel,&user);
++      ULARGE_INTEGER k{},u{};k.LowPart=kernel.dwLowDateTime;k.HighPart=kernel.dwHighDateTime;
++      u.LowPart=user.dwLowDateTime;u.HighPart=user.dwHighDateTime;
++      return double(k.QuadPart+u.QuadPart)/1e4;}; // 100 ns ticks -> ms
++#else
+     const auto cpu_ms=[]{timespec t{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);return double(t.tv_sec)*1e3+double(t.tv_nsec)/1e6;};
++#endif
+     static bool loaded_logged=false;static double render_ms=0;static unsigned rendered=0;
+     const double t0=cpu_ms();
+     if(!renderer.Ensure(read))return false;
+@@ -1992,14 +2002,21 @@ EdenDsmodBool load_image(void*,const EdenDsmodHostApi* h,const char* key,void* r
+ const EdenDsmodModuleExtensions extensions{EDEN_DSMOD_EXT_VERSION,
+   sizeof(EdenDsmodModuleExtensions),EDEN_DSMOD_EXT_HASH,configure,on_action,load_image};
+ } // namespace
+-extern "C" __attribute__((visibility("default"))) const EdenDsmodModuleApi *
++// Windows DLLs name their exports on the linker command line (/EXPORT:), so the visibility
++// attribute is only needed on ELF/Mach-O; cl.exe has no __attribute__ at all.
++#if defined(_MSC_VER)
++#define BOTW_DSMOD_EXPORT
++#else
++#define BOTW_DSMOD_EXPORT __attribute__((visibility("default")))
++#endif
++extern "C" BOTW_DSMOD_EXPORT const EdenDsmodModuleApi *
+ eden_dsmod_get_module(uint32_t v, uint64_t hash) {
+   return v == EDEN_DSMOD_MODULE_ABI_VERSION &&
+                  hash == EDEN_DSMOD_MODULE_ABI_HASH
+              ? &api
+              : nullptr;
+ }
+-extern "C" __attribute__((visibility("default"))) const EdenDsmodModuleExtensions*
++extern "C" BOTW_DSMOD_EXPORT const EdenDsmodModuleExtensions*
+ eden_dsmod_get_extensions(uint32_t v,uint64_t hash) {
+   return v==EDEN_DSMOD_EXT_VERSION && hash==EDEN_DSMOD_EXT_HASH ? &extensions : nullptr;
+ }
+diff --git a/native/modules/CMakeLists.txt b/native/modules/CMakeLists.txt
+index e782dc9..53e4e54 100644
+--- a/native/modules/CMakeLists.txt
++++ b/native/modules/CMakeLists.txt
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-3.0-or-later
+ 
+ cmake_minimum_required(VERSION 3.22)
+-project(eden-dsmod-native-modules LANGUAGES CXX)
++project(eden-dsmod-native-modules LANGUAGES C CXX)
+ 
+ if(ANDROID AND NOT ANDROID_STL STREQUAL "c++_static")
+     message(FATAL_ERROR "Native DSMod modules must use -DANDROID_STL=c++_static")
+@@ -64,7 +64,17 @@ function(dsmod_add_module target)
+         "${EDEN_SOURCE_ROOT}/src/core/mods/modules/dsmod_module_sdk.h"
+         "${EDEN_SOURCE_ROOT}/src/core/mods/dsmod_module_abi.h"
+         "${EDEN_SOURCE_ROOT}/src/core/mods/dsmod_module_extensions.h")
++    # Remember the target so the MSVC block at the end of this file can normalise its options.
++    set_property(GLOBAL APPEND PROPERTY DSMOD_MODULE_TARGETS ${target})
+     target_compile_features(${target} PRIVATE cxx_std_20)
++    if(MSVC)
++        # fmt 12 static_asserts on MSVC without /utf-8 (source and execution charset UTF-8); the
++        # biggest translation units (dread, p5r) also exceed the default object section limit.
++        # _USE_MATH_DEFINES gives M_PI to the image code; NOMINMAX keeps windows.h from defining
++        # min/max macros over the STL calls.
++        target_compile_options(${target} PRIVATE /utf-8 /bigobj)
++        target_compile_definitions(${target} PRIVATE _USE_MATH_DEFINES NOMINMAX)
++    endif()
+     target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${EDEN_SOURCE_ROOT}/src"
+         ${ARG_INCLUDE_DIRECTORIES})
+     if(ARG_COMPILE_DEFINITIONS)
+@@ -87,6 +97,13 @@ function(dsmod_add_module target)
+             "-Wl,--no-undefined"
+             "-Wl,--version-script=${script_file}")
+         set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${script_file}")
++    elseif(MSVC)
++        # Windows DLL: the SDK getters are plain extern "C" (the header cannot mark them
++        # __declspec(dllexport) without clashing with dsmod_module_abi.h), so name every export
++        # explicitly. x64 C symbols are undecorated, which is what the host looks up.
++        foreach(symbol IN LISTS ARG_EXPORTS)
++            target_link_options(${target} PRIVATE "/EXPORT:${symbol}")
++        endforeach()
+     endif()
+     if(ANDROID)
+         target_link_options(${target} PRIVATE "-Wl,--exclude-libs,ALL")
+@@ -997,3 +1014,61 @@ if(BUILD_TESTING AND NOT ANDROID)
+   add_executable(dsmod-echoes-quick-slot-bridge-test echoes_quick_slot_bridge_test.cpp)
+   add_test(NAME dsmod-echoes-quick-slot-bridge COMMAND dsmod-echoes-quick-slot-bridge-test)
+ endif()
++
++# Castlevania: Belmont's Curse (title 0100BA4026E94000). Upstream builds this one outside CMake
++# (see belmont_build.sh); it is declared here so every platform shares one target and the Windows
++# DLL exports the same getters. Its romfs reader decompresses with lz4, taken from Eden's cache.
++file(GLOB BELMONT_LZ4_SOURCES LIST_DIRECTORIES false "${EDEN_CPM_CACHE}/lz4/*/lib/lz4.c")
++list(LENGTH BELMONT_LZ4_SOURCES belmont_lz4_count)
++if(NOT belmont_lz4_count EQUAL 1)
++    message(FATAL_ERROR "Expected one lz4 source in ${EDEN_CPM_CACHE}/lz4; configure the compatible Eden Duo checkout first")
++endif()
++list(GET BELMONT_LZ4_SOURCES 0 BELMONT_LZ4_SOURCE)
++get_filename_component(BELMONT_LZ4_DIR "${BELMONT_LZ4_SOURCE}" DIRECTORY)
++dsmod_add_module(dsmod-belmont EXCLUDE_FROM_ALL TITLE 0100BA4026E94000
++    SOURCES 0100BA4026E94000.cpp belmont_assets.cpp belmont_map_assets.cpp belmont_map_tiles.cpp
++        belmont_map_fog.cpp belmont_map_render.cpp belmont_world_map.cpp belmont_map_labels.cpp
++        belmont_map_landmarks.cpp belmont_equipment_assets.cpp belmont_landmark_render.cpp
++        belmont_objective_labels.cpp chained_echoes_unity.cpp
++        "${EDEN_SOURCE_ROOT}/externals/bc_decoder/bc_decoder.cpp"
++        "${BELMONT_LZ4_SOURCE}"
++    INCLUDE_DIRECTORIES "${EDEN_SOURCE_ROOT}/externals/bc_decoder" "${BELMONT_LZ4_DIR}"
++    EXPORTS eden_dsmod_get_module eden_dsmod_get_extensions
++        eden_dsmod_get_font_extensions eden_dsmod_get_data_extensions)
++set_source_files_properties("${EDEN_SOURCE_ROOT}/externals/bc_decoder/bc_decoder.cpp"
++    PROPERTIES COMPILE_OPTIONS -w) # upstream file
++
++# ---- MSVC: drop GCC/Clang-only compile options -----------------------------------------------
++# The module sources are written for GCC/Clang (Linux, Android, macOS): -ffp-contract, -fno-*,
++# -ffile-prefix-map, -Wall/-Wextra/-Werror/-w and -O2 are rejected or meaningless under cl.exe.
++# Remove every option that starts with '-' from the module targets and from the sources whose
++# options were set individually (dread_mapgen, mk8d_assets, echoes_fonts, DQ3's ooz files, the
++# bc_decoder copy). Warnings stay at the Eden Duo MSVC defaults (/W3 /WX-).
++if(MSVC)
++    get_property(msvc_targets GLOBAL PROPERTY DSMOD_MODULE_TARGETS)
++    foreach(target IN LISTS msvc_targets)
++        get_target_property(target_options ${target} COMPILE_OPTIONS)
++        if(target_options)
++            set(keep)
++            foreach(option IN LISTS target_options)
++                if(NOT option MATCHES "^-")
++                    list(APPEND keep "${option}")
++                endif()
++            endforeach()
++            set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "${keep}")
++        endif()
++        get_target_property(target_sources ${target} SOURCES)
++        foreach(source IN LISTS target_sources)
++            get_source_file_property(source_options "${source}" COMPILE_OPTIONS)
++            if(source_options)
++                set(keep)
++                foreach(option IN LISTS source_options)
++                    if(NOT option MATCHES "^-")
++                        list(APPEND keep "${option}")
++                    endif()
++                endforeach()
++                set_source_files_properties("${source}" PROPERTIES COMPILE_OPTIONS "${keep}")
++            endif()
++        endforeach()
++    endforeach()
++endif()
+\ No newline at end of file
+diff --git a/native/modules/acnh_publish_diag.cpp b/native/modules/acnh_publish_diag.cpp
+index 860a30e..be6e409 100644
+--- a/native/modules/acnh_publish_diag.cpp
++++ b/native/modules/acnh_publish_diag.cpp
+@@ -22,7 +22,11 @@ namespace acnh {
+ using namespace pub;
+ 
+ namespace {
++#if defined(__GNUC__) || defined(__clang__)
+ std::string Fmt(const char* f, ...) __attribute__((format(printf, 1, 2)));
++#else
++std::string Fmt(const char* f, ...);
++#endif
+ std::string Fmt(const char* f, ...) {
+     char buf[320];
+     va_list ap;
+diff --git a/native/modules/p5r_inventory_reader.h b/native/modules/p5r_inventory_reader.h
+index 65d9b03..87293d1 100644
+--- a/native/modules/p5r_inventory_reader.h
++++ b/native/modules/p5r_inventory_reader.h
+@@ -1123,8 +1123,8 @@ public:
+         if (!Get(read, r.gun_suffix[level - 1] + 8 * u64(lang), suffix) || !suffix ||
+             !read(suffix, text.data(), 16))
+             return false;
+-        const auto* nul = std::find(text.begin(), text.begin() + 16, '\0');
+-        if (nul == text.begin() + 16)
++        const char* nul = std::find(text.data(), text.data() + 16, '\0');
++        if (nul == text.data() + 16)
+             return false;
+         for (const char* p = text.data(); p != nul; ++p)
+             if (static_cast<unsigned char>(*p) < 0x20 || static_cast<unsigned char>(*p) >= 0x7f)
+diff --git a/native/modules/p5r_recipes.h b/native/modules/p5r_recipes.h
+index ae062f4..92fb018 100644
+--- a/native/modules/p5r_recipes.h
++++ b/native/modules/p5r_recipes.h
+@@ -70,9 +70,15 @@ inline bool ParseDouble(std::string_view s, double& v) {
+         return false;
+     std::memcpy(buf, s.data(), s.size());
+     buf[s.size()] = 0;
+-    static const locale_t c_locale = newlocale(LC_ALL_MASK, "C", locale_t(0));
+     char* end = nullptr;
++#if defined(_MSC_VER)
++    // UCRT spells the same thing _create_locale/_strtod_l.
++    static const _locale_t c_locale = _create_locale(LC_ALL, "C");
++    v = c_locale ? _strtod_l(buf, &end, c_locale) : std::strtod(buf, &end);
++#else
++    static const locale_t c_locale = newlocale(LC_ALL_MASK, "C", locale_t(0));
+     v = c_locale ? strtod_l(buf, &end, c_locale) : std::strtod(buf, &end);
++#endif
+     return end == buf + s.size();
+ }
+ 
+diff --git a/native/modules/third_party/ooz/stdafx.h b/native/modules/third_party/ooz/stdafx.h
+index c722587..a2e5349 100644
+--- a/native/modules/third_party/ooz/stdafx.h
++++ b/native/modules/third_party/ooz/stdafx.h
+@@ -11,6 +11,12 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++// MSVC ships the real intrinsics in <intrin.h>; the emulation below is for GCC/Clang. It has to
++// come before ooz_simd.h, which aliases __m128i and friends to its own scalar types.
++#if defined(_MSC_VER)
++#include <intrin.h>
++#endif
++
+ #include "ooz_simd.h"
+ 
+ typedef unsigned char byte;
+@@ -23,6 +29,8 @@ typedef unsigned short uint16;
+ typedef signed short int16;
+ typedef unsigned int uint;
+ 
++// GCC/Clang only: MSVC provides these as intrinsics (<intrin.h> above) and rejects the builtins.
++#if !defined(_MSC_VER)
+ // MSVC _BitScanReverse/_BitScanForward: index of the highest/lowest set bit; 0 when m == 0
+ // (the index is then left untouched, as on MSVC).
+ static inline unsigned char _BitScanReverse(unsigned long* i, uint32 m) {
+@@ -79,6 +87,9 @@ static inline uint64 _rotl64(uint64 v, int n) {
+     n &= 63;
+     return n ? (v << n) | (v >> (64 - n)) : v;
+ }
++#endif // !_MSC_VER
+ 
++#if !defined(_MSC_VER)
+ #define __forceinline inline __attribute__((always_inline))
++#endif
+ #define _countof(a) (sizeof(a) / sizeof(*(a)))
+diff --git a/tools/build_dualscreen_package.py b/tools/build_dualscreen_package.py
+index 86cabe9..1b5fccf 100644
+--- a/tools/build_dualscreen_package.py
++++ b/tools/build_dualscreen_package.py
+@@ -29,7 +29,12 @@ from pathlib import Path, PurePosixPath
+ TITLE_ID_RE = re.compile(r"^[0-9A-Fa-f]{16}$")
+ BUILD_ID_RE = re.compile(r"^(?:[0-9A-F]{16}|[0-9A-F]{64})$")
+ VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
+-PLATFORMS = {"android-arm64-v8a", "linux-x86_64"}
++PLATFORMS = {"android-arm64-v8a", "linux-x86_64", "windows-x86_64"}
++
++
++def module_suffix(platform: str) -> str:
++    """Windows modules are DLLs; every other supported host loads ELF/Mach-O .so files."""
++    return ".dll" if platform.startswith("windows-") else ".so"
+ 
+ # Investigation artefacts must stay out of a portable package.  Referenced map, icon, HUD, and
+ # texture assets are package content and are retained; the manifest reference check below catches
+@@ -139,12 +144,15 @@ def check_module_hygiene(platform: str, path: Path) -> None:
+             )
+     # A stripped shared library keeps .dynsym/.dynstr (needed to load) but drops the debug
+     # sections and the non-dynamic symbol table; their section-name strings disappear with them.
+-    for debug_section in (b".debug_info", b".debug_str", b".debug_line", b".symtab"):
+-        if debug_section in data:
+-            raise PackageError(
+-                f"module {platform} ({path}) is not fully stripped (found "
+-                f"{debug_section!r} section); run llvm-strip --strip-all before packaging"
+-            )
++    # PE images have no such section names (the linker keeps the PDB path, not the sections), so
++    # the check only applies to the ELF/Mach-O modules.
++    if not platform.startswith("windows-"):
++        for debug_section in (b".debug_info", b".debug_str", b".debug_line", b".symtab"):
++            if debug_section in data:
++                raise PackageError(
++                    f"module {platform} ({path}) is not fully stripped (found "
++                    f"{debug_section!r} section); run llvm-strip --strip-all before packaging"
++                )
+ 
+ 
+ def parse_module(value: str) -> tuple[str, Path]:
+@@ -157,8 +165,10 @@ def parse_module(value: str) -> tuple[str, Path]:
+     module_path = Path(path).expanduser()
+     if not module_path.is_file():
+         raise PackageError(f"module path does not exist: {module_path}")
+-    if module_path.suffix.lower() != ".so":
+-        raise PackageError(f"module must be a .so file: {module_path}")
++    if module_path.suffix.lower() != module_suffix(platform):
++        raise PackageError(
++            f"module for {platform} must be a {module_suffix(platform)} file: {module_path}"
++        )
+     return platform, module_path
+ 
+ 
+@@ -330,7 +340,9 @@ def build_package(
+                 check_module_hygiene(platform, source)
+                 # The metadata path is relative to dualscreen/. The archive member receives the
+                 # dualscreen/ prefix when this staged tree is zipped.
+-                module_relative = PurePosixPath("modules", platform, f"{expected_title}.so")
++                module_relative = PurePosixPath(
++                    "modules", platform, f"{expected_title}{module_suffix(platform)}"
++                )
+                 destination = staged / "dualscreen" / Path(*module_relative.parts)
+                 destination.parent.mkdir(parents=True, exist_ok=True)
+                 shutil.copyfile(source, destination)

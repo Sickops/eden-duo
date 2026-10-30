@@ -624,7 +624,7 @@ struct NxAssetState {
     void RunFlatStep(const std::string& name, const CompositeRequest& request);
     /// Flat mode: layer `index` decoded, resampled, cut by its mask and trimmed (empty on failure).
     NX::PlacedRaster FlatLayer(FlatCache& cache, const CompositeRequest& request, size_t index,
-                               bool stash, bool& failed);
+                               bool stash, bool& read_failed);
     void PushComposite(const std::string& name, const CompositeRequest& request, Image&& image);
     void Rasterize(CompositeCache& cache, const CompositeRequest& request, size_t index);
     void Push(Result&& result) {
@@ -1256,17 +1256,17 @@ void NxAssetState::PushComposite(const std::string& name, const CompositeRequest
 }
 
 NX::PlacedRaster NxAssetState::FlatLayer(FlatCache& cache, const CompositeRequest& request,
-                                         size_t index, bool stash, bool& failed) {
+                                         size_t index, bool stash, bool& read_failed) {
     const CompositeDef& def = *request.def;
     const CompositeLayer& layer = def.layers[index];
     const auto started = NxClock::now();
     std::string error;
     Image source;
-    failed = false;
+    read_failed = false;
     if (LoadImage(layer.src, request.roots, source, error) != LocateStatus::Ok) {
         LOG_WARNING(Core, "DSMod composite '{}': layer {} '{}' unavailable: {}", def.name, index,
                     layer.src, error);
-        failed = true;
+        read_failed = true;
         return {};
     }
     cache.decode_ms += MsSince(started);
@@ -1323,7 +1323,7 @@ NX::PlacedRaster NxAssetState::FlatLayer(FlatCache& cache, const CompositeReques
             if (LoadImage(layer.mask_src, request.roots, image, error) != LocateStatus::Ok) {
                 LOG_WARNING(Core, "DSMod composite '{}': mask '{}' unavailable: {}", def.name,
                             layer.mask_src, error);
-                failed = true;
+                read_failed = true;
                 return {};
             }
             cache.decode_ms += MsSince(mask_started);
@@ -1412,9 +1412,9 @@ void NxAssetState::RunFlatStep(const std::string& name, const CompositeRequest& 
         }
         for (size_t i = 0; i < n; ++i) {
             if (wanted[i] != 0 && fc.in_base[i] == 0 && fc.retries.Ready(i, now)) {
-                bool failed = false;
-                const NX::PlacedRaster raster = FlatLayer(fc, request, i, false, failed);
-                if (failed) {
+                bool layer_failed = false;
+                const NX::PlacedRaster raster = FlatLayer(fc, request, i, false, layer_failed);
+                if (layer_failed) {
                     fc.retries.Fail(name, i);
                     return;
                 }
@@ -1466,9 +1466,9 @@ void NxAssetState::RunFlatStep(const std::string& name, const CompositeRequest& 
         ++fc.cursor;
     }
     if (fc.cursor < n) {
-        bool failed = false;
-        const NX::PlacedRaster raster = FlatLayer(fc, request, fc.cursor, true, failed);
-        if (failed) {
+        bool layer_failed = false;
+        const NX::PlacedRaster raster = FlatLayer(fc, request, fc.cursor, true, layer_failed);
+        if (layer_failed) {
             // Left out of this build; the settled pass tries it again on top.
             fc.target[fc.cursor] = 2;
             fc.retries.Fail(name, fc.cursor);

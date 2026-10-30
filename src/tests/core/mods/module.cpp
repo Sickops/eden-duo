@@ -23,6 +23,17 @@ namespace {
 constexpr u64 TitleId = 0x0100000000000001ULL;
 constexpr std::string_view BuildId = "AAAAAAAAAAAAAAAA";
 
+// The loader stages the image with the host platform's directory and suffix (mod_module.cpp
+// Platform() / ModuleExtension()).
+#if defined(_WIN32)
+constexpr const char* PlatformName = "windows-x86_64";
+constexpr const char* ModuleSuffix = ".dll";
+#else
+constexpr const char* PlatformName = "linux-x86_64";
+constexpr const char* ModuleSuffix = ".so";
+#endif
+const std::string ModuleName = std::string{"0100000000000001"} + ModuleSuffix;
+
 std::vector<u8> ReadFile(const std::filesystem::path& path) {
     std::ifstream file(path, std::ios::binary);
     return {std::istreambuf_iterator<char>{file}, std::istreambuf_iterator<char>{}};
@@ -44,10 +55,10 @@ std::string Digest(const std::vector<u8>& bytes) {
 FileSys::VirtualDir MakeAssets(std::string manifest, const std::vector<u8>& module) {
     using FileSys::VectorVfsDirectory;
     using FileSys::VectorVfsFile;
-    const auto module_file = std::make_shared<VectorVfsFile>(module, "0100000000000001.so");
+    const auto module_file = std::make_shared<VectorVfsFile>(module, ModuleName);
     const auto platform =
         std::make_shared<VectorVfsDirectory>(std::vector<FileSys::VirtualFile>{module_file},
-                                             std::vector<FileSys::VirtualDir>{}, "linux-x86_64");
+                                             std::vector<FileSys::VirtualDir>{}, PlatformName);
     const auto modules = std::make_shared<VectorVfsDirectory>(
         std::vector<FileSys::VirtualFile>{}, std::vector<FileSys::VirtualDir>{platform}, "modules");
     const auto manifest_file = std::make_shared<VectorVfsFile>(
@@ -63,8 +74,9 @@ std::string Manifest(std::string_view module_json) {
 }
 
 std::string GoodModuleJson(const std::string& digest) {
-    return R"({"abi":1,"build_ids":["AAAAAAAAAAAAAAAA"],"libraries":{"linux-x86_64":{"path":"modules/linux-x86_64/0100000000000001.so","sha256":")" +
-           digest + R"("}}})";
+    return R"({"abi":1,"build_ids":["AAAAAAAAAAAAAAAA"],"libraries":{")" + std::string{PlatformName} +
+           R"(":{"path":"modules/)" + PlatformName + "/" + ModuleName + R"(","sha256":")" + digest +
+           R"("}}})";
 }
 
 std::filesystem::path TestCache() {
@@ -168,11 +180,15 @@ TEST_CASE("DSMod native module loads and removes its staged copy", "[dsmod][modu
     REQUIRE(std::distance(std::filesystem::directory_iterator(cache),
                           std::filesystem::directory_iterator{}) == 1);
     const auto directory = std::filesystem::directory_iterator(cache)->path();
-    const auto permissions =
-        std::filesystem::status(directory / "0100000000000001.so").permissions();
+    REQUIRE(std::filesystem::exists(directory / ModuleName));
+#ifndef _WIN32
+    // POSIX staging creates the image read-only (0600) so that no writable path ever reaches the
+    // loader; Windows copies it into a private cache directory instead (see StageModule).
+    const auto permissions = std::filesystem::status(directory / ModuleName).permissions();
     REQUIRE(
         (permissions & (std::filesystem::perms::owner_write | std::filesystem::perms::group_write |
                         std::filesystem::perms::others_write)) == std::filesystem::perms::none);
+#endif
 
     loaded.reset();
     REQUIRE(std::filesystem::directory_iterator(cache) == std::filesystem::directory_iterator{});

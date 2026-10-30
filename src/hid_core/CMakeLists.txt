@@ -142,7 +142,7 @@ add_library(hid_core STATIC
     resource_manager.h
 )
 
-if (MSVC)
+if (MSVC AND EDEN_MSVC_STRICT_WARNINGS)
     target_compile_options(hid_core PRIVATE
         /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
         /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
@@ -150,7 +150,7 @@ if (MSVC)
         /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
         /we4800 # Implicit conversion from 'type' to bool. Possible information loss
     )
-else()
+elseif (NOT MSVC)
     target_compile_options(hid_core PRIVATE
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wconversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>

@@ -45,6 +45,7 @@ class EmuThread;
 class GameList;
 class GImageInfo;
 class GRenderWindow;
+class AuxRenderWindow;
 class LoadingScreen;
 class OverlayDialog;
 class ControllerDialog;
@@ -279,6 +280,10 @@ private:
     void SetDiscordEnabled(bool state);
     void LoadAmiibo(const QString& filename);
 
+    /// Eden Duo: creates/destroys the DSMod companion window. Only valid while emulation runs.
+    void CreateSecondScreen();
+    void DestroySecondScreen();
+
     bool SelectAndSetCurrentUser(const Core::Frontend::ProfileSelectParameters& parameters);
 
     /**
@@ -364,6 +369,8 @@ private slots:
     void OnMenuLoadFolder();
     void IncrementInstallProgress();
     void OnMenuInstallToNAND();
+    void OnMenuInstallDualScreenMod();
+    void OnToggleSecondScreen(bool enabled);
     void OnMenuRecentFile();
     void OnConfigure();
     void OnConfigureTas();
@@ -497,6 +504,9 @@ private:
     MultiplayerState* multiplayer_state = nullptr;
 
     GRenderWindow* render_window = nullptr;
+    /// Eden Duo: second desktop window presenting the DSMod companion output.
+    std::unique_ptr<AuxRenderWindow> second_screen;
+    QAction* second_screen_action = nullptr;
     GameList* game_list = nullptr;
     LoadingScreen* loading_screen = nullptr;
     QTimer shutdown_timer;

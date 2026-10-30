@@ -800,9 +800,9 @@ bool BuildBffntFont(std::span<const u8> file, FontMetrics& metrics, Image& atlas
     // Every other character the font has (Latin Extended, Cyrillic, arrows, button pictograms
     // ...), looked up sparsely: the game's own text needs more than Latin-1.
     metrics.extra.clear();
-    for (const auto& [code, index] : info.cmap) {
-        if ((code < first || code > last) && index / per_sheet < sheet_count) {
-            metrics.extra.emplace(static_cast<char32_t>(code), glyph_for(index));
+    for (const auto& [code, glyph_index] : info.cmap) {
+        if ((code < first || code > last) && glyph_index / per_sheet < sheet_count) {
+            metrics.extra.emplace(static_cast<char32_t>(code), glyph_for(glyph_index));
         }
     }
     metrics.ascent = info.baseline;

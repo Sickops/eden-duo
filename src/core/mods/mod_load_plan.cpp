@@ -224,8 +224,8 @@ bool ModLoadPlan::Apply(std::span<u8> module_image, VAddr load_base, VAddr mailb
     } else if (code_address) {
         return false;
     }
-    const auto& writes = combined;
-    for (const auto& write : writes) {
+    const auto& planned_writes = combined;
+    for (const auto& write : planned_writes) {
         if (write.expected.empty() || write.expected.size() != write.replacement.size() ||
             AddOverflows(write.offset, write.expected.size()) ||
             write.offset + write.expected.size() > module_image.size() ||
@@ -234,19 +234,20 @@ bool ModLoadPlan::Apply(std::span<u8> module_image, VAddr load_base, VAddr mailb
             return false;
         }
     }
-    for (size_t i = 0; i < writes.size(); ++i) {
-        const u64 end = writes[i].offset + writes[i].replacement.size();
-        for (size_t j = i + 1; j < writes.size(); ++j) {
-            const u64 other_end = writes[j].offset + writes[j].replacement.size();
-            if (writes[i].offset < other_end && writes[j].offset < end) {
+    for (size_t i = 0; i < planned_writes.size(); ++i) {
+        const u64 end = planned_writes[i].offset + planned_writes[i].replacement.size();
+        for (size_t j = i + 1; j < planned_writes.size(); ++j) {
+            const u64 other_end =
+                planned_writes[j].offset + planned_writes[j].replacement.size();
+            if (planned_writes[i].offset < other_end && planned_writes[j].offset < end) {
                 return false;
             }
         }
     }
 
     std::vector<std::vector<u8>> staged;
-    staged.reserve(writes.size());
-    for (const auto& write : writes) {
+    staged.reserve(planned_writes.size());
+    for (const auto& write : planned_writes) {
         auto replacement = write.replacement;
         for (const auto& reloc : write.relocations) {
             if (reloc.offset % 4 != 0 || reloc.offset > replacement.size() ||
@@ -337,8 +338,9 @@ bool ModLoadPlan::Apply(std::span<u8> module_image, VAddr load_base, VAddr mailb
         }
         staged.push_back(std::move(replacement));
     }
-    for (size_t i = 0; i < writes.size(); ++i) {
-        std::copy(staged[i].begin(), staged[i].end(), module_image.begin() + writes[i].offset);
+    for (size_t i = 0; i < planned_writes.size(); ++i) {
+        std::copy(staged[i].begin(), staged[i].end(),
+                  module_image.begin() + planned_writes[i].offset);
     }
     return true;
 }
