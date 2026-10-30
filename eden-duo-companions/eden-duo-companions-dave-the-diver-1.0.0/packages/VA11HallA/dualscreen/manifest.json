@@ -1,0 +1,4550 @@
+{
+ "format": 1,
+ "name": "VAllhalla",
+ "title_id": "010086500D3C8000",
+ "_about": "VAllhalla 1.0.0: at work (the game's room \"bar\", or while someone talks on a break) the stand-by overlay is our own drawn bar window (bg_bar_window.png) with Jill right of centre and the counter (bar_counter.png, tools/gen_bar_counter.py) in front of her with her shadow from the neon wall on it (bar_shadow.png, drawn twice: va_shadow_l / _r stretch its left and right edges out now and then, each on its own); the light on the rest of the counter top dips with the flicker (bar_top_dim.png), the shadow doesn't; a violet dimmer over the window's lit middle (bg_neon_dim.png, tools/gen_neon_dim.py) calms its cyan and flickers like a neon now and then (va_neon), with a neon tube down the middle of the light (bg_neon_tube.png) that flickers with it, its light blurred over the shelves (bg_neon_bloom.png) and 24 specks of dust drifting up through it (neon_mote.png, va_mote<i>_x/_y/_a). At home, on the break screen and anywhere else the stand-by screen shows the title screen's Jill (jilltitle_spr, animated), (menus and loading too), or the back street (break_bg1) when Jill walks out of the bar for her break, a pixel dissolve between any two of them, \"Please Stand by\" under it (va_room / va_jill_scene / va_doodles: the module reads the runner's room). The drink just served (its sprite from the player's game, or the glitched bottle) slides onto Jill's counter from the right with its own shadow, bubbles rising in its liquid, (shadow7: its silhouette flipped and squashed, leaning away from the neon), fades with the overlay like Jill, and stays until the next order is mixed. A tap on Jill's scene is the next line (the module puts the game's cursor on the text box, then presses A), not on the stand-by screen nor with the jukebox up. Jill (the game's jill_* portrait sprites, loaded from the player's game.win) replaces the doodles on the stand-by overlay; her mouth moves while her line types out, she blinks, and her face follows the scene (the module finds the line on screen in the player's own script files; faces from the game's tags plus our tables for every day, the tutorial, the epilogues, game over and the 1.2 scenes). ships no game art and no art taken from elsewhere. The frame is drawn from code; labels use Eden Duo's font; the cans, shaker, Ice/Age, Reset/Mix/Slot sprites and their hover versions are read from the player's own copy of the game at runtime by the native module. The artist's own work ships: the SUCCESS popup, the error windows, the tutorial hand and filters (see CREDITS.txt). The money of the night (global.barscore) sits above Ice, and the Slot buttons follow the game's two slots on the nights with two customers (the game's slot sprites; a tap switches the slot, the bar shows slot 2's own shaker, and both drinks of a two-slot order stand on Jill's counter, the second one right of her). An easter egg: the little heart under Age says the game's \"itai!\" when tapped, and opens a note from the artist on the third tap. The meters are the game's own cells (a_on..e_on / abig_on..ebig_on), and each pour flashes its colour's outline round the shaker (shakerpulse_*). Mechanics as 0.15: drag-to-pour, meters, Ice/Age, automatic talking/mixing lock, manual shake with blend bar. Text uses PixelMplus12 (the free font the game itself uses; M+ FONT LICENSE, see LICENSE-PixelMplus.txt), decoded by the module's font extension. 0.17: the companion works out the drink from what was poured on the bottom screen, Ice, Age and the shake time (the game's recipe list, Big = doubled), shows that drink's sprite from the player's game in place of the shaker with SUCCESS, or the broken glass with FAILED, until the drink is served or Reset. 0.18: a failed drink pops up the artist's ERROR! window 4 times in three sizes around the shaker (with her glitch frames); the bar stays blocked until each one is tapped away. After a successful drink the Mix button turns into a green Serve button (the game's button, recoloured on the device). While the shaker is held it shows only in the player's finger (its spot on the panel is empty), swinging as it mixes. The shaker can only be picked up once something has been poured into it. After a failed drink everything but Reset is locked (like the game), Mix is greyed out, and once the error windows are closed the Reset button pulses. Cans have a bigger grab area and the shaker a bigger drop area. The shaker only mixes while you shake it: stop and the drink is mixed; 5 s of non-stop shaking blends it. The shaker leans the way your finger moves and wobbles back upright. Every drink shows its own sprite by exact name. Meters, Ice and Aging follow the game itself, whatever you pour with. Mix button mixes like the game: the shaker shakes by itself, tap Stop to finish (5 s = blended). Reset in the game also clears the bottom screen's drink and errors. ZR in the game also shakes the bottom shaker. The bottled A Fedora counts as a drink. 0.20.13: while the bar is locked (dialogue), the game's own break-screen doodles (break_skin, read from the player's copy) play over the purple overlay (the break screen's phone and its icons cut out). 0.20.15/16: Reset in the middle of a mix stops the shaking and empties the bottom shaker (and stops the game's mix too if it kept going); while the shaker shakes by itself only Reset and Stop work, like the game; a mix the game never starts (ZR ignored while the left stick is held) stops on the bottom screen too. Reset in the game (ZL) in the middle of a mix stops and empties the bottom shaker too. 0.21.0: a one-time manual-shake tutorial on the first pour: the bar dims and locks around the shaker, a ring and a floating hand point at it with the text \"In this version of the game, you can manually grab the shaker to mix or blend. Try it out!!!\"; it ends (and is remembered across updates) once a shake starts a mix. The ring and hand are placeholders. 0.22.0: a one-time failed-drink tutorial: the first time the error windows pop up, the bar dims under them, the floating hand points at the big one and a window says \"Oh no!! It seems that you did a mistake, get rid of those errors by tapping on them\"; it ends (and is remembered) once every window is closed. 0.23.0: the tutorials come back every session until they are finished and the game is then saved: finishing one hides it for the session, and the first in-game save after that keeps it hidden on this device (the module spots a save by the new save time the game writes into memory). 0.24.0: loading a save (the in-game Load) starts the tutorials over unless they were kept by a save. 0.25.0: the tutorials as the mockups: a dithered filter over the bar (with a hole for the shaker), the player's own blue doodle head (break_skin, animated) bottom left, the artist's pointing hand, and the text in a black window. 0.26.0: the game's own sounds for the companion's own mechanics, through a load-time hook in the game's interpreter (guest/<build>/load-plan.json, tools/gen_load_plan.py): the ice rattles (iceadd) on every swing of a hand-held shaker, louder the harder it is shaken, and closing an error window clicks (click_sound). No audio ships with the package.",
+ "min_runtime": 20,
+ "canvas_w": 1240,
+ "canvas_h": 1080,
+ "background": "#FF1A1625",
+ "flags": {
+  "rst": 0,
+  "mixreq": 0,
+  "mixed": 0,
+  "ice_req": 0,
+  "age_req": 0,
+  "ice_on": 0,
+  "age_on": 0,
+  "shk_end": 0,
+  "shk_px": 0,
+  "shk_py": 0,
+  "pq_adelhyde": 0,
+  "pq_bronson": 0,
+  "pq_pwd_delta": 0,
+  "pq_flanergide": 0,
+  "pq_karmotrine": 0,
+  "tut_shake": 0,
+  "tut_err": 0,
+  "tut_shake_kept": 0,
+  "tut_err_kept": 0
+ },
+ "haptics": {
+  "enabled": true,
+  "respect_system": true,
+  "tap": "click",
+  "drag": "light",
+  "drop": "confirm"
+ },
+ "derived": [
+  {
+   "name": "dragging",
+   "expr": "@drag"
+  },
+  {
+   "name": "enf",
+   "expr": "@drag || @flag:rst || @flag:mixreq || @flag:ice_req || @flag:age_req || (@flag:mixed && @drag) || @flag:shk_end || @flag:pq_adelhyde || @flag:pq_bronson || @flag:pq_pwd_delta || @flag:pq_flanergide || @flag:pq_karmotrine || va_zr_req || va_zl_req || tut_end || tut_err_end || tut_shake_commit || tut_err_commit || tut_reload || va_jk_a"
+  },
+  {
+   "name": "grab_label",
+   "expr": "(@drag && @drag_payload < 99 ? @drag_payload : -1) + 1"
+  },
+  {
+   "name": "meter_adelhyde",
+   "expr": "va_game_ok ? min(va_cnt0, 20) : min(@cnt_adelhyde, 20)"
+  },
+  {
+   "name": "hold_adelhyde",
+   "expr": "@drag && @drag_payload == 0"
+  },
+  {
+   "name": "lift_adelhyde",
+   "expr": "@drag && @drag_payload == 0"
+  },
+  {
+   "name": "meter_bronson",
+   "expr": "va_game_ok ? min(va_cnt1, 20) : min(@cnt_bronson, 20)"
+  },
+  {
+   "name": "hold_bronson",
+   "expr": "@drag && @drag_payload == 1"
+  },
+  {
+   "name": "lift_bronson",
+   "expr": "@drag && @drag_payload == 1"
+  },
+  {
+   "name": "meter_pwd_delta",
+   "expr": "va_game_ok ? min(va_cnt2, 20) : min(@cnt_pwd_delta, 20)"
+  },
+  {
+   "name": "hold_pwd_delta",
+   "expr": "@drag && @drag_payload == 2"
+  },
+  {
+   "name": "lift_pwd_delta",
+   "expr": "@drag && @drag_payload == 2"
+  },
+  {
+   "name": "meter_flanergide",
+   "expr": "va_game_ok ? min(va_cnt3, 20) : min(@cnt_flanergide, 20)"
+  },
+  {
+   "name": "hold_flanergide",
+   "expr": "@drag && @drag_payload == 3"
+  },
+  {
+   "name": "lift_flanergide",
+   "expr": "@drag && @drag_payload == 3"
+  },
+  {
+   "name": "meter_karmotrine",
+   "expr": "va_game_ok ? min(va_cnt4, 20) : min(@cnt_karmotrine, 20)"
+  },
+  {
+   "name": "hold_karmotrine",
+   "expr": "@drag && @drag_payload == 4"
+  },
+  {
+   "name": "lift_karmotrine",
+   "expr": "@drag && @drag_payload == 4"
+  },
+  {
+   "name": "shk_on",
+   "expr": "@drag ? (@drag_payload == 99) : 0"
+  },
+  {
+   "name": "shk_x",
+   "expr": "shk_on ? @drag_x : 0"
+  },
+  {
+   "name": "shk_y",
+   "expr": "shk_on ? @drag_y : 0"
+  },
+  {
+   "name": "shk_dx",
+   "expr": "shk_on && @flag:shk_px > 0 ? @drag_x - @flag:shk_px : 0"
+  },
+  {
+   "name": "shk_dy",
+   "expr": "shk_on && @flag:shk_py > 0 ? @drag_y - @flag:shk_py : 0"
+  },
+  {
+   "name": "shk_d",
+   "expr": "abs(shk_dx) >= abs(shk_dy) ? shk_dx : shk_dy"
+  },
+  {
+   "name": "shk_b",
+   "expr": "shk_on ? (shk_d < -12 ? 1 : (shk_d < -2 ? 2 : (shk_d <= 2 ? 3 : (shk_d <= 12 ? 4 : 5)))) : 0"
+  },
+  {
+   "name": "shk_b1",
+   "expr": "shk_b == 1"
+  },
+  {
+   "name": "shk_b2",
+   "expr": "shk_b == 2"
+  },
+  {
+   "name": "shk_b3",
+   "expr": "shk_b == 3"
+  },
+  {
+   "name": "shk_b4",
+   "expr": "shk_b == 4"
+  },
+  {
+   "name": "shk_b5",
+   "expr": "shk_b == 5"
+  },
+  {
+   "name": "shk_tb",
+   "expr": "shk_on ? clamp(round(shk_dx / 3), -10, 10) + 10 : -1"
+  },
+  {
+   "name": "shk_t0",
+   "expr": "shk_tb == 0"
+  },
+  {
+   "name": "shk_t1",
+   "expr": "shk_tb == 1"
+  },
+  {
+   "name": "shk_t2",
+   "expr": "shk_tb == 2"
+  },
+  {
+   "name": "shk_t3",
+   "expr": "shk_tb == 3"
+  },
+  {
+   "name": "shk_t4",
+   "expr": "shk_tb == 4"
+  },
+  {
+   "name": "shk_t5",
+   "expr": "shk_tb == 5"
+  },
+  {
+   "name": "shk_t6",
+   "expr": "shk_tb == 6"
+  },
+  {
+   "name": "shk_t7",
+   "expr": "shk_tb == 7"
+  },
+  {
+   "name": "shk_t8",
+   "expr": "shk_tb == 8"
+  },
+  {
+   "name": "shk_t9",
+   "expr": "shk_tb == 9"
+  },
+  {
+   "name": "shk_t10",
+   "expr": "shk_tb == 10"
+  },
+  {
+   "name": "shk_t11",
+   "expr": "shk_tb == 11"
+  },
+  {
+   "name": "shk_t12",
+   "expr": "shk_tb == 12"
+  },
+  {
+   "name": "shk_t13",
+   "expr": "shk_tb == 13"
+  },
+  {
+   "name": "shk_t14",
+   "expr": "shk_tb == 14"
+  },
+  {
+   "name": "shk_t15",
+   "expr": "shk_tb == 15"
+  },
+  {
+   "name": "shk_t16",
+   "expr": "shk_tb == 16"
+  },
+  {
+   "name": "shk_t17",
+   "expr": "shk_tb == 17"
+  },
+  {
+   "name": "shk_t18",
+   "expr": "shk_tb == 18"
+  },
+  {
+   "name": "shk_t19",
+   "expr": "shk_tb == 19"
+  },
+  {
+   "name": "shk_t20",
+   "expr": "shk_tb == 20"
+  },
+  {
+   "name": "shk_ox",
+   "expr": "va_sway * 1.8 + va_jx"
+  },
+  {
+   "name": "ice_lit",
+   "expr": "va_game_ok ? va_ice_on : @flag:ice_on"
+  },
+  {
+   "name": "age_lit",
+   "expr": "va_game_ok ? va_age_on : @flag:age_on"
+  },
+  {
+   "name": "mix_word_hide",
+   "expr": "va_ok || va_btn_mixing"
+  },
+  {
+   "name": "tut_on",
+   "expr": "!@flag:tut_shake_kept && !@flag:tut_shake && va_grab && !va_overlay && !va_started && !va_err_any"
+  },
+  {
+   "name": "tut_end",
+   "expr": "!@flag:tut_shake_kept && !@flag:tut_shake && va_started && !va_btn_mixing"
+  },
+  {
+   "name": "tut_err_on",
+   "expr": "!@flag:tut_err_kept && !@flag:tut_err && va_err_any"
+  },
+  {
+   "name": "tut_err_hand",
+   "expr": "!@flag:tut_err_kept && !@flag:tut_err && va_err0"
+  },
+  {
+   "name": "tut_err_end",
+   "expr": "!@flag:tut_err_kept && !@flag:tut_err && va_fail_lock"
+  },
+  {
+   "name": "tut_shake_commit",
+   "expr": "va_saved && @flag:tut_shake && !@flag:tut_shake_kept"
+  },
+  {
+   "name": "tut_err_commit",
+   "expr": "va_saved && @flag:tut_err && !@flag:tut_err_kept"
+  },
+  {
+   "name": "clk_date",
+   "expr": "@clock.year * 10000 + @clock.month * 100 + @clock.day"
+  },
+  {
+   "name": "clk_tod",
+   "expr": "@clock.hour * 3600 + @clock.minute * 60 + @clock.second"
+  },
+  {
+   "name": "tut_reload",
+   "expr": "va_loaded && (@flag:tut_shake || @flag:tut_err)"
+  },
+  {
+   "name": "jk_btn",
+   "expr": "va_jk_a"
+  },
+  {
+   "name": "can_next",
+   "expr": "va_overlay && va_jill_scene"
+  },
+  {
+   "name": "served_show",
+   "expr": "va_served && va_jill_scene"
+  },
+  {
+   "name": "cells_adelhyde",
+   "expr": "min(meter_adelhyde, 10)"
+  },
+  {
+   "name": "big_adelhyde",
+   "expr": "max(meter_adelhyde - 10, 0)"
+  },
+  {
+   "name": "cells_bronson",
+   "expr": "min(meter_bronson, 10)"
+  },
+  {
+   "name": "big_bronson",
+   "expr": "max(meter_bronson - 10, 0)"
+  },
+  {
+   "name": "cells_pwd_delta",
+   "expr": "min(meter_pwd_delta, 10)"
+  },
+  {
+   "name": "big_pwd_delta",
+   "expr": "max(meter_pwd_delta - 10, 0)"
+  },
+  {
+   "name": "cells_flanergide",
+   "expr": "min(meter_flanergide, 10)"
+  },
+  {
+   "name": "big_flanergide",
+   "expr": "max(meter_flanergide - 10, 0)"
+  },
+  {
+   "name": "cells_karmotrine",
+   "expr": "min(meter_karmotrine, 10)"
+  },
+  {
+   "name": "big_karmotrine",
+   "expr": "max(meter_karmotrine - 10, 0)"
+  },
+  {
+   "name": "pulse_1",
+   "expr": "va_pulse == 1"
+  },
+  {
+   "name": "pulse_2",
+   "expr": "va_pulse == 2"
+  },
+  {
+   "name": "pulse_3",
+   "expr": "va_pulse == 3"
+  },
+  {
+   "name": "pulse_4",
+   "expr": "va_pulse == 4"
+  },
+  {
+   "name": "pulse_5",
+   "expr": "va_pulse == 5"
+  },
+  {
+   "name": "egg_on",
+   "expr": "va_egg && !va_overlay"
+  },
+  {
+   "name": "served2_show",
+   "expr": "va_served2 && va_jill_scene"
+  },
+  {
+   "name": "standby_title",
+   "expr": "va_doodles && !va_on_break"
+  },
+  {
+   "name": "standby_break",
+   "expr": "va_doodles && va_on_break"
+  },
+  {
+   "name": "standby_glow1",
+   "expr": "va_doodles && va_standby_glow == 1"
+  },
+  {
+   "name": "standby_glow2",
+   "expr": "va_doodles && va_standby_glow == 2"
+  },
+  {
+   "name": "standby_glow3",
+   "expr": "va_doodles && va_standby_glow == 3"
+  },
+  {
+   "name": "standby_glow4",
+   "expr": "va_doodles && va_standby_glow == 4"
+  },
+  {
+   "name": "standby_glow5",
+   "expr": "va_doodles && va_standby_glow == 5"
+  },
+  {
+   "name": "standby_glow6",
+   "expr": "va_doodles && va_standby_glow == 6"
+  }
+ ],
+ "enforce_gate": {
+  "point": "enf",
+  "max": 1
+ },
+ "enforce": [
+  {
+   "action": "stick_adelhyde",
+   "every_ms": 1
+  },
+  {
+   "action": "stick_bronson",
+   "every_ms": 1
+  },
+  {
+   "action": "stick_pwd_delta",
+   "every_ms": 1
+  },
+  {
+   "action": "stick_flanergide",
+   "every_ms": 1
+  },
+  {
+   "action": "stick_karmotrine",
+   "every_ms": 1
+  },
+  {
+   "action": "reset_press",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "zero_adelhyde",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "zero_bronson",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "zero_pwd_delta",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "zero_flanergide",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "zero_karmotrine",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "ice_off",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "age_off",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "va_reset",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "rst_off",
+   "every_ms": 1,
+   "flag": "rst"
+  },
+  {
+   "action": "va_mix_btn",
+   "every_ms": 1,
+   "flag": "mixreq"
+  },
+  {
+   "action": "va_mixed",
+   "every_ms": 1,
+   "flag": "mixreq"
+  },
+  {
+   "action": "mixreq_off",
+   "every_ms": 1,
+   "flag": "mixreq"
+  },
+  {
+   "action": "zero_new_adelhyde",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "zero_new_bronson",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "zero_new_pwd_delta",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "zero_new_flanergide",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "zero_new_karmotrine",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "ice_off_new",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "age_off_new",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "mixed_off",
+   "every_ms": 1,
+   "flag": "mixed"
+  },
+  {
+   "action": "ice_press",
+   "every_ms": 1,
+   "flag": "ice_req"
+  },
+  {
+   "action": "ice_toggle",
+   "every_ms": 1,
+   "flag": "ice_req"
+  },
+  {
+   "action": "va_ice",
+   "every_ms": 1,
+   "flag": "ice_req"
+  },
+  {
+   "action": "ice_req_off",
+   "every_ms": 1,
+   "flag": "ice_req"
+  },
+  {
+   "action": "age_press",
+   "every_ms": 1,
+   "flag": "age_req"
+  },
+  {
+   "action": "age_toggle",
+   "every_ms": 1,
+   "flag": "age_req"
+  },
+  {
+   "action": "va_age",
+   "every_ms": 1,
+   "flag": "age_req"
+  },
+  {
+   "action": "age_req_off",
+   "every_ms": 1,
+   "flag": "age_req"
+  },
+  {
+   "action": "va_busy",
+   "every_ms": 1
+  },
+  {
+   "action": "va_shk1",
+   "every_ms": 1
+  },
+  {
+   "action": "va_shk2",
+   "every_ms": 1
+  },
+  {
+   "action": "va_shk3",
+   "every_ms": 1
+  },
+  {
+   "action": "va_shk4",
+   "every_ms": 1
+  },
+  {
+   "action": "va_shk5",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt0",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt1",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt2",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt3",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt4",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt5",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt6",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt7",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt8",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt9",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt10",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt11",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt12",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt13",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt14",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt15",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt16",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt17",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt18",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt19",
+   "every_ms": 1
+  },
+  {
+   "action": "va_tilt20",
+   "every_ms": 1
+  },
+  {
+   "action": "shk_px_set",
+   "every_ms": 1
+  },
+  {
+   "action": "shk_py_set",
+   "every_ms": 1
+  },
+  {
+   "action": "shk_mixed",
+   "every_ms": 1,
+   "flag": "shk_end"
+  },
+  {
+   "action": "va_shake_end",
+   "every_ms": 1,
+   "flag": "shk_end"
+  },
+  {
+   "action": "shk_end_off",
+   "every_ms": 1,
+   "flag": "shk_end"
+  },
+  {
+   "action": "zr_auto",
+   "every_ms": 1
+  },
+  {
+   "action": "zr_ack",
+   "every_ms": 1
+  },
+  {
+   "action": "zl_auto",
+   "every_ms": 1
+  },
+  {
+   "action": "zl_ack",
+   "every_ms": 1
+  },
+  {
+   "action": "pour_adelhyde",
+   "every_ms": 1,
+   "flag": "pq_adelhyde"
+  },
+  {
+   "action": "va_pour_adelhyde",
+   "every_ms": 1,
+   "flag": "pq_adelhyde"
+  },
+  {
+   "action": "pq_adelhyde_off",
+   "every_ms": 1,
+   "flag": "pq_adelhyde"
+  },
+  {
+   "action": "pour_bronson",
+   "every_ms": 1,
+   "flag": "pq_bronson"
+  },
+  {
+   "action": "va_pour_bronson",
+   "every_ms": 1,
+   "flag": "pq_bronson"
+  },
+  {
+   "action": "pq_bronson_off",
+   "every_ms": 1,
+   "flag": "pq_bronson"
+  },
+  {
+   "action": "pour_pwd_delta",
+   "every_ms": 1,
+   "flag": "pq_pwd_delta"
+  },
+  {
+   "action": "va_pour_pwd_delta",
+   "every_ms": 1,
+   "flag": "pq_pwd_delta"
+  },
+  {
+   "action": "pq_pwd_delta_off",
+   "every_ms": 1,
+   "flag": "pq_pwd_delta"
+  },
+  {
+   "action": "pour_flanergide",
+   "every_ms": 1,
+   "flag": "pq_flanergide"
+  },
+  {
+   "action": "va_pour_flanergide",
+   "every_ms": 1,
+   "flag": "pq_flanergide"
+  },
+  {
+   "action": "pq_flanergide_off",
+   "every_ms": 1,
+   "flag": "pq_flanergide"
+  },
+  {
+   "action": "pour_karmotrine",
+   "every_ms": 1,
+   "flag": "pq_karmotrine"
+  },
+  {
+   "action": "va_pour_karmotrine",
+   "every_ms": 1,
+   "flag": "pq_karmotrine"
+  },
+  {
+   "action": "pq_karmotrine_off",
+   "every_ms": 1,
+   "flag": "pq_karmotrine"
+  },
+  {
+   "action": "tut_shake_done",
+   "every_ms": 1
+  },
+  {
+   "action": "tut_err_done",
+   "every_ms": 1
+  },
+  {
+   "action": "tut_shake_keep",
+   "every_ms": 1
+  },
+  {
+   "action": "tut_err_keep",
+   "every_ms": 1
+  },
+  {
+   "action": "tut_shake_reset",
+   "every_ms": 1
+  },
+  {
+   "action": "tut_err_reset",
+   "every_ms": 1
+  },
+  {
+   "action": "jk_a_press",
+   "every_ms": 1
+  },
+  {
+   "action": "jk_btn_ack",
+   "every_ms": 1
+  }
+ ],
+ "actions": {
+  "stick_adelhyde": {
+   "kind": "button",
+   "button": "LX-LY+",
+   "frames": 12,
+   "enabled_bind": "hold_adelhyde",
+   "haptic": "off"
+  },
+  "pour_adelhyde": {
+   "kind": "button",
+   "button": "A",
+   "frames": 6,
+   "counter": "cnt_adelhyde",
+   "delta": 1
+  },
+  "zero_adelhyde": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_adelhyde",
+   "target": 0,
+   "haptic": "off"
+  },
+  "zero_new_adelhyde": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_adelhyde",
+   "target": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "stick_bronson": {
+   "kind": "button",
+   "button": "LY+",
+   "frames": 12,
+   "enabled_bind": "hold_bronson",
+   "haptic": "off"
+  },
+  "pour_bronson": {
+   "kind": "button",
+   "button": "A",
+   "frames": 6,
+   "counter": "cnt_bronson",
+   "delta": 1
+  },
+  "zero_bronson": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_bronson",
+   "target": 0,
+   "haptic": "off"
+  },
+  "zero_new_bronson": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_bronson",
+   "target": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "stick_pwd_delta": {
+   "kind": "button",
+   "button": "LX+LY+",
+   "frames": 12,
+   "enabled_bind": "hold_pwd_delta",
+   "haptic": "off"
+  },
+  "pour_pwd_delta": {
+   "kind": "button",
+   "button": "A",
+   "frames": 6,
+   "counter": "cnt_pwd_delta",
+   "delta": 1
+  },
+  "zero_pwd_delta": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_pwd_delta",
+   "target": 0,
+   "haptic": "off"
+  },
+  "zero_new_pwd_delta": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_pwd_delta",
+   "target": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "stick_flanergide": {
+   "kind": "button",
+   "button": "LX-",
+   "frames": 12,
+   "enabled_bind": "hold_flanergide",
+   "haptic": "off"
+  },
+  "pour_flanergide": {
+   "kind": "button",
+   "button": "A",
+   "frames": 6,
+   "counter": "cnt_flanergide",
+   "delta": 1
+  },
+  "zero_flanergide": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_flanergide",
+   "target": 0,
+   "haptic": "off"
+  },
+  "zero_new_flanergide": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_flanergide",
+   "target": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "stick_karmotrine": {
+   "kind": "button",
+   "button": "LX+",
+   "frames": 12,
+   "enabled_bind": "hold_karmotrine",
+   "haptic": "off"
+  },
+  "pour_karmotrine": {
+   "kind": "button",
+   "button": "A",
+   "frames": 6,
+   "counter": "cnt_karmotrine",
+   "delta": 1
+  },
+  "zero_karmotrine": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_karmotrine",
+   "target": 0,
+   "haptic": "off"
+  },
+  "zero_new_karmotrine": {
+   "kind": "button",
+   "button": "RStick(0,0)",
+   "frames": 2,
+   "gap": 1,
+   "counter": "cnt_karmotrine",
+   "target": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "reset_tap": {
+   "kind": "flag",
+   "flag": "rst",
+   "value": 1
+  },
+  "reset_press": {
+   "kind": "button",
+   "button": "ZL",
+   "frames": 6,
+   "haptic": "off"
+  },
+  "rst_off": {
+   "kind": "flag",
+   "flag": "rst",
+   "value": 0,
+   "haptic": "off"
+  },
+  "mix_tap": {
+   "kind": "flag",
+   "flag": "mixreq",
+   "value": 1
+  },
+  "mix_press": {
+   "kind": "button",
+   "button": "ZR",
+   "frames": 6,
+   "haptic": "off"
+  },
+  "mixed_on": {
+   "kind": "flag",
+   "flag": "mixed",
+   "value": 1,
+   "haptic": "off"
+  },
+  "mixreq_off": {
+   "kind": "flag",
+   "flag": "mixreq",
+   "value": 0,
+   "haptic": "off"
+  },
+  "mixed_off": {
+   "kind": "flag",
+   "flag": "mixed",
+   "value": 0,
+   "enabled_bind": "dragging",
+   "haptic": "off"
+  },
+  "ice_tap": {
+   "kind": "flag",
+   "flag": "ice_req",
+   "value": 1
+  },
+  "age_tap": {
+   "kind": "flag",
+   "flag": "age_req",
+   "value": 1
+  },
+  "ice_press": {
+   "kind": "button",
+   "button": "X",
+   "frames": 6,
+   "haptic": "off"
+  },
+  "age_press": {
+   "kind": "button",
+   "button": "Y",
+   "frames": 6,
+   "haptic": "off"
+  },
+  "ice_toggle": {
+   "kind": "flag",
+   "flag": "ice_on",
+   "haptic": "off"
+  },
+  "age_toggle": {
+   "kind": "flag",
+   "flag": "age_on",
+   "haptic": "off"
+  },
+  "ice_req_off": {
+   "kind": "flag",
+   "flag": "ice_req",
+   "value": 0,
+   "haptic": "off"
+  },
+  "age_req_off": {
+   "kind": "flag",
+   "flag": "age_req",
+   "value": 0,
+   "haptic": "off"
+  },
+  "ice_off": {
+   "kind": "flag",
+   "flag": "ice_on",
+   "value": 0,
+   "haptic": "off"
+  },
+  "age_off": {
+   "kind": "flag",
+   "flag": "age_on",
+   "value": 0,
+   "haptic": "off"
+  },
+  "ice_off_new": {
+   "kind": "flag",
+   "flag": "ice_on",
+   "value": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "age_off_new": {
+   "kind": "flag",
+   "flag": "age_on",
+   "value": 0,
+   "haptic": "off",
+   "enabled_bind": "dragging"
+  },
+  "va_skip": {
+   "kind": "module",
+   "action": "skip",
+   "argument": 0
+  },
+  "va_mixed": {
+   "kind": "module",
+   "action": "mixed",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "va_busy": {
+   "kind": "module",
+   "action": "busy",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "shk_drop": {
+   "kind": "flag",
+   "flag": "shk_end",
+   "value": 1,
+   "haptic": "off"
+  },
+  "va_shake_end": {
+   "kind": "module",
+   "action": "shake_end",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "shk_end_off": {
+   "kind": "flag",
+   "flag": "shk_end",
+   "value": 0,
+   "haptic": "off"
+  },
+  "shk_mixed": {
+   "kind": "flag",
+   "flag": "mixed",
+   "value": 1,
+   "haptic": "off",
+   "enabled_bind": "va_started"
+  },
+  "zr_auto": {
+   "kind": "button",
+   "button": "ZR",
+   "frames": 6,
+   "haptic": "off",
+   "enabled_bind": "va_zr_req"
+  },
+  "zr_ack": {
+   "kind": "module",
+   "action": "zr_done",
+   "argument": 0,
+   "haptic": "off",
+   "enabled_bind": "va_zr_req"
+  },
+  "zl_auto": {
+   "kind": "button",
+   "button": "ZL",
+   "frames": 6,
+   "haptic": "off",
+   "enabled_bind": "va_zl_req"
+  },
+  "zl_ack": {
+   "kind": "module",
+   "action": "zl_done",
+   "argument": 0,
+   "haptic": "off",
+   "enabled_bind": "va_zl_req"
+  },
+  "va_shk1": {
+   "kind": "module",
+   "action": "shake",
+   "argument": 1,
+   "haptic": "off",
+   "enabled_bind": "shk_b1"
+  },
+  "va_shk2": {
+   "kind": "module",
+   "action": "shake",
+   "argument": 2,
+   "haptic": "off",
+   "enabled_bind": "shk_b2"
+  },
+  "va_shk3": {
+   "kind": "module",
+   "action": "shake",
+   "argument": 3,
+   "haptic": "off",
+   "enabled_bind": "shk_b3"
+  },
+  "va_shk4": {
+   "kind": "module",
+   "action": "shake",
+   "argument": 4,
+   "haptic": "off",
+   "enabled_bind": "shk_b4"
+  },
+  "va_shk5": {
+   "kind": "module",
+   "action": "shake",
+   "argument": 5,
+   "haptic": "off",
+   "enabled_bind": "shk_b5"
+  },
+  "shk_px_set": {
+   "kind": "flag",
+   "flag": "shk_px",
+   "value": "$shk_x",
+   "haptic": "off"
+  },
+  "shk_py_set": {
+   "kind": "flag",
+   "flag": "shk_py",
+   "value": "$shk_y",
+   "haptic": "off"
+  },
+  "va_reset": {
+   "kind": "module",
+   "action": "reset",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "pq_adelhyde": {
+   "kind": "flag",
+   "flag": "pq_adelhyde",
+   "value": 1
+  },
+  "pq_adelhyde_off": {
+   "kind": "flag",
+   "flag": "pq_adelhyde",
+   "value": 0,
+   "haptic": "off"
+  },
+  "va_pour_adelhyde": {
+   "kind": "module",
+   "action": "pour",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "pq_bronson": {
+   "kind": "flag",
+   "flag": "pq_bronson",
+   "value": 1
+  },
+  "pq_bronson_off": {
+   "kind": "flag",
+   "flag": "pq_bronson",
+   "value": 0,
+   "haptic": "off"
+  },
+  "va_pour_bronson": {
+   "kind": "module",
+   "action": "pour",
+   "argument": 1,
+   "haptic": "off"
+  },
+  "pq_pwd_delta": {
+   "kind": "flag",
+   "flag": "pq_pwd_delta",
+   "value": 1
+  },
+  "pq_pwd_delta_off": {
+   "kind": "flag",
+   "flag": "pq_pwd_delta",
+   "value": 0,
+   "haptic": "off"
+  },
+  "va_pour_pwd_delta": {
+   "kind": "module",
+   "action": "pour",
+   "argument": 2,
+   "haptic": "off"
+  },
+  "pq_flanergide": {
+   "kind": "flag",
+   "flag": "pq_flanergide",
+   "value": 1
+  },
+  "pq_flanergide_off": {
+   "kind": "flag",
+   "flag": "pq_flanergide",
+   "value": 0,
+   "haptic": "off"
+  },
+  "va_pour_flanergide": {
+   "kind": "module",
+   "action": "pour",
+   "argument": 3,
+   "haptic": "off"
+  },
+  "pq_karmotrine": {
+   "kind": "flag",
+   "flag": "pq_karmotrine",
+   "value": 1
+  },
+  "pq_karmotrine_off": {
+   "kind": "flag",
+   "flag": "pq_karmotrine",
+   "value": 0,
+   "haptic": "off"
+  },
+  "va_pour_karmotrine": {
+   "kind": "module",
+   "action": "pour",
+   "argument": 4,
+   "haptic": "off"
+  },
+  "va_ice": {
+   "kind": "module",
+   "action": "ice_toggle",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "va_age": {
+   "kind": "module",
+   "action": "age_toggle",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "close_err_0": {
+   "kind": "module",
+   "action": "close_err",
+   "argument": 0
+  },
+  "close_err_1": {
+   "kind": "module",
+   "action": "close_err",
+   "argument": 1
+  },
+  "close_err_2": {
+   "kind": "module",
+   "action": "close_err",
+   "argument": 2
+  },
+  "close_err_3": {
+   "kind": "module",
+   "action": "close_err",
+   "argument": 3
+  },
+  "va_tilt0": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 0,
+   "haptic": "off",
+   "enabled_bind": "shk_t0"
+  },
+  "va_tilt1": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 1,
+   "haptic": "off",
+   "enabled_bind": "shk_t1"
+  },
+  "va_tilt2": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 2,
+   "haptic": "off",
+   "enabled_bind": "shk_t2"
+  },
+  "va_tilt3": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 3,
+   "haptic": "off",
+   "enabled_bind": "shk_t3"
+  },
+  "va_tilt4": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 4,
+   "haptic": "off",
+   "enabled_bind": "shk_t4"
+  },
+  "va_tilt5": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 5,
+   "haptic": "off",
+   "enabled_bind": "shk_t5"
+  },
+  "va_tilt6": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 6,
+   "haptic": "off",
+   "enabled_bind": "shk_t6"
+  },
+  "va_tilt7": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 7,
+   "haptic": "off",
+   "enabled_bind": "shk_t7"
+  },
+  "va_tilt8": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 8,
+   "haptic": "off",
+   "enabled_bind": "shk_t8"
+  },
+  "va_tilt9": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 9,
+   "haptic": "off",
+   "enabled_bind": "shk_t9"
+  },
+  "va_tilt10": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 10,
+   "haptic": "off",
+   "enabled_bind": "shk_t10"
+  },
+  "va_tilt11": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 11,
+   "haptic": "off",
+   "enabled_bind": "shk_t11"
+  },
+  "va_tilt12": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 12,
+   "haptic": "off",
+   "enabled_bind": "shk_t12"
+  },
+  "va_tilt13": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 13,
+   "haptic": "off",
+   "enabled_bind": "shk_t13"
+  },
+  "va_tilt14": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 14,
+   "haptic": "off",
+   "enabled_bind": "shk_t14"
+  },
+  "va_tilt15": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 15,
+   "haptic": "off",
+   "enabled_bind": "shk_t15"
+  },
+  "va_tilt16": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 16,
+   "haptic": "off",
+   "enabled_bind": "shk_t16"
+  },
+  "va_tilt17": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 17,
+   "haptic": "off",
+   "enabled_bind": "shk_t17"
+  },
+  "va_tilt18": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 18,
+   "haptic": "off",
+   "enabled_bind": "shk_t18"
+  },
+  "va_tilt19": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 19,
+   "haptic": "off",
+   "enabled_bind": "shk_t19"
+  },
+  "va_tilt20": {
+   "kind": "module",
+   "action": "tilt",
+   "argument": 20,
+   "haptic": "off",
+   "enabled_bind": "shk_t20"
+  },
+  "va_mix_btn": {
+   "kind": "module",
+   "action": "mix_btn",
+   "argument": 0,
+   "haptic": "off"
+  },
+  "tut_shake_done": {
+   "kind": "flag",
+   "flag": "tut_shake",
+   "value": 1,
+   "haptic": "off",
+   "enabled_bind": "tut_end"
+  },
+  "tut_err_done": {
+   "kind": "flag",
+   "flag": "tut_err",
+   "value": 1,
+   "haptic": "off",
+   "enabled_bind": "tut_err_end"
+  },
+  "tut_shake_keep": {
+   "kind": "flag",
+   "flag": "tut_shake_kept",
+   "value": 1,
+   "haptic": "off",
+   "enabled_bind": "tut_shake_commit"
+  },
+  "tut_err_keep": {
+   "kind": "flag",
+   "flag": "tut_err_kept",
+   "value": 1,
+   "haptic": "off",
+   "enabled_bind": "tut_err_commit"
+  },
+  "tut_shake_reset": {
+   "kind": "flag",
+   "flag": "tut_shake",
+   "value": 0,
+   "haptic": "off",
+   "enabled_bind": "tut_reload"
+  },
+  "tut_err_reset": {
+   "kind": "flag",
+   "flag": "tut_err",
+   "value": 0,
+   "haptic": "off",
+   "enabled_bind": "tut_reload"
+  },
+  "jk_a_press": {
+   "kind": "button",
+   "button": "A",
+   "frames": 4,
+   "haptic": "off",
+   "enabled_bind": "va_jk_a"
+  },
+  "jk_btn_ack": {
+   "kind": "module",
+   "action": "juke_btn_done",
+   "argument": 0,
+   "haptic": "off",
+   "enabled_bind": "jk_btn"
+  },
+  "dlg_next": {
+   "kind": "module",
+   "action": "dlg_next",
+   "argument": 0,
+   "enabled_bind": "can_next"
+  },
+  "egg_open": {
+   "kind": "module",
+   "action": "egg_tap",
+   "argument": 0
+  },
+  "egg_close": {
+   "kind": "module",
+   "action": "egg_close",
+   "argument": 0
+  },
+  "slot_1": {
+   "kind": "module",
+   "action": "slot_tap",
+   "argument": 0
+  },
+  "slot_2": {
+   "kind": "module",
+   "action": "slot_tap",
+   "argument": 1
+  }
+ },
+ "pages": [
+  {
+   "id": "bar",
+   "title": "Bar",
+   "widgets": [
+    {
+     "type": "image",
+     "id": "preload_standby0",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jilltitle_spr:0:2",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_standby1",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jilltitle_spr:1:2",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_standby2",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jilltitle_spr:2:2",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_standby3",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jilltitle_spr:3:2",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_standby4",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_bg1:0:2",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle0",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:0:4:keyblack:crop1808x784x608x512",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle1",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:1:4:keyblack:crop1808x784x608x512",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle2",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:2:4:keyblack:crop1808x784x608x512",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle3",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:0:3:keyblack:crop1368x588x432x384",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle4",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:1:3:keyblack:crop1368x588x432x384",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_doodle5",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:break_skin:2:3:keyblack:crop1368x588x432x384",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_0",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_spr:0:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_1",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_surprise_spr:0:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_2",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_uh_spr:0:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_3",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_sad_spr:0:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_4",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_smile_spr:0:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_5",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_eyes:2:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_6",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_eyes:1:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_7",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_smile_eyes:2:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_8",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_smile_eyes:1:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_9",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_surprise_eyes:2:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_10",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_surprise_eyes:1:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_11",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_uh_eyes:2:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "id": "preload_12",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "src": "module:gm:jill_uh_eyes:1:4",
+     "tint": "#01FFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      970
+     ],
+     "src": "file:panel.png"
+    },
+    {
+     "type": "label",
+     "id": "money",
+     "rect": [
+      182,
+      16,
+      0,
+      92
+     ],
+     "text": "",
+     "bind_text": "va_money",
+     "text_center_h": 92,
+     "text_scale": 8,
+     "align": "center",
+     "color": "#FFF4F2F8"
+    },
+    {
+     "type": "image",
+     "rect": [
+      57,
+      215,
+      132,
+      228
+     ],
+     "src": "module:gm:icesprite:0:4",
+     "tint": "#FF505060"
+    },
+    {
+     "type": "image",
+     "rect": [
+      57,
+      215,
+      132,
+      228
+     ],
+     "src": "module:gm:icesprite:0:4",
+     "need_bind": "ice_lit"
+    },
+    {
+     "type": "image",
+     "rect": [
+      57,
+      565,
+      132,
+      228
+     ],
+     "src": "module:gm:agesprite:0:4",
+     "tint": "#FF505060"
+    },
+    {
+     "type": "image",
+     "rect": [
+      57,
+      565,
+      132,
+      228
+     ],
+     "src": "module:gm:agesprite:0:4",
+     "need_bind": "age_lit"
+    },
+    {
+     "type": "image",
+     "rect": [
+      273,
+      862,
+      213,
+      75
+     ],
+     "src": "module:gm:resetsprite:0:3",
+     "scale_bind": "va_reset_scale"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      265,
+      854,
+      229,
+      91
+     ],
+     "color": "#FFFFE066",
+     "frame": 4,
+     "pulse": true,
+     "need_bind": "va_fail_lock"
+    },
+    {
+     "type": "image",
+     "rect": [
+      926,
+      862,
+      213,
+      75
+     ],
+     "src": "module:gm:mixspriteno:0:3",
+     "hide_bind": "va_ok",
+     "keep_min": 0,
+     "keep_max": 0
+    },
+    {
+     "type": "image",
+     "rect": [
+      926,
+      862,
+      213,
+      75
+     ],
+     "src": "module:gm:mixspriteno:0:3:swaprg",
+     "need_bind": "va_ok"
+    },
+    {
+     "type": "image",
+     "rect": [
+      605,
+      31,
+      213,
+      75
+     ],
+     "src": "module:gm:slotsprite:0:3",
+     "bind": "va_slot1",
+     "src_names": [
+      "module:gm:slotsprite:0:3",
+      "module:gm:slotoff:0:3",
+      "module:gm:slotdone:0:3",
+      "module:gm:slotout:0:3"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      927,
+      31,
+      213,
+      75
+     ],
+     "src": "module:gm:slotsprite:0:3",
+     "bind": "va_slot2",
+     "src_names": [
+      "module:gm:slotsprite:0:3",
+      "module:gm:slotoff:0:3",
+      "module:gm:slotdone:0:3",
+      "module:gm:slotout:0:3"
+     ]
+    },
+    {
+     "type": "label",
+     "rect": [
+      123,
+      164,
+      146,
+      40
+     ],
+     "text": "Ice",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      123,
+      514,
+      146,
+      40
+     ],
+     "text": "Age",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      380,
+      169,
+      316,
+      40
+     ],
+     "text": "Adelhyde",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      705,
+      169,
+      314,
+      40
+     ],
+     "text": "Bronson Ext",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      1032,
+      169,
+      315,
+      40
+     ],
+     "text": "Pwd Delta",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      380,
+      519,
+      316,
+      40
+     ],
+     "text": "Flanergide",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      1032,
+      519,
+      315,
+      40
+     ],
+     "text": "Karmotrine",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FFE9E4F0"
+    },
+    {
+     "type": "label",
+     "rect": [
+      379,
+      882,
+      0,
+      40
+     ],
+     "text": "Reset",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF3B2412"
+    },
+    {
+     "type": "label",
+     "rect": [
+      1032,
+      882,
+      0,
+      40
+     ],
+     "text": "Mix",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF3B1220",
+     "hide_bind": "mix_word_hide",
+     "keep_min": 0,
+     "keep_max": 0
+    },
+    {
+     "type": "label",
+     "rect": [
+      1032,
+      882,
+      0,
+      40
+     ],
+     "text": "Stop",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF3B1220",
+     "need_bind": "va_btn_mixing"
+    },
+    {
+     "type": "label",
+     "rect": [
+      1032,
+      882,
+      0,
+      40
+     ],
+     "text": "Serve",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF123B1E",
+     "need_bind": "va_ok"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      926,
+      862,
+      213,
+      75
+     ],
+     "bg": "#B0101018",
+     "frame": 0,
+     "need_bind": "va_fail"
+    },
+    {
+     "type": "label",
+     "rect": [
+      711,
+      51,
+      0,
+      40
+     ],
+     "text": "Slot 1",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF3B1220"
+    },
+    {
+     "type": "label",
+     "rect": [
+      1033,
+      51,
+      0,
+      40
+     ],
+     "text": "Slot 2",
+     "text_scale": 6,
+     "align": "center",
+     "color": "#FF3B1220"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "accept_group": "shaker",
+     "drop_action": "shk_drop"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      50,
+      147,
+      146,
+      336
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "ice_tap"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      50,
+      497,
+      146,
+      336
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "age_tap"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      222,
+      845,
+      316,
+      110
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "reset_tap"
+    },
+    {
+     "type": "rect",
+     "id": "slot_tap1",
+     "rect": [
+      605,
+      31,
+      213,
+      75
+     ],
+     "bg": "#00000000",
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "slot_1"
+    },
+    {
+     "type": "rect",
+     "id": "slot_tap2",
+     "rect": [
+      927,
+      31,
+      213,
+      75
+     ],
+     "bg": "#00000000",
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "slot_2"
+    },
+    {
+     "type": "image",
+     "id": "egg_heart",
+     "rect": [
+      96,
+      859,
+      52,
+      48
+     ],
+     "src": "file:egg_heart.png"
+    },
+    {
+     "type": "rect",
+     "id": "egg_tap",
+     "rect": [
+      48,
+      842,
+      148,
+      82
+     ],
+     "bg": "#00000000",
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "egg_open"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      875,
+      845,
+      315,
+      110
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "mix_tap"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:a_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "tint": "#4DFFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:a_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "cells_adelhyde"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:abig_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "big_adelhyde"
+    },
+    {
+     "type": "image",
+     "rect": [
+      684,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:b_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "tint": "#4DFFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      684,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:b_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "cells_bronson"
+    },
+    {
+     "type": "image",
+     "rect": [
+      684,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:bbig_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "big_bronson"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:c_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "tint": "#4DFFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:c_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "cells_pwd_delta"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      297,
+      32,
+      68
+     ],
+     "src": "module:gm:cbig_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "big_pwd_delta"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:d_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "tint": "#4DFFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:d_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "cells_flanergide"
+    },
+    {
+     "type": "image",
+     "rect": [
+      358,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:dbig_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "big_flanergide"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:e_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "tint": "#4DFFFFFF"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:e_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "cells_karmotrine"
+    },
+    {
+     "type": "image",
+     "rect": [
+      1011,
+      647,
+      32,
+      68
+     ],
+     "src": "module:gm:ebig_on:0:4",
+     "repeat": 10,
+     "repeat_cols": 5,
+     "repeat_dx": 36,
+     "repeat_row_dy": 72,
+     "repeat_bind": "big_karmotrine"
+    },
+    {
+     "type": "image",
+     "rect": [
+      201,
+      242,
+      190,
+      250
+     ],
+     "src": "module:gm:adelhyde:0:5:pad45x30",
+     "draggable": true,
+     "payload": 0,
+     "select_group": "can_adelhyde",
+     "drag_scale": 1.3,
+     "bind": "lift_adelhyde",
+     "src_names": [
+      "module:gm:adelhyde:0:5:pad45x30",
+      "module:gm:adelhyde_hover:0:5:pad45x30"
+     ]
+    },
+    {
+     "type": "rect",
+     "rect": [
+      246,
+      272,
+      100,
+      190
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "lift_adelhyde"
+    },
+    {
+     "type": "image",
+     "rect": [
+      527,
+      242,
+      190,
+      250
+     ],
+     "src": "module:gm:bronson:0:5:pad45x30",
+     "draggable": true,
+     "payload": 1,
+     "select_group": "can_bronson",
+     "drag_scale": 1.3,
+     "bind": "lift_bronson",
+     "src_names": [
+      "module:gm:bronson:0:5:pad45x30",
+      "module:gm:bronson_hover:0:5:pad45x30"
+     ]
+    },
+    {
+     "type": "rect",
+     "rect": [
+      572,
+      272,
+      100,
+      190
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "lift_bronson"
+    },
+    {
+     "type": "image",
+     "rect": [
+      854,
+      241,
+      190,
+      250
+     ],
+     "src": "module:gm:delta:0:5:pad45x30",
+     "draggable": true,
+     "payload": 2,
+     "select_group": "can_pwd_delta",
+     "drag_scale": 1.3,
+     "bind": "lift_pwd_delta",
+     "src_names": [
+      "module:gm:delta:0:5:pad45x30",
+      "module:gm:delta_hover:0:5:pad45x30"
+     ]
+    },
+    {
+     "type": "rect",
+     "rect": [
+      899,
+      271,
+      100,
+      190
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "lift_pwd_delta"
+    },
+    {
+     "type": "image",
+     "rect": [
+      201,
+      592,
+      190,
+      250
+     ],
+     "src": "module:gm:flanergide:0:5:pad45x30",
+     "draggable": true,
+     "payload": 3,
+     "select_group": "can_flanergide",
+     "drag_scale": 1.3,
+     "bind": "lift_flanergide",
+     "src_names": [
+      "module:gm:flanergide:0:5:pad45x30",
+      "module:gm:flanergide_hover:0:5:pad45x30"
+     ]
+    },
+    {
+     "type": "rect",
+     "rect": [
+      246,
+      622,
+      100,
+      190
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "lift_flanergide"
+    },
+    {
+     "type": "image",
+     "rect": [
+      854,
+      592,
+      190,
+      250
+     ],
+     "src": "module:gm:karmotrine:0:5:pad45x30",
+     "draggable": true,
+     "payload": 4,
+     "select_group": "can_karmotrine",
+     "drag_scale": 1.3,
+     "bind": "lift_karmotrine",
+     "src_names": [
+      "module:gm:karmotrine:0:5:pad45x30",
+      "module:gm:karmotrine_hover:0:5:pad45x30"
+     ]
+    },
+    {
+     "type": "rect",
+     "rect": [
+      899,
+      622,
+      100,
+      190
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "lift_karmotrine"
+    },
+    {
+     "type": "bar",
+     "rect": [
+      566,
+      881,
+      281,
+      53
+     ],
+     "bind": "va_fill",
+     "max": 100,
+     "color": "#FF7AB6FF",
+     "bg": "#00000000"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      566,
+      881,
+      281,
+      53
+     ],
+     "need_bind": "va_blended",
+     "bg": "#FFC3ECFF",
+     "frame": 0
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shaker_spr:0:4",
+     "need_bind": "va_shaker_idle"
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shaker_spr:0:4",
+     "draggable": true,
+     "payload": 99,
+     "select_group": "shaker",
+     "drag_scale": 1.0,
+     "x_bind": "shk_ox",
+     "y_bind": "va_jy",
+     "rotate_bind": "va_angle",
+     "hide_bind": "va_grab",
+     "keep_min": 1,
+     "keep_max": 1,
+     "need_bind": "!shk_on"
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shakerpulse_red:0:4",
+     "need_bind": "pulse_1",
+     "scale_bind": "va_pulse_scale",
+     "tint_bind": "va_pulse_t",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#E6FFFFFF",
+      "#CCFFFFFF",
+      "#B2FFFFFF",
+      "#99FFFFFF",
+      "#80FFFFFF",
+      "#66FFFFFF",
+      "#4CFFFFFF",
+      "#33FFFFFF",
+      "#19FFFFFF"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shakerpulse_yellow:0:4",
+     "need_bind": "pulse_2",
+     "scale_bind": "va_pulse_scale",
+     "tint_bind": "va_pulse_t",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#E6FFFFFF",
+      "#CCFFFFFF",
+      "#B2FFFFFF",
+      "#99FFFFFF",
+      "#80FFFFFF",
+      "#66FFFFFF",
+      "#4CFFFFFF",
+      "#33FFFFFF",
+      "#19FFFFFF"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shakerpulse_blue:0:4",
+     "need_bind": "pulse_3",
+     "scale_bind": "va_pulse_scale",
+     "tint_bind": "va_pulse_t",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#E6FFFFFF",
+      "#CCFFFFFF",
+      "#B2FFFFFF",
+      "#99FFFFFF",
+      "#80FFFFFF",
+      "#66FFFFFF",
+      "#4CFFFFFF",
+      "#33FFFFFF",
+      "#19FFFFFF"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shakerpulse_green:0:4",
+     "need_bind": "pulse_4",
+     "scale_bind": "va_pulse_scale",
+     "tint_bind": "va_pulse_t",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#E6FFFFFF",
+      "#CCFFFFFF",
+      "#B2FFFFFF",
+      "#99FFFFFF",
+      "#80FFFFFF",
+      "#66FFFFFF",
+      "#4CFFFFFF",
+      "#33FFFFFF",
+      "#19FFFFFF"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      561,
+      560,
+      288,
+      272
+     ],
+     "src": "module:gm:shakerpulse_cyan:0:4",
+     "need_bind": "pulse_5",
+     "scale_bind": "va_pulse_scale",
+     "tint_bind": "va_pulse_t",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#E6FFFFFF",
+      "#CCFFFFFF",
+      "#B2FFFFFF",
+      "#99FFFFFF",
+      "#80FFFFFF",
+      "#66FFFFFF",
+      "#4CFFFFFF",
+      "#33FFFFFF",
+      "#19FFFFFF"
+     ]
+    },
+    {
+     "type": "image",
+     "rect": [
+      635,
+      590,
+      140,
+      212
+     ],
+     "src_bind": "va_drink_src",
+     "need_bind": "va_result"
+    },
+    {
+     "type": "label",
+     "rect": [
+      705,
+      836,
+      0,
+      30
+     ],
+     "text": "",
+     "bind_text": "va_drink_name",
+     "text_scale": 4,
+     "align": "center",
+     "color": "#FFE9E4F0",
+     "need_bind": "va_result"
+    },
+    {
+     "type": "label",
+     "rect": [
+      705,
+      866,
+      0,
+      20
+     ],
+     "text": "",
+     "bind_text": "va_drink_sprite",
+     "text_scale": 2,
+     "align": "center",
+     "color": "#FF8A93C8",
+     "need_bind": "va_ok"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      521,
+      530,
+      368,
+      332
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "drop_action": "pq_adelhyde",
+     "accept_group": "can_adelhyde",
+     "highlight_src": "module:gm:shake_hover_spr:0:4:pad40x30"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      521,
+      530,
+      368,
+      332
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "drop_action": "pq_bronson",
+     "accept_group": "can_bronson",
+     "highlight_src": "module:gm:shake_hover_spr:0:4:pad40x30"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      521,
+      530,
+      368,
+      332
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "drop_action": "pq_pwd_delta",
+     "accept_group": "can_pwd_delta",
+     "highlight_src": "module:gm:shake_hover_spr:0:4:pad40x30"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      521,
+      530,
+      368,
+      332
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "drop_action": "pq_flanergide",
+     "accept_group": "can_flanergide",
+     "highlight_src": "module:gm:shake_hover_spr:0:4:pad40x30"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      521,
+      530,
+      368,
+      332
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "drop_action": "pq_karmotrine",
+     "accept_group": "can_karmotrine",
+     "highlight_src": "module:gm:shake_hover_spr:0:4:pad40x30"
+    },
+    {
+     "type": "image",
+     "rect": [
+      315,
+      535,
+      333,
+      211
+     ],
+     "src": "file:success_0.png",
+     "bind": "va_success_frame",
+     "src_names": [
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_10.png",
+      "file:success_11.png",
+      "file:success_12.png",
+      "file:success_13.png",
+      "file:success_14.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png",
+      "file:success_0.png"
+     ],
+     "need_bind": "va_ok"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "input_block": true,
+     "need_bind": "va_fail_lock"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      222,
+      845,
+      316,
+      110
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "reset_tap",
+     "need_bind": "va_fail_lock"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "input_block": true,
+     "need_bind": "va_mix_lock"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      222,
+      845,
+      316,
+      110
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "reset_tap",
+     "need_bind": "va_mix_lock"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      875,
+      845,
+      315,
+      110
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "on_tap": "mix_tap",
+     "need_bind": "va_mix_lock"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      560
+     ],
+     "bg": "#00000000",
+     "frame": 0,
+     "color": "#00000000",
+     "input_block": true,
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      832,
+      1240,
+      248
+     ],
+     "bg": "#00000000",
+     "frame": 0,
+     "color": "#00000000",
+     "input_block": true,
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      560,
+      561,
+      272
+     ],
+     "bg": "#00000000",
+     "frame": 0,
+     "color": "#00000000",
+     "input_block": true,
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      849,
+      560,
+      391,
+      272
+     ],
+     "bg": "#00000000",
+     "frame": 0,
+     "color": "#00000000",
+     "input_block": true,
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:tut_filter_shake.png",
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "image",
+     "rect": [
+      40,
+      480,
+      608,
+      512
+     ],
+     "src": "module:gm:break_skin:0:4:keyblack:crop1808x784x608x512",
+     "bind": "va_doodle",
+     "src_names": [
+      "module:gm:break_skin:0:4:keyblack:crop1808x784x608x512",
+      "module:gm:break_skin:1:4:keyblack:crop1808x784x608x512",
+      "module:gm:break_skin:2:4:keyblack:crop1808x784x608x512"
+     ],
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "image",
+     "rect": [
+      845,
+      355,
+      280,
+      187
+     ],
+     "src": "file:tut_hand.png",
+     "y_bind": "va_tut_bob",
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      40,
+      40,
+      1160,
+      370
+     ],
+     "bg": "#FF000000",
+     "color": "#FFD8DCE4",
+     "frame": 4,
+     "need_bind": "tut_on"
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      40,
+      0,
+      370
+     ],
+     "text": "In this version of the game you can mix and blend your own drinks\n{c:#FFE8338A}Try it out!!{/c}",
+     "color_markup": true,
+     "wrap_width": 1080,
+     "line_gap": 14,
+     "text_scale": 10,
+     "align": "center",
+     "color": "#FFF4F2F8",
+     "need_bind": "tut_on",
+     "text_center_h": 370
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "input_block": true,
+     "need_bind": "va_err_any"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:tut_filter_err.png",
+     "need_bind": "tut_err_on"
+    },
+    {
+     "type": "image",
+     "rect": [
+      -24,
+      660,
+      432,
+      384
+     ],
+     "src": "module:gm:break_skin:0:3:keyblack:crop1368x588x432x384",
+     "bind": "va_doodle",
+     "src_names": [
+      "module:gm:break_skin:0:3:keyblack:crop1368x588x432x384",
+      "module:gm:break_skin:1:3:keyblack:crop1368x588x432x384",
+      "module:gm:break_skin:2:3:keyblack:crop1368x588x432x384"
+     ],
+     "need_bind": "tut_err_on"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      40,
+      46,
+      1160,
+      390
+     ],
+     "bg": "#FF000000",
+     "color": "#FFD8DCE4",
+     "frame": 4,
+     "need_bind": "tut_err_on"
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      46,
+      0,
+      390
+     ],
+     "text": "Oh no!! It seems that you made a mistake! To get rid of the errors {c:#FFE8338A}Tap on them!{/c}",
+     "color_markup": true,
+     "wrap_width": 1080,
+     "line_gap": 14,
+     "text_scale": 10,
+     "align": "center",
+     "color": "#FFF4F2F8",
+     "need_bind": "tut_err_on",
+     "text_center_h": 390
+    },
+    {
+     "type": "image",
+     "rect": [
+      430,
+      590,
+      289,
+      181
+     ],
+     "src": "file:err_win_L.png",
+     "bind": "va_errf0",
+     "src_names": [
+      "file:err_win_L.png",
+      "file:err_glitch_a_L.png",
+      "file:err_glitch_b_L.png"
+     ],
+     "need_bind": "va_err0",
+     "on_tap": "close_err_0"
+    },
+    {
+     "type": "image",
+     "rect": [
+      700,
+      620,
+      161,
+      100
+     ],
+     "src": "file:err_win_S.png",
+     "bind": "va_errf1",
+     "src_names": [
+      "file:err_win_S.png",
+      "file:err_glitch_a_S.png",
+      "file:err_glitch_b_S.png"
+     ],
+     "need_bind": "va_err1",
+     "on_tap": "close_err_1"
+    },
+    {
+     "type": "image",
+     "rect": [
+      560,
+      730,
+      217,
+      136
+     ],
+     "src": "file:err_win_M.png",
+     "bind": "va_errf2",
+     "src_names": [
+      "file:err_win_M.png",
+      "file:err_glitch_a_M.png",
+      "file:err_glitch_b_M.png"
+     ],
+     "need_bind": "va_err2",
+     "on_tap": "close_err_2"
+    },
+    {
+     "type": "image",
+     "rect": [
+      400,
+      800,
+      161,
+      100
+     ],
+     "src": "file:err_win_S.png",
+     "bind": "va_errf3",
+     "src_names": [
+      "file:err_win_S.png",
+      "file:err_glitch_a_S.png",
+      "file:err_glitch_b_S.png"
+     ],
+     "need_bind": "va_err3",
+     "on_tap": "close_err_3"
+    },
+    {
+     "type": "image",
+     "rect": [
+      760,
+      432,
+      280,
+      187
+     ],
+     "src": "file:tut_hand.png",
+     "y_bind": "va_tut_bob",
+     "need_bind": "tut_err_hand"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "frame": 0,
+     "bg": "#C01B1726"
+    },
+    {
+     "type": "rect",
+     "id": "standby_bg",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "bg": "#FF000000",
+     "color": "#00000000",
+     "frame": 0,
+     "need_bind": "va_doodles",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:bg_bar_window.png",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:bg_neon_dim.png",
+     "tint_bind": "va_neon",
+     "tint_colors": [
+      "#80FFFFFF",
+      "#B0FFFFFF",
+      "#E0FFFFFF"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:bg_neon_tube.png",
+     "tint_bind": "va_neon",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#A0FFFFFF",
+      "#50FFFFFF"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:bg_neon_bloom.png",
+     "tint_bind": "va_neon",
+     "tint_colors": [
+      "#FFFFFFFF",
+      "#C8FFFFFF",
+      "#96FFFFFF"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "src": "file:neon_mote.png",
+     "repeat": 24,
+     "x_bind": "va_mote{i}_x",
+     "y_bind": "va_mote{i}_y",
+     "tint_bind": "va_mote{i}_a",
+     "tint_colors": [
+      "#00FFFFFF",
+      "#50FFFFFF",
+      "#A0FFFFFF",
+      "#FFFFFFFF"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      404,
+      184,
+      720,
+      776
+     ],
+     "src": "module:gm:jill_spr:0:4",
+     "bind": "va_jill_base",
+     "src_names": [
+      "module:gm:jill_spr:0:4",
+      "module:gm:jill_surprise_spr:0:4",
+      "module:gm:jill_uh_spr:0:4",
+      "module:gm:jill_sad_spr:0:4"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      404,
+      184,
+      720,
+      776
+     ],
+     "src": "module:gm:jill_smile_spr:0:4",
+     "need_bind": "va_jill_smile",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "rect": [
+      404,
+      184,
+      720,
+      776
+     ],
+     "src": "module:gm:jill_eyes:2:4",
+     "bind": "va_jill_eyesrc",
+     "src_names": [
+      "module:gm:jill_eyes:2:4",
+      "module:gm:jill_eyes:1:4",
+      "module:gm:jill_smile_eyes:2:4",
+      "module:gm:jill_smile_eyes:1:4",
+      "module:gm:jill_surprise_eyes:2:4",
+      "module:gm:jill_surprise_eyes:1:4",
+      "module:gm:jill_uh_eyes:2:4",
+      "module:gm:jill_uh_eyes:1:4"
+     ],
+     "need_bind": "va_jill_eyes",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "rect": [
+      404,
+      184,
+      720,
+      776
+     ],
+     "src": "module:gm:jill_lips:0:4",
+     "bind": "va_jill_lips",
+     "src_names": [
+      "module:gm:jill_lips:0:4",
+      "module:gm:jill_lips:1:4",
+      "module:gm:jill_lips:2:4",
+      "module:gm:jill_lips:3:4",
+      "module:gm:jill_lips:4:4",
+      "module:gm:jill_lips:5:4",
+      "module:gm:jill_lips:6:4",
+      "module:gm:jill_lips:7:4",
+      "module:gm:jill_lips:8:4",
+      "module:gm:jill_smile_lips:0:4",
+      "module:gm:jill_smile_lips:1:4",
+      "module:gm:jill_smile_lips:2:4",
+      "module:gm:jill_smile_lips:3:4",
+      "module:gm:jill_smile_lips:4:4",
+      "module:gm:jill_smile_lips:5:4",
+      "module:gm:jill_smile_lips:6:4",
+      "module:gm:jill_smile_lips:7:4",
+      "module:gm:jill_surprise_lips:0:4",
+      "module:gm:jill_surprise_lips:1:4",
+      "module:gm:jill_surprise_lips:2:4",
+      "module:gm:jill_surprise_lips:3:4",
+      "module:gm:jill_surprise_lips:4:4",
+      "module:gm:jill_surprise_lips:5:4",
+      "module:gm:jill_surprise_lips:6:4",
+      "module:gm:jill_surprise_lips:7:4",
+      "module:gm:jill_uh_lips:0:4",
+      "module:gm:jill_uh_lips:1:4",
+      "module:gm:jill_uh_lips:2:4",
+      "module:gm:jill_uh_lips:3:4",
+      "module:gm:jill_uh_lips:4:4",
+      "module:gm:jill_uh_lips:5:4",
+      "module:gm:jill_uh_lips:6:4",
+      "module:gm:jill_uh_lips:7:4",
+      "module:gm:jill_sad_lips:0:4",
+      "module:gm:jill_sad_lips:1:4",
+      "module:gm:jill_sad_lips:2:4",
+      "module:gm:jill_sad_lips:3:4",
+      "module:gm:jill_sad_lips:4:4",
+      "module:gm:jill_sad_lips:5:4",
+      "module:gm:jill_sad_lips:6:4",
+      "module:gm:jill_sad_lips:7:4"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      960,
+      1240,
+      216
+     ],
+     "src": "file:bar_counter.png",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      960,
+      1240,
+      216
+     ],
+     "src": "file:bar_top_dim.png",
+     "tint_bind": "va_neon",
+     "tint_colors": [
+      "#00FFFFFF",
+      "#58FFFFFF",
+      "#88FFFFFF"
+     ],
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      960,
+      1240,
+      216
+     ],
+     "src": "file:bar_shadow.png",
+     "x_bind": "va_shadow_l",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      960,
+      1240,
+      216
+     ],
+     "src": "file:bar_shadow.png",
+     "x_bind": "va_shadow_r",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "need_bind": "va_jill_scene"
+    },
+    {
+     "type": "image",
+     "id": "served_shadow",
+     "rect": [
+      170,
+      990,
+      273,
+      35
+     ],
+     "src_bind": "va_served_shadow",
+     "need_bind": "served_show",
+     "x_bind": "va_served_dx",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "id": "served_drink",
+     "rect": [
+      198,
+      682,
+      245,
+      371
+     ],
+     "src_bind": "va_served_src",
+     "need_bind": "served_show",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "x_bind": "va_served_dx",
+     "y_bind": "va_served_dy"
+    },
+    {
+     "type": "image",
+     "id": "served_bubbles",
+     "rect": [
+      0,
+      0,
+      7,
+      7
+     ],
+     "src": "file:bubble.png",
+     "repeat": 5,
+     "x_bind": "va_bub{i}_x",
+     "y_bind": "va_bub{i}_y",
+     "tint_bind": "va_bub{i}_a",
+     "tint_colors": [
+      "#00FFFFFF",
+      "#55FFFFFF",
+      "#99FFFFFF",
+      "#DDFFFFFF",
+      "#702A0830",
+      "#A02A0830",
+      "#D02A0830"
+     ],
+     "need_bind": "served_show",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "id": "served2_shadow",
+     "rect": [
+      978,
+      990,
+      273,
+      35
+     ],
+     "src_bind": "va_served2_shadow",
+     "need_bind": "served2_show",
+     "x_bind": "va_served_dx",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "id": "served2_drink",
+     "rect": [
+      978,
+      682,
+      245,
+      371
+     ],
+     "src_bind": "va_served2_src",
+     "need_bind": "served2_show",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "x_bind": "va_served_dx",
+     "y_bind": "va_served2_dy"
+    },
+    {
+     "type": "image",
+     "id": "served2_bubbles",
+     "rect": [
+      0,
+      0,
+      7,
+      7
+     ],
+     "src": "file:bubble.png",
+     "repeat": 5,
+     "x_bind": "va_bubr{i}_x",
+     "y_bind": "va_bubr{i}_y",
+     "tint_bind": "va_bubr{i}_a",
+     "tint_colors": [
+      "#00FFFFFF",
+      "#55FFFFFF",
+      "#99FFFFFF",
+      "#DDFFFFFF",
+      "#702A0830",
+      "#A02A0830",
+      "#D02A0830"
+     ],
+     "need_bind": "served2_show",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "id": "standby_title",
+     "rect": [
+      -20,
+      180,
+      1280,
+      720
+     ],
+     "src": "module:gm:jilltitle_spr:0:2",
+     "bind": "va_title_f",
+     "src_names": [
+      "module:gm:jilltitle_spr:0:2",
+      "module:gm:jilltitle_spr:1:2",
+      "module:gm:jilltitle_spr:2:2",
+      "module:gm:jilltitle_spr:3:2"
+     ],
+     "need_bind": "standby_title",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "id": "standby_break",
+     "rect": [
+      -20,
+      180,
+      1280,
+      720
+     ],
+     "src": "module:gm:break_bg1:0:2",
+     "need_bind": "standby_break",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text1",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#2A98DCFF",
+     "need_bind": "standby_glow1",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text2",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#5598DCFF",
+     "need_bind": "standby_glow2",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      617,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#14FF6EC7",
+     "need_bind": "standby_glow3",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      623,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#14FF6EC7",
+     "need_bind": "standby_glow3",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      947,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#14FF6EC7",
+     "need_bind": "standby_glow3",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      953,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#14FF6EC7",
+     "need_bind": "standby_glow3",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text3",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#8098DCFF",
+     "need_bind": "standby_glow3",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      617,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#28FF6EC7",
+     "need_bind": "standby_glow4",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      623,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#28FF6EC7",
+     "need_bind": "standby_glow4",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      947,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#28FF6EC7",
+     "need_bind": "standby_glow4",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      953,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#28FF6EC7",
+     "need_bind": "standby_glow4",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text4",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#AA98DCFF",
+     "need_bind": "standby_glow4",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      617,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#3CFF6EC7",
+     "need_bind": "standby_glow5",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      623,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#3CFF6EC7",
+     "need_bind": "standby_glow5",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      947,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#3CFF6EC7",
+     "need_bind": "standby_glow5",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      953,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#3CFF6EC7",
+     "need_bind": "standby_glow5",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text5",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#D498DCFF",
+     "need_bind": "standby_glow5",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      617,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#50FF6EC7",
+     "need_bind": "standby_glow6",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      623,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#50FF6EC7",
+     "need_bind": "standby_glow6",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      947,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#50FF6EC7",
+     "need_bind": "standby_glow6",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "rect": [
+      620,
+      953,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#50FF6EC7",
+     "need_bind": "standby_glow6",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "label",
+     "id": "standby_text6",
+     "rect": [
+      620,
+      950,
+      0,
+      60
+     ],
+     "text": "Please Stand by",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#FF98DCFF",
+     "need_bind": "standby_glow6",
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     }
+    },
+    {
+     "type": "image",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "src": "file:dither_16.png",
+     "fill": "tile",
+     "bind": "va_dither",
+     "src_names": [
+      "file:dither_1.png",
+      "file:dither_1.png",
+      "file:dither_2.png",
+      "file:dither_3.png",
+      "file:dither_4.png",
+      "file:dither_5.png",
+      "file:dither_6.png",
+      "file:dither_7.png",
+      "file:dither_8.png",
+      "file:dither_9.png",
+      "file:dither_10.png",
+      "file:dither_11.png",
+      "file:dither_12.png",
+      "file:dither_13.png",
+      "file:dither_14.png",
+      "file:dither_15.png",
+      "file:dither_16.png"
+     ],
+     "need_bind": "va_dither"
+    },
+    {
+     "type": "rect",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "color": "#00000000",
+     "frame": 0,
+     "input_block": true,
+     "anim": {
+      "bind": "va_overlay",
+      "group": "idle",
+      "from": "fade",
+      "ms": 300
+     },
+     "on_hold": "va_skip",
+     "hold_ms": 2000,
+     "on_tap": "dlg_next"
+    },
+    {
+     "type": "rect",
+     "id": "egg_dim",
+     "rect": [
+      0,
+      0,
+      1240,
+      1080
+     ],
+     "bg": "#B4000000",
+     "color": "#00000000",
+     "frame": 0,
+     "input_block": true,
+     "on_tap": "egg_close",
+     "need_bind": "egg_on"
+    },
+    {
+     "type": "rect",
+     "id": "egg_window",
+     "rect": [
+      110,
+      160,
+      1020,
+      900
+     ],
+     "bg": "#FF120E1C",
+     "color": "#FF3C84CF",
+     "frame": 4,
+     "need_bind": "egg_on"
+    },
+    {
+     "type": "image",
+     "id": "egg_drawing",
+     "rect": [
+      320,
+      205,
+      600,
+      416
+     ],
+     "src": "file:egg_drawing.png",
+     "need_bind": "egg_on"
+    },
+    {
+     "type": "label",
+     "id": "egg_text",
+     "rect": [
+      620,
+      665,
+      0,
+      60
+     ],
+     "text": "thank u for downloading my companion and I hope you enjoy it a lot!!",
+     "wrap_width": 900,
+     "line_gap": 14,
+     "text_scale": 5,
+     "align": "center",
+     "color": "#FFF4F2F8",
+     "need_bind": "egg_on"
+    },
+    {
+     "type": "label",
+     "id": "egg_sign",
+     "rect": [
+      620,
+      915,
+      0,
+      60
+     ],
+     "text": "~ Mati",
+     "text_scale": 5,
+     "align": "center",
+     "color": "#FFFF82CE",
+     "need_bind": "egg_on"
+    },
+    {
+     "type": "label",
+     "id": "egg_hint",
+     "rect": [
+      620,
+      1006,
+      0,
+      36
+     ],
+     "text": "tap to close",
+     "text_scale": 3,
+     "align": "center",
+     "color": "#FF6E6684",
+     "need_bind": "egg_on"
+    }
+   ]
+  }
+ ],
+ "module_tick_hidden": true,
+ "font": "file:pixelmplus12.vafn",
+ "font_atlas": "file:pixelmplus12.png",
+ "persist_flags": [
+  "tut_shake_kept",
+  "tut_err_kept"
+ ],
+ "load_plan": "guest/<build>/load-plan.json"
+}

@@ -1,0 +1,314 @@
+# Jill's faces for the 1.2 prologue, part 2 (romfs scripts/<lang>/1.2/pro2.txt): day two of the
+# Corgi party, with their vet Betty. Our own reading of the scene.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+2	think	tired
+3	neutral
+4	baka	no
+5	neutral
+6	baka	no
+7	neutral
+8	baka	dogs won't help
+9	think	Gil?
+10	neutral
+12	baka	of course
+13	neutral
+14	baka	should be obvious
+15	baka
+16	think	likes darts?
+17	neutral
+18	think
+19	neutral
+20	uh	sure
+21	think
+22	smile	start of the night
+23	neutral
+24	smile	a human!
+25	smile
+26	smile
+27	neutral
+28	neutral
+29	neutral
+30	neutral
+31	neutral
+32	sad	out of her groove
+33	think	what does she do?
+34	neutral
+36	baka	curious about humans
+37	neutral
+38	think
+39	neutral
+41	smile	a pun coming
+42	uh	cut off
+43	uh
+44	neutral
+45	baka	noted
+46	think	anything else to avoid?
+47	neutral
+48	baka	noted
+49	think	why?
+50	neutral
+51	think
+52	think	a wall
+53	think
+54	think
+55	neutral
+58	neutral
+59	smile	better than TALKING DOGS
+60	uh	sorry
+61	neutral
+62	smile	another drink?
+63	neutral
+64	smile
+65	neutral
+67	baka	no red dot today
+68	neutral
+69	uh	red drinks?
+70	neutral
+71	uh	right...
+72	neutral
+73	neutral
+76	neutral
+77	neutral
+78	think	can he see red?
+79	neutral
+81	uh
+82	baka	over there!
+83	neutral
+84	baka	it worked
+85	neutral
+86	think	excuse me?
+87	neutral
+88	baka	slow news day
+89	neutral
+92	think	new skills?
+93	neutral
+94	smile	the drink's name
+95	neutral
+96	neutral
+97	neutral
+98	neutral
+99	baka	so they're the useless ones
+100	neutral
+101	baka	racist dogs
+102	think	is she racist too?
+103	think
+104	think
+105	neutral
+106	uh	dozed off
+107	neutral
+108	smile
+109	neutral
+110	neutral
+111	neutral
+112	neutral
+114	think	something on her mind?
+115	neutral
+116	smile	part of the job
+117	neutral
+123	surprise	furry office workers?
+124	neutral
+125	think	she's tired
+126	neutral
+127	smile	another pun
+128	uh	cut off again
+129	uh
+130	neutral
+131	baka	more prep would be nice
+132	neutral
+133	think	found out yesterday
+134	think
+135	baka	"like any other day"
+136	neutral
+139	think	forgot their anniversary?
+140	neutral
+143	think	Cardigans?
+144	neutral
+145	baka	so silly
+146	neutral
+147	baka	dogs copying owners
+148	neutral
+150	think	sighs
+151	baka	back to the dogs
+152	neutral
+154	smile
+155	neutral
+156	uh	you?
+157	neutral
+158	smile
+159	neutral
+160	smile
+161	neutral
+162	neutral
+163	baka	woof
+164	neutral
+165	neutral
+166	baka	not a boy
+167	neutral
+168	baka	what do you hate, dog?
+169	neutral
+173	baka	calm down, dog
+174	neutral
+175	baka	to drink
+176	neutral
+177	smile
+178	smile	chill out
+179	neutral
+180	neutral
+181	neutral
+182	uh
+183	neutral
+184	think	yeah?
+185	neutral
+186	baka	drinks, right?
+187	neutral
+188	baka	if she wants
+189	smile
+190	neutral
+191	baka	likes them big?
+192	neutral
+193	smile	wise words
+194	smile
+195	neutral
+196	neutral
+197	neutral
+199	baka	let's go with that
+200	think	the weirdest client
+201	think	many kinds of weird
+202	neutral
+203	think
+204	neutral
+205	baka	the raptor mask
+206	baka
+207	neutral
+208	smile	nice tip
+209	think	the enhancements story
+210	neutral
+211	think
+212	neutral
+213	baka	really bored
+214	neutral
+222	sad	ends badly
+223	neutral
+224	sad
+225	neutral
+228	think	sounds familiar
+229	neutral
+230	think	the news
+231	think
+232	neutral
+234	smile	thanks for sharing
+235	neutral
+236	neutral
+237	baka	time is slow tonight
+238	neutral
+239	smile	having a good time
+240	smile
+241	neutral
+242	smile	laughs at the name
+243	smile	have a good time
+244	neutral
+245	neutral
+246	neutral
+247	think
+248	neutral
+249	baka	sure...
+250	neutral
+251	think
+252	neutral
+253	smile
+254	neutral
+255	neutral
+256	sad	sorry
+257	neutral
+258	neutral
+259	neutral
+260	uh
+261	neutral
+262	think
+263	neutral
+265	baka	you don't say
+266	neutral
+267	uh	please don't
+268	think	when did she get drunk?
+269	neutral
+272	baka	right...
+273	neutral
+274	baka	no need to pay
+275	neutral
+276	baka	let's leave it at that
+277	neutral
+278	neutral
+279	baka	a thimble's worth
+280	neutral
+281	neutral
+283	baka	it's a big one
+284	neutral
+285	neutral
+287	uh
+288	think	why a vet?
+289	neutral
+294	smile	lovely
+295	neutral
+296	think	been in love?
+297	neutral
+298	smile	thanks
+299	neutral
+300	think	what does she need?
+301	neutral
+303	think	share his interest
+304	smile	make him feel special
+305	neutral
+306	smile	no problem
+307	neutral
+310	uh	beg your pardon?
+311	neutral
+312	uh
+313	uh	runs off to serve dogs
+314	neutral
+315	surprise	already?
+316	neutral
+317	uh	right...
+318	think	phew
+319	neutral
+320	baka	not THAT busy
+321	uh	fucking dogs
+322	smile
+323	neutral
+324	smile
+325	neutral
+326	think
+327	neutral
+329	uh	why does everyone say that?
+330	uh
+331	think	changes the subject
+332	neutral
+333	baka	she just did
+334	neutral
+337	think	quite the ambition
+338	neutral
+339	sad	a can of worms
+340	think	life took her here
+341	think	why?
+342	neutral
+347	smile	take it if comfortable
+348	smile	or scratch the itch
+349	neutral
+350	baka	cheap advice
+351	smile	back to the dogs
+352	neutral
+353	surprise	leaving already?
+354	neutral
+355	smile	don't worry
+356	smile	thank dog... GOD
+357	baka	dog gammit
+358	neutral
+359	think
+360	baka	insecticide
+361	think	the health inspector?
+362	neutral
+363	baka	right...
+364	think	the boss looks tense
+365	neutral
+366	think
+367	think	calls it a day
+368	neutral

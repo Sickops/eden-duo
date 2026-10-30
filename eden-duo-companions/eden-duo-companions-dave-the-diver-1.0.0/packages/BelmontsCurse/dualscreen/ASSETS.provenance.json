@@ -1,0 +1,12 @@
+{
+  "files": {
+    "guest/0F1169AA7D0FA4529C861F96ADEC306E00000000000000000000000000000000/load-plan.json": {
+      "origin": "authored",
+      "description": "Guest helper load plan: authored AArch64 helper code (native/helper/belmont_guest_helper.S) and one hook branch; game bytes appear only as 4-byte expected-value checks"
+    },
+    "fonts/latin51sc.bfont": {
+      "origin": "authored",
+      "description": "Font request descriptor (no glyphs); loads native LatinFont at 51cap with small capitals"
+    }
+  }
+}

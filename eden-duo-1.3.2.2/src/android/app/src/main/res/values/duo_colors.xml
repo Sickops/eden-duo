@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-FileCopyrightText: Copyright 2026 Eden DSMod fork
+    SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <!-- Eden Duo Fork: split companion pane (InlineCompanion) -->
+    <!-- The pane is black until the companion's surface draws, like the idle page. -->
+    <color name="duo_companion_background">#FF000000</color>
+    <!-- The draggable seam between the game and the companion. -->
+    <color name="duo_companion_divider">#FF000000</color>
+</resources>

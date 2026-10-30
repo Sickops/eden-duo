@@ -1,0 +1,303 @@
+# Jill's faces for day 19 (romfs scripts/<lang>/script19.txt): New Year's Eve, the talk with
+# Gaby and Lenore's letter. Our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+2	sad	waiting
+4	neutral
+8	sad
+10	sad	scared
+11	sad
+12	neutral
+13	sad
+15	think	maybe
+16	neutral
+18	surprise	a hug?
+19	neutral
+20	uh
+22	uh	right...
+23	think
+24	think	everything's fine
+25	think
+26	smile	yeah!
+27	smile
+28	smile	maybe a hug
+29	smile	she's okay
+30	neutral
+31	surprise	Gaby
+32	uh
+33	uh	come in
+34	neutral
+36	smile	the habit
+37	uh
+38	uh	both talk at once
+39	uh
+40	uh	you first
+41	neutral
+44	think	the letter
+45	sad
+47	sad	from Lenore
+48	neutral
+51	sad	never opened it
+52	think
+53	neutral
+54	think	read it together
+55	neutral
+58	uh	opens it
+59	sad
+63	surprise	just "sorry"
+64	neutral
+65	baka	yup
+66	neutral
+67	baka	so like her
+68	uh	all that worry
+69	uh
+70	uh
+72	uh	just "sorry"?!
+73	uh
+74	uh
+75	uh	pissed
+76	neutral
+77	baka	are you laughing?
+78	neutral
+83	smile	knew her like the back of her hand
+84	smile	she had the right to brag
+85	neutral
+87	sad	she was sorry
+88	sad
+89	think	the illness
+90	neutral
+94	think
+95	neutral
+97	think	why hide it?
+98	neutral
+101	sad
+102	think	how did she live?
+103	neutral
+105	sad	the mark
+106	think
+107	neutral
+115	sad
+116	think	what-ifs won't help
+117	neutral
+118	sad	all the what-ifs
+120	sad
+121	sad
+122	think	realised something
+123	think	regrets with the dead
+124	smile	can make amends with Gaby
+125	sad
+126	neutral
+127	sad	Lenore...
+128	sad
+129	sad	she's resting
+130	sad
+131	neutral
+132	smile	celebrate her life
+133	smile	together
+134	neutral
+135	smile	lighten up
+136	neutral
+137	think	the chest pains?
+138	neutral
+146	smile	sorry too
+147	smile
+148	smile
+149	smile	water under the bridge
+150	neutral
+151	smile	of course
+152	think
+153	think	how did Gaby find her?
+154	neutral
+156	uh	Danger/u/
+157	neutral
+160	uh
+161	neutral
+162	uh	dumbfounded
+163	neutral
+166	think	what was the problem?
+167	think
+168	sad	hated those years
+169	sad
+170	sad
+171	uh	the job offer
+172	uh	livid
+173	uh
+174	uh
+175	uh	marriage talk
+176	neutral
+177	uh	never serious!
+178	think
+179	sad	scared
+180	sad
+181	think
+182	think	pushy
+183	think
+184	sad
+185	sad
+186	uh	her freedom
+187	uh
+188	uh
+189	neutral
+190	uh	never stopped loving her
+191	sad
+192	sad	40 and stuck
+193	sad
+194	think	a break
+195	think
+196	neutral
+198	smile	"fight"
+199	sad	tragically silly
+200	sad	maybe she started it
+201	sad
+202	sad
+203	sad
+204	neutral
+205	surprise
+206	neutral
+211	sad	Lenore...
+212	neutral
+213	smile	play your role!
+214	neutral
+215	sad	why didn't she come back?
+216	neutral
+217	sad
+218	sad
+219	smile	the broken window
+220	smile
+221	neutral
+222	sad	dead afraid
+223	neutral
+224	uh
+225	sad
+226	sad
+227	uh	stupid
+228	neutral
+230	sad	sighs
+231	neutral
+236	smile	she was amazing
+237	think
+238	smile	yeah!
+239	neutral
+240	smile	celebrate her life
+241	smile
+242	neutral
+243	baka	rubbing it in
+244	baka
+245	neutral
+246	smile	a toast
+247	neutral
+248	smile	a drink
+249	neutral
+250	smile	trust her
+251	smile
+252	neutral
+253	think
+254	smile	a toast to Lenore
+255	sad
+256	sad
+257	smile	she'll look after Gaby
+258	smile
+259	baka	the little brat
+260	neutral
+261	smile	add anything?
+262	neutral
+265	smile	say it to her
+266	neutral
+267	smile	just this once
+268	neutral
+269	sad	Gaby's goodbye
+275	neutral
+276	smile	the same promise
+277	neutral
+278	think	can't promise that
+279	neutral
+280	baka	too thickheaded
+281	smile	won't run away
+282	smile
+283	neutral
+284	baka	more mature than her
+285	neutral
+288	smile	always there for her
+289	smile	her little sister
+290	neutral
+293	smile	right!
+294	smile	for Lenore
+295	smile	cheers!
+296	neutral
+301	smile	take a sip
+302	neutral
+303	smile
+304	baka	break the taboo
+305	neutral
+306	baka	give it here
+307	baka	too strong
+308	neutral
+309	think	the prank
+310	neutral
+314	smile	got her drink
+315	neutral
+316	smile
+317	neutral
+319	think	getting back at her
+320	uh	a memory she won't share
+323	neutral
+324	uh	when she's older
+325	baka	or never
+326	neutral
+327	think	do her parents know?
+328	neutral
+329	think	who?
+330	neutral
+331	think
+332	neutral
+333	baka	true
+334	think
+335	neutral
+338	think
+339	smile	stay at her place
+340	neutral
+341	smile	comfy enough
+342	neutral
+343	smile	great
+344	smile	the bakery
+345	neutral
+346	think
+347	neutral
+349	smile	the dad's reaction
+350	smile
+351	neutral
+355	smile
+356	sad
+357	sad	Gaby's mom
+358	neutral
+363	think
+364	sad	how did she take it?
+365	neutral
+366	surprise	they broke up?
+367	neutral
+369	think
+370	neutral
+371	sad	alone
+372	neutral
+373	smile	not alone anymore
+374	neutral
+375	baka	the alcohol
+376	neutral
+377	baka	broke the taboo
+378	neutral
+379	baka	it'll pass
+380	baka	a moral
+381	baka	the bathtub of ice
+382	neutral
+383	neutral
+384	smile	Alma
+385	neutral
+386	smile	a New Year's party
+387	smile	stay for it?
+388	neutral
+389	smile	cola only
+390	neutral
+391	uh
+392	smile	catch up
+393	neutral
+394	smile	great
+395	smile	introduces her

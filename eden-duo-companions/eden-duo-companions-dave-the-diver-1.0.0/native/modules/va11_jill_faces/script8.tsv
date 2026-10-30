@@ -1,0 +1,416 @@
+# Jill's faces for day 8 (romfs scripts/<lang>/script8.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+5	uh	brought her cat
+6	neutral
+7	surprise	the boss storms in
+10	uh	"what the fuck?"
+11	neutral
+12	uh	CAT!
+13	neutral
+15	smile	the boss loves Fore
+16	neutral
+17	think	the raids
+18	sad
+19	neutral
+21	uh	Fore is shy
+22	neutral
+23	baka	she didn't hear
+24	think
+25	neutral
+26	surprise
+27	neutral
+28	think
+29	neutral
+30	smile	start of the night
+31	surprise	a voice
+32	uh
+33	neutral
+34	uh	ANOTHER dog
+35	neutral
+36	uh	the part-timer
+37	neutral
+38	uh
+39	baka	tries to take her break
+40	neutral
+41	uh	denied
+42	uh	sighs
+43	neutral
+44	uh	why a dog?
+45	neutral
+47	baka	they all look the same
+48	neutral
+53	uh	please don't shout
+54	neutral
+56	think	why Rad Shiba?
+57	neutral
+60	baka	Gil, cleaning
+61	neutral
+62	uh
+63	neutral
+65	uh	the Grizzly Temple again
+66	neutral
+67	uh	flashbacks
+68	neutral
+69	neutral
+70	neutral
+72	baka	hard to believe
+73	neutral
+75	baka	and yet he works at a bar
+76	neutral
+78	baka	there was no alcohol
+79	think
+80	neutral
+81	think	Seifar?
+82	neutral
+84	think	CIRA?
+85	neutral
+90	think
+91	neutral
+93	smile	sounds nice
+94	neutral
+95	neutral
+98	baka	avoid the promos
+99	neutral
+101	smile
+102	neutral
+103	neutral
+104	neutral
+106	baka	dogs see differently
+107	neutral
+108	think
+109	neutral
+113	think	weird skills?
+114	neutral
+115	uh	thumbs
+116	neutral
+117	think	on a whim
+118	think
+120	neutral
+124	surprise	Fore!
+125	neutral
+127	think
+128	neutral
+129	think
+130	neutral
+132	baka	no playing
+133	neutral
+135	smile	her pride
+136	neutral
+139	neutral
+140	think	tired
+141	neutral
+142	surprise	that voice
+143	surprise	Sei, bandaged
+145	neutral
+147	uh	does she need help?
+148	neutral
+149	think
+150	neutral
+151	think
+152	neutral
+158	think	the bar is safe
+160	sad	worried for her
+162	sad
+164	uh	rushing questions
+165	neutral
+166	sad	sorry
+167	neutral
+169	surprise	ignored?
+170	neutral
+173	sad
+174	neutral
+176	smile	on the house
+177	neutral
+178	baka	can't change her mind
+179	neutral
+180	smile
+181	uh	careful
+182	neutral
+183	neutral
+184	neutral
+185	sad
+186	think
+187	neutral
+191	surprise	how?
+192	neutral
+194	uh
+195	neutral
+196	think	"someone"?
+197	neutral
+199	uh
+200	neutral
+201	uh	she's too cheerful
+202	neutral
+204	sad
+205	neutral
+206	sad
+207	neutral
+209	think
+210	neutral
+211	think	Stella?
+212	neutral
+214	uh
+215	uh
+216	neutral
+217	uh
+218	neutral
+220	neutral
+221	neutral
+222	neutral
+224	uh
+225	neutral
+226	think	the bank
+227	neutral
+228	think
+229	neutral
+234	sad	went too far
+235	neutral
+237	uh	is she alright?
+238	neutral
+239	sad
+240	sad	sighs
+241	neutral
+243	sad	too pushy
+246	neutral
+248	think
+249	think
+250	neutral
+251	smile	please
+252	neutral
+253	think
+254	neutral
+255	surprise	she came back
+256	neutral
+258	think
+259	sad
+260	neutral
+261	think
+262	neutral
+263	smile	the back alley
+264	neutral
+265	smile
+266	neutral
+268	smile
+269	think	why her?
+270	neutral
+271	think
+272	sad	Sei breaks down
+278	sad
+282	smile	nobody will hurt her
+283	neutral
+284	smile	deep breaths
+285	neutral
+286	sad
+287	think	bottled it all up
+288	neutral
+289	think
+290	neutral
+293	baka	what about Stella?
+294	neutral
+295	think	afraid?
+296	neutral
+298	baka	Stella will yell
+299	smile	then be happy
+300	neutral
+301	baka	a slap or despair
+302	neutral
+303	think
+304	neutral
+310	sad	knows the feeling
+311	neutral
+312	smile	go see Stella
+313	neutral
+314	smile	calls Gil
+315	neutral
+316	smile
+317	neutral
+318	baka	yeah, yeah
+319	neutral
+322	smile	anytime
+323	think	hopes it goes well
+324	smile	Jamie
+325	neutral
+326	think
+327	neutral
+328	think	he looks distracted
+329	neutral
+330	baka	if you say so
+331	neutral
+332	smile	the litter box
+333	neutral
+335	smile	Fore
+337	neutral
+338	smile
+339	neutral
+340	smile
+341	neutral
+344	smile	the Gut Punch pun
+345	neutral
+346	think
+350	neutral
+351	smile
+352	neutral
+353	baka	too amusing
+354	neutral
+355	neutral
+356	neutral
+357	neutral
+358	think	distracted too
+359	think
+360	neutral
+362	think
+363	think
+364	neutral
+365	think
+366	neutral
+370	think
+371	neutral
+373	think
+374	neutral
+377	think
+378	smile
+379	neutral
+380	smile	grandpa
+382	neutral
+384	neutral
+385	neutral
+386	neutral
+387	neutral
+388	sad	sorry
+389	neutral
+390	smile	don't worry
+391	think	taking a life
+393	uh	the sex ed comparison
+395	neutral
+398	think
+399	smile	a story
+400	neutral
+410	surprise	that should be a movie
+411	think
+412	neutral
+419	think
+420	neutral
+422	smile	interesting story
+423	baka	is he James?
+424	neutral
+426	think
+427	neutral
+428	smile
+429	neutral
+430	neutral
+431	neutral
+432	neutral
+433	uh
+434	neutral
+435	sad	sorry
+436	neutral
+437	think	not good with violence
+438	neutral
+440	think
+441	smile	Gil is reliable
+442	neutral
+443	think
+445	baka	Gil's itchy nose
+446	neutral
+449	smile	will do
+450	think	a heavy day
+451	think
+452	think
+453	think
+454	baka	tempts fate
+455	uh	gloomy faces and a dog
+456	think	hopes for a change
+457	neutral
+458	surprise	called it
+459	uh	Ingram
+460	neutral
+461	neutral
+463	smile
+464	neutral
+465	neutral
+466	uh
+467	neutral
+469	baka	riiight
+470	neutral
+471	neutral
+472	neutral
+474	think
+475	neutral
+479	think
+480	neutral
+482	think
+483	neutral
+485	think	he's more cheerful
+486	neutral
+489	baka
+490	think	the bank
+491	neutral
+495	think
+496	neutral
+497	uh	snubbed
+498	neutral
+499	think
+500	neutral
+507	think	don't let it get to you
+508	baka	hates teenagers
+509	think
+510	neutral
+511	baka	no shit
+512	neutral
+513	neutral
+514	neutral
+515	neutral
+516	think	why order it?
+517	neutral
+518	uh
+520	neutral
+521	neutral
+522	neutral
+523	neutral
+524	neutral
+525	uh
+526	uh
+527	neutral
+528	think
+529	surprise	Fore runs in
+530	uh
+531	neutral
+534	smile	Fore is hers
+535	neutral
+539	sad	Ingram's daughter
+542	neutral
+543	neutral
+545	smile	Fore was a stray too
+546	neutral
+549	neutral
+550	neutral
+551	baka	he came back
+552	neutral
+553	uh	shut up and leave
+554	neutral
+556	smile	Fore is well kept
+557	neutral
+558	think
+559	neutral
+562	neutral
+563	neutral
+564	baka	said that last time
+565	uh	scared a client
+566	neutral
+567	smile	Fore is her baby
+568	baka	go play
+569	neutral
+570	smile	Gil is back
+571	neutral
+573	smile	glad to hear it
+574	neutral
+575	think
+576	neutral
+577	think	tired
+578	sad	heavy emotional baggage
+579	think
+580	smile	missed Dorothy
+581	neutral
+582	baka	kinda
+583	smile	sleep it off
+585	think	too much heavy stuff

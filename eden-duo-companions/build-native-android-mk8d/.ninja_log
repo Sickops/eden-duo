@@ -1,0 +1,9 @@
+# ninja log v7
+36	89	8150464653001285	D:/Projet IA/Eden duo fold/eden-duo-companions/build-native-android-mk8d/CMakeFiles/cmake.verify_globs	3a17eb6dee57149a
+126	1575	8150464653906855	CMakeFiles/dsmod-mk8d.dir/mk8d_anim.cpp.o	cef3d98f1ee9c505
+153	2238	8150464654171883	CMakeFiles/dsmod-mk8d.dir/D_/Projet_IA/Eden_duo_fold/eden-duo-1.3.2.2/externals/bc_decoder/bc_decoder.cpp.o	2575757be865c581
+114	2448	8150464653776352	CMakeFiles/dsmod-mk8d.dir/mk8d_ids.cpp.o	da1fbada78c7b83f
+92	3738	8150464653561307	CMakeFiles/dsmod-mk8d.dir/0100152000022000.cpp.o	e79c80c43b0c6df8
+101	6439	8150464653656284	CMakeFiles/dsmod-mk8d.dir/mk8d_reader.cpp.o	143be1eedc477a8b
+140	6445	8150464654041830	CMakeFiles/dsmod-mk8d.dir/mk8d_assets.cpp.o	ff3427793abfd41e
+6445	6637	8150464717095980	0100152000022000.so	ce3a51a599b46284

@@ -1,0 +1,536 @@
+# Jill's faces for day 5 (romfs scripts/<lang>/script5.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+2	think	tired
+3	neutral
+4	sad	the bank is getting ugly
+5	neutral
+7	baka	the streets never were safe
+8	sad	the bar is closing
+9	neutral
+11	baka	bored at home
+12	neutral
+13	baka	nothing important
+14	think	Gil?
+15	neutral
+16	sad
+17	surprise	the streamer is still here
+18	neutral
+20	baka	yes, she minds
+21	uh
+22	neutral
+23	baka	motel fee
+24	neutral
+29	uh	"flat bartender"
+30	baka
+31	neutral
+33	uh
+34	uh
+36	uh
+37	neutral
+39	uh	unleashed something terrible
+40	neutral
+42	smile	the gift bottle
+43	neutral
+44	smile
+45	neutral
+46	smile
+47	neutral
+48	smile
+49	neutral
+51	smile
+52	neutral
+53	uh
+55	baka	a bar owner not drinking
+56	smile	her absinthe
+57	sad	not worth much
+58	smile
+59	neutral
+61	think
+62	neutral
+64	smile
+65	neutral
+67	smile
+68	neutral
+69	smile	start of the night
+70	uh	wrong words
+71	sad	nobody to tease her
+72	sad	misses Gil
+74	think	hopes nobody weird comes
+75	neutral
+76	surprise	a record jinx
+77	uh
+78	neutral
+79	surprise	Green Fairy?
+80	neutral
+82	baka	holds back a joke
+83	neutral
+84	smile
+85	neutral
+86	neutral
+87	neutral
+88	uh
+89	think	how does it drink?
+90	surprise
+91	think
+92	neutral
+93	uh	Missss...
+94	neutral
+96	smile
+97	neutral
+98	baka	too easy
+99	think	a brain in a jar
+100	neutral
+102	uh	speechless
+103	neutral
+104	baka
+105	neutral
+106	think
+107	neutral
+111	baka	a prepared speech
+112	neutral
+116	uh	takes a pamphlet
+117	think
+118	neutral
+120	think
+121	neutral
+123	uh	gives her name
+124	neutral
+125	smile
+126	think	brave to come out
+127	neutral
+128	smile
+129	neutral
+130	smile
+131	neutral
+132	think
+133	neutral
+137	think	would she be happy?
+138	neutral
+139	baka	depends
+140	neutral
+141	smile	makes it happy
+142	smile
+143	neutral
+144	neutral
+145	uh
+147	uh
+148	think	the brain upload talk
+149	neutral
+150	think
+151	neutral
+154	think
+155	think
+156	neutral
+159	surprise
+160	think
+161	neutral
+163	think
+164	neutral
+166	uh	an indiscreet question
+167	neutral
+168	think
+169	neutral
+171	surprise
+172	neutral
+174	surprise	blurry?
+175	neutral
+178	think
+179	neutral
+183	sad	might crumble
+184	think	how to refer to it
+185	neutral
+186	think
+187	neutral
+189	sad	is it okay with that?
+190	neutral
+192	sad
+193	neutral
+195	think
+196	neutral
+198	baka	a downside?
+199	neutral
+201	think
+202	neutral
+206	think
+207	neutral
+208	smile	Alma
+209	neutral
+210	baka	the formal welcome
+211	baka	happy?
+212	neutral
+214	surprise	Alma screams
+215	neutral
+227	neutral
+229	smile
+230	neutral
+233	neutral
+234	smile
+235	neutral
+237	neutral
+238	uh
+239	baka	"she's just like that"
+240	neutral
+243	baka	feels longer
+244	smile
+245	neutral
+247	baka	Gillian
+248	neutral
+249	baka	adventuring
+250	neutral
+253	baka	"we click"
+254	neutral
+256	smile
+257	neutral
+259	smile	goodbye
+260	neutral
+261	think
+262	think
+264	neutral
+266	think
+267	neutral
+268	think
+271	neutral
+275	think	she gets it
+276	think
+278	neutral
+288	think
+289	sad	dressed in black, teased
+290	sad
+291	sad
+292	neutral
+294	think	not comparing
+295	think
+296	neutral
+298	think
+299	neutral
+300	surprise	the middle kid is A?
+301	neutral
+305	smile	never alone
+306	neutral
+310	think
+311	neutral
+316	uh	damn
+317	neutral
+321	baka	take your own advice
+322	neutral
+324	surprise	kiss cam?
+325	neutral
+330	think
+331	baka	rejected on the kiss cam
+332	neutral
+335	baka	too convoluted
+336	neutral
+338	baka	won't ask
+339	neutral
+341	smile	the rum
+342	neutral
+343	smile	good service
+344	neutral
+346	think
+347	neutral
+348	smile
+349	neutral
+351	smile
+352	neutral
+353	think
+354	neutral
+355	neutral
+356	neutral
+357	uh
+359	surprise	the what now?
+360	neutral
+361	surprise	the boss takes it
+363	smile	cheers
+364	neutral
+367	uh
+368	smile	the absinthe
+369	neutral
+371	think
+372	smile
+373	neutral
+374	uh	careful
+375	neutral
+377	uh
+378	neutral
+379	think
+380	neutral
+381	baka	studies, woman
+382	neutral
+383	surprise	a dropout
+384	neutral
+385	think
+386	neutral
+389	uh
+390	neutral
+391	uh	her turn to ask
+392	neutral
+393	think	her family
+394	think
+395	sad	mom always away
+397	neutral
+399	think	the violin
+400	neutral
+401	think
+402	neutral
+403	think
+404	neutral
+406	smile
+407	neutral
+408	baka	fake French
+409	neutral
+410	baka	can't speak it
+411	sad
+412	think
+413	baka	couldn't spot him
+414	neutral
+416	think	nothing interesting
+417	neutral
+418	think
+419	neutral
+420	uh	"mixologist"
+421	neutral
+425	baka	the mercenary stories
+426	neutral
+428	baka	the phone pics
+429	neutral
+430	think
+431	neutral
+441	think	never thought of it that way
+442	neutral
+445	neutral
+447	neutral
+449	uh	Alma, please
+450	neutral
+451	uh	here goes nothing
+452	neutral
+453	neutral
+454	baka	woo-hoo
+455	neutral
+456	neutral
+457	neutral
+458	uh
+460	uh
+461	neutral
+462	baka	how many?
+463	neutral
+465	think	why so many?
+466	neutral
+467	baka
+468	neutral
+473	think	not too different
+474	sad	her one night stands
+475	neutral
+476	think	reasons
+477	neutral
+478	baka	break time
+479	neutral
+480	baka	doesn't trust her
+481	neutral
+482	baka	got the message
+483	neutral
+485	think	the bonus
+487	sad	bills
+488	neutral
+489	think
+490	neutral
+491	uh	hates her right now
+492	neutral
+494	surprise	roommates?
+496	think
+497	uh	the broken elevator
+499	smile	the shut-in cat
+500	uh	a headache
+501	neutral
+502	baka
+503	smile	break
+504	neutral
+505	baka	wasting break time
+506	neutral
+507	smile
+508	neutral
+510	smile	refreshing
+511	neutral
+512	smile	Billy Vine
+514	neutral
+515	baka	or a nice crackhead
+516	neutral
+517	think
+518	neutral
+519	think
+520	think
+521	sad	maybe she was lonely
+522	uh
+523	baka	smoking in bed
+524	neutral
+525	baka	yeah, yeah
+526	neutral
+527	think	sighs
+528	neutral
+531	uh	too personal
+532	neutral
+533	baka	quite the imagination
+534	neutral
+535	surprise
+536	neutral
+539	sad
+540	think
+541	neutral
+542	sad
+543	neutral
+545	uh	worried for Alma
+546	neutral
+548	surprise	Dorothy yells
+549	baka	don't scream
+550	neutral
+551	baka	just talking
+552	neutral
+553	uh
+554	neutral
+555	baka	use a vending machine
+556	neutral
+558	uh
+559	think
+560	smile
+561	neutral
+564	think	Lawrence?
+565	neutral
+566	surprise	a vending machine
+567	neutral
+568	neutral
+569	uh
+570	uh	no no
+571	neutral
+595	uh	an uncomfortable story
+597	neutral
+622	surprise	Dorothy gets carried away
+626	uh
+627	uh	speechless
+628	neutral
+629	baka	no shit
+630	neutral
+639	neutral
+640	surprise	her ride?
+641	neutral
+642	think
+643	neutral
+650	smile	take care
+651	neutral
+655	uh	worried for Alma
+656	neutral
+658	surprise	oh no
+660	uh	uncomfortable stories
+682	uh	sighs
+683	uh
+689	uh	stops her
+691	neutral
+692	baka	draws the line
+693	baka
+694	neutral
+695	uh	lets her try
+696	uh
+697	uh	enough
+698	neutral
+699	uh	stop
+700	neutral
+701	neutral
+703	neutral
+704	surprise	her ride?
+705	neutral
+706	think
+707	neutral
+714	baka	yeah, yeah
+715	think	Neo-Tijuana
+720	neutral
+721	surprise	a client
+722	smile	welcome
+723	neutral
+726	uh
+729	baka	a Persona Non Grata
+730	neutral
+731	neutral
+732	uh	seventeen?
+733	neutral
+734	uh
+735	neutral
+736	think
+737	neutral
+738	uh
+739	neutral
+740	smile	explains
+741	neutral
+743	baka	took him literally
+744	neutral
+745	neutral
+748	baka	riiight
+749	neutral
+753	baka	the arcade machines
+754	neutral
+758	think	a slow day
+759	sad
+760	neutral
+762	think	not a zoologist
+763	neutral
+764	think
+766	neutral
+768	uh	speechless
+769	neutral
+770	baka	chlorine
+771	neutral
+772	baka	halogens
+773	neutral
+774	baka	gives up
+775	neutral
+776	surprise	"us"?
+777	neutral
+778	baka	it's 23
+779	neutral
+780	baka
+781	neutral
+782	baka	"primal"
+783	uh
+784	neutral
+786	baka	okay
+787	smile	delivers it
+788	neutral
+789	smile	enjoy~
+790	neutral
+792	uh	you don't have to
+793	neutral
+794	surprise	hold on, what?!
+795	neutral
+796	uh
+797	neutral
+800	baka	pay anyway
+801	neutral
+802	think
+803	neutral
+804	uh	what?
+805	neutral
+808	baka	could punch him
+809	baka
+810	neutral
+812	neutral
+816	uh	what?
+817	neutral
+818	uh	oh hell
+819	think
+820	neutral
+821	think
+822	sad	gunshots
+823	neutral
+824	think
+825	neutral
+832	sad	ugly everywhere
+833	neutral
+834	uh	what if they break in?
+835	neutral
+837	sad	stays the night
+838	neutral
+839	think
+840	neutral
+843	baka	the nail bat
+844	neutral
+845	smile	a small laugh
+846	sad	worried for her friends
+847	sad
+848	uh	cold

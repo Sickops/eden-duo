@@ -1,0 +1,33 @@
+# Jill's faces for Anna's dream that opens a new game (romfs scripts/<lang>/anna_script.ini), our
+# own reading of the scene. line <TAB> face <TAB> note. Line numbers count every line of the file
+# (sections, l_N = "..." and count = N). A face holds until the next entry; the file starts neutral.
+# First playthrough: section [49] (Anna in the dream), then [50] (Jill wakes up).
+805	uh	a whisper out of nowhere
+807	surprise	BOO!
+808	uh	that entrance
+809	neutral
+810	uh	look sharp, the game's starting
+813	neutral	life is 90% how you take it
+814	uh	no idea what the brighter side is
+815	neutral	check the parcel
+819	surprise	wakes with a start
+820	think	*yawn* just a dream
+821	neutral	something near the door
+# New game+: section [51] (the dream again), then [52] (wakes up).
+824	uh	the whisper again
+826	surprise	Boo!
+827	neutral
+828	uh	why didn't I show up on the TV?
+830	smile	thank you for playing again
+831	neutral	what carries over
+838	uh	debts will still show up
+839	neutral	endings tips
+841	uh	the buff sweetheart and the cat-eared beauty
+844	uh	as long as you're not an asshole
+846	smile	six endings, can you get them all?
+847	neutral	let's pretend this never happened
+848	surprise	GAME START!
+851	surprise	wakes with a start
+852	uh
+853	sad	no more tequila-seasoned ramen
+854	surprise	what are you chewing on, Fore?

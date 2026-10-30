@@ -1,0 +1,7 @@
+{
+    global:
+        eden_dsmod_get_module;
+        eden_dsmod_get_extensions;
+    local:
+        *;
+};

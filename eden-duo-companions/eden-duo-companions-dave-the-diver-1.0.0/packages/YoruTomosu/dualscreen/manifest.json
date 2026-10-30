@@ -1,0 +1,1340 @@
+{
+  "format": 1,
+  "title_id": "0100C2901153C000",
+  "name": "Yoru Tomosu companion",
+  "min_runtime": 20,
+  "canvas_w": 1240,
+  "canvas_h": 1080,
+  "background": "#FF17151E",
+  "requires_module": true,
+  "nav": false,
+  "anim_hz": 60,
+  "module": {
+    "abi": 1,
+    "build_ids": [
+      "3A573656D869F5786166FCFF376C93AE434C2B38000000000000000000000000"
+    ]
+  },
+  "_about": "2026-10-16 round 2 (owner feedback): a new Log row slides in from above with older rows sliding down (Follow newest only); Log/Option/CG tabs are now separate manifest pages that cross-fade on switch; Log's own header gained the same text-size controls as the Option page (shared state). Round 1: native drag-to-scroll Log/CG (ScrollRegion) replaces the pan_zoom raster body; Latest/Oldest at the scrollbar ends. No game/patch assets bundled. Independent local interactions only.",
+  "_development": "Private development slice. Pinch-to-zoom on the Log was tried and dropped (mod_input.cpp's gesture priority gives any on_pinch widget the whole single-finger gesture before the ScrollRegion is ever consulted, the same bug the owner reported for the old pan_zoom body) -- text size lives on both the Log and Option pages instead. Android device validation pending.",
+  "haptics": {
+    "enabled": true,
+    "respect_system": true,
+    "tap": "light",
+    "select": "light",
+    "swipe": "light",
+    "hold": "click",
+    "refused": "light",
+    "drag": "light"
+  },
+  "flags": {
+    "opt.scroll_speed": 1,
+    "opt.follow_newest": 1
+  },
+  "persist_flags": [
+    "opt.scroll_speed",
+    "opt.follow_newest"
+  ],
+  "derived": [
+    {
+      "name": "log.live_slow",
+      "expr": "(ui.page.0 != 0) && (@flag:opt.scroll_speed == 0)"
+    },
+    {
+      "name": "cg.live_slow",
+      "expr": "(ui.cg_grid != 0) && (@flag:opt.scroll_speed == 0)"
+    },
+    {
+      "name": "opt.sel.speed_slow",
+      "expr": "@flag:opt.scroll_speed == 0"
+    },
+    {
+      "name": "log.live_normal",
+      "expr": "(ui.page.0 != 0) && (@flag:opt.scroll_speed == 1)"
+    },
+    {
+      "name": "cg.live_normal",
+      "expr": "(ui.cg_grid != 0) && (@flag:opt.scroll_speed == 1)"
+    },
+    {
+      "name": "opt.sel.speed_normal",
+      "expr": "@flag:opt.scroll_speed == 1"
+    },
+    {
+      "name": "log.live_fast",
+      "expr": "(ui.page.0 != 0) && (@flag:opt.scroll_speed == 2)"
+    },
+    {
+      "name": "cg.live_fast",
+      "expr": "(ui.cg_grid != 0) && (@flag:opt.scroll_speed == 2)"
+    },
+    {
+      "name": "opt.sel.speed_fast",
+      "expr": "@flag:opt.scroll_speed == 2"
+    },
+    {
+      "name": "opt.sel.follow_on",
+      "expr": "@flag:opt.follow_newest != 0"
+    },
+    {
+      "name": "opt.sel.follow_off",
+      "expr": "@flag:opt.follow_newest == 0"
+    },
+    {
+      "name": "opt.log_reset_combined",
+      "expr": "log.latest_nonce + ((@flag:opt.follow_newest != 0) * log.content_rev)"
+    },
+    {
+      "name": "log.slide_dy_gated",
+      "expr": "log.slide_dy * (@flag:opt.follow_newest != 0)"
+    }
+  ],
+  "actions": {
+    "page_0": {
+      "kind": "module",
+      "action": "page",
+      "argument": 0
+    },
+    "page_1": {
+      "kind": "module",
+      "action": "page",
+      "argument": 1
+    },
+    "page_2": {
+      "kind": "module",
+      "action": "page",
+      "argument": 2
+    },
+    "log_smaller": {
+      "kind": "module",
+      "action": "log_zoom",
+      "argument": -2
+    },
+    "log_larger": {
+      "kind": "module",
+      "action": "log_zoom",
+      "argument": 2
+    },
+    "log_font_reset": {
+      "kind": "module",
+      "action": "log_zoom_reset",
+      "argument": 0
+    },
+    "log_latest": {
+      "kind": "module",
+      "action": "log_latest",
+      "argument": 0
+    },
+    "log_oldest": {
+      "kind": "module",
+      "action": "log_oldest",
+      "argument": 0
+    },
+    "manual_previous": {
+      "kind": "module",
+      "action": "manual_scroll",
+      "argument": -1
+    },
+    "manual_next": {
+      "kind": "module",
+      "action": "manual_scroll",
+      "argument": 1
+    },
+    "cg_back": {
+      "kind": "module",
+      "action": "cg_back",
+      "argument": 0
+    },
+    "cg_tile_0": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 0
+    },
+    "cg_tile_1": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 1
+    },
+    "cg_tile_2": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 2
+    },
+    "cg_tile_3": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 3
+    },
+    "cg_tile_4": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 4
+    },
+    "cg_tile_5": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 5
+    },
+    "cg_tile_6": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 6
+    },
+    "cg_tile_7": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 7
+    },
+    "cg_tile_8": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 8
+    },
+    "cg_tile_9": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 9
+    },
+    "cg_tile_10": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 10
+    },
+    "cg_tile_11": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 11
+    },
+    "cg_tile_12": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 12
+    },
+    "cg_tile_13": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 13
+    },
+    "cg_tile_14": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 14
+    },
+    "cg_tile_15": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 15
+    },
+    "cg_tile_16": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 16
+    },
+    "cg_tile_17": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 17
+    },
+    "cg_tile_18": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 18
+    },
+    "cg_tile_19": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 19
+    },
+    "cg_tile_20": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 20
+    },
+    "cg_tile_21": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 21
+    },
+    "cg_tile_22": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 22
+    },
+    "cg_tile_23": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 23
+    },
+    "cg_tile_24": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 24
+    },
+    "cg_tile_25": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 25
+    },
+    "cg_tile_26": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 26
+    },
+    "cg_tile_27": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 27
+    },
+    "cg_tile_28": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 28
+    },
+    "cg_tile_29": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 29
+    },
+    "cg_tile_30": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 30
+    },
+    "cg_tile_31": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 31
+    },
+    "cg_tile_32": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 32
+    },
+    "cg_tile_33": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 33
+    },
+    "cg_tile_34": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 34
+    },
+    "cg_tile_35": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 35
+    },
+    "cg_tile_36": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 36
+    },
+    "cg_tile_37": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 37
+    },
+    "cg_tile_38": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 38
+    },
+    "cg_tile_39": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 39
+    },
+    "cg_tile_40": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 40
+    },
+    "cg_tile_41": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 41
+    },
+    "cg_tile_42": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 42
+    },
+    "cg_tile_43": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 43
+    },
+    "cg_tile_44": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 44
+    },
+    "cg_tile_45": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 45
+    },
+    "cg_tile_46": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 46
+    },
+    "cg_tile_47": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 47
+    },
+    "cg_tile_48": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 48
+    },
+    "cg_tile_49": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 49
+    },
+    "cg_tile_50": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 50
+    },
+    "cg_tile_51": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 51
+    },
+    "cg_tile_52": {
+      "kind": "module",
+      "action": "cg_tile",
+      "argument": 52
+    },
+    "speed_slow": {
+      "kind": "flag",
+      "flag": "opt.scroll_speed",
+      "value": 0
+    },
+    "speed_normal": {
+      "kind": "flag",
+      "flag": "opt.scroll_speed",
+      "value": 1
+    },
+    "speed_fast": {
+      "kind": "flag",
+      "flag": "opt.scroll_speed",
+      "value": 2
+    },
+    "follow_on": {
+      "kind": "flag",
+      "flag": "opt.follow_newest",
+      "value": true
+    },
+    "follow_off": {
+      "kind": "flag",
+      "flag": "opt.follow_newest",
+      "value": false
+    }
+  },
+  "pages": [
+    {
+      "id": "waiting",
+      "name": "Waiting",
+      "widgets": [
+        {
+          "type": "image",
+          "rect": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "src_bind": "ui.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "state.compatible",
+          "keep_max": 0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            370,
+            380,
+            500,
+            260
+          ],
+          "color": "#60FFCA50",
+          "bg": "#20FFCA50",
+          "frame": 3,
+          "pulse": true,
+          "need_bind": "!module_error"
+        },
+        {
+          "type": "label",
+          "rect": [
+            620,
+            410,
+            1000,
+            90
+          ],
+          "text": "Yoru, Tomosu",
+          "text_scale": 7,
+          "align": "center",
+          "color": "#FFEEE9DF",
+          "need_bind": "!module_error"
+        },
+        {
+          "type": "label",
+          "rect": [
+            620,
+            520,
+            1000,
+            60
+          ],
+          "text": "Waiting for the game...",
+          "text_scale": 3,
+          "align": "center",
+          "color": "#FFB3AD9D",
+          "need_bind": "!module_error"
+        },
+        {
+          "type": "label",
+          "rect": [
+            620,
+            440,
+            1000,
+            80
+          ],
+          "text": "Companion unavailable",
+          "text_scale": 5,
+          "align": "center",
+          "color": "#FFEEE9DF",
+          "need_bind": "module_error"
+        },
+        {
+          "type": "label",
+          "rect": [
+            620,
+            540,
+            1000,
+            200
+          ],
+          "bind_text": "module_error_message",
+          "text_scale": 2,
+          "align": "center",
+          "color": "#FFB3AD9D",
+          "need_bind": "module_error"
+        }
+      ]
+    },
+    {
+      "id": "log",
+      "name": "Log",
+      "widgets": [
+        {
+          "type": "image",
+          "rect": [
+            0,
+            0,
+            1240,
+            1080
+          ],
+          "src_bind": "ui.image.0",
+          "color": "#FFFFFFFF",
+          "need_bind": "module_ready",
+          "keep_max": 0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            0,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_0",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            413,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_1",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            826,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_2",
+          "haptic": "click"
+        },
+        {
+          "type": "image",
+          "rect": [
+            0,
+            144,
+            1240,
+            128
+          ],
+          "src_bind": "log.strip.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "log.live_slow",
+          "keep_max": 0,
+          "repeat": 160,
+          "repeat_bind": "log.strip_count",
+          "repeat_dy": 128,
+          "scroll": "log_scroll_slow",
+          "id": "yoru_log_strip_{i}",
+          "y_bind": "log.slide_dy_gated",
+          "y_scale": 1.0
+        },
+        {
+          "type": "image",
+          "rect": [
+            0,
+            144,
+            1240,
+            128
+          ],
+          "src_bind": "log.strip.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "log.live_normal",
+          "keep_max": 0,
+          "repeat": 160,
+          "repeat_bind": "log.strip_count",
+          "repeat_dy": 128,
+          "scroll": "log_scroll_normal",
+          "id": "yoru_log_strip_{i}",
+          "y_bind": "log.slide_dy_gated",
+          "y_scale": 1.0
+        },
+        {
+          "type": "image",
+          "rect": [
+            0,
+            144,
+            1240,
+            128
+          ],
+          "src_bind": "log.strip.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "log.live_fast",
+          "keep_max": 0,
+          "repeat": 160,
+          "repeat_bind": "log.strip_count",
+          "repeat_dy": 128,
+          "scroll": "log_scroll_fast",
+          "id": "yoru_log_strip_{i}",
+          "y_bind": "log.slide_dy_gated",
+          "y_scale": 1.0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            990,
+            92,
+            250,
+            52
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "hide_bind": "log.past_ready",
+          "keep_min": 1,
+          "on_tap": "log_latest",
+          "haptic": "light"
+        },
+        {
+          "type": "image",
+          "rect": [
+            972,
+            908,
+            226,
+            46
+          ],
+          "src": "module:yoru:bar/oldest",
+          "color": "#FFFFFFFF",
+          "need_bind": "module_ready",
+          "hide_bind": "log.past_ready",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            962,
+            900,
+            246,
+            60
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "hide_bind": "log.past_ready",
+          "keep_min": 1,
+          "on_tap": "log_oldest",
+          "haptic": "light"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            942,
+            0,
+            92,
+            94
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "log_smaller"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            1122,
+            0,
+            92,
+            94
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "log_larger"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            1034,
+            0,
+            88,
+            94
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_hold": "log_font_reset",
+          "hold_ms": 650
+        }
+      ],
+      "scrolls": [
+        {
+          "id": "log_scroll_slow",
+          "rect": [
+            0,
+            144,
+            1240,
+            816
+          ],
+          "row_h": 128,
+          "cols": 1,
+          "show_bind": "log.live_slow",
+          "reset_bind": "opt.log_reset_combined",
+          "follow_bind": "log.follow_target",
+          "fling": true,
+          "friction": 0.03,
+          "bar_src": "module:yoru:bar/log_thumb",
+          "bar_track_src": "module:yoru:bar/log_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        },
+        {
+          "id": "log_scroll_normal",
+          "rect": [
+            0,
+            144,
+            1240,
+            816
+          ],
+          "row_h": 128,
+          "cols": 1,
+          "show_bind": "log.live_normal",
+          "reset_bind": "opt.log_reset_combined",
+          "follow_bind": "log.follow_target",
+          "fling": true,
+          "friction": 0.135,
+          "bar_src": "module:yoru:bar/log_thumb",
+          "bar_track_src": "module:yoru:bar/log_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        },
+        {
+          "id": "log_scroll_fast",
+          "rect": [
+            0,
+            144,
+            1240,
+            816
+          ],
+          "row_h": 128,
+          "cols": 1,
+          "show_bind": "log.live_fast",
+          "reset_bind": "opt.log_reset_combined",
+          "follow_bind": "log.follow_target",
+          "fling": true,
+          "friction": 0.45,
+          "bar_src": "module:yoru:bar/log_thumb",
+          "bar_track_src": "module:yoru:bar/log_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        }
+      ]
+    },
+    {
+      "id": "option",
+      "name": "Option",
+      "widgets": [
+        {
+          "type": "image",
+          "rect": [
+            0,
+            0,
+            1240,
+            1080
+          ],
+          "src_bind": "ui.image.1",
+          "color": "#FFFFFFFF",
+          "need_bind": "module_ready",
+          "keep_max": 0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            0,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_0",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            413,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_1",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            826,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_2",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            410,
+            138,
+            148,
+            96
+          ],
+          "color": "#FFFFCA50",
+          "bg": "#00000000",
+          "frame": 3,
+          "hide_bind": "opt.sel.speed_slow",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            414,
+            142,
+            140,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "speed_slow"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            548,
+            138,
+            178,
+            96
+          ],
+          "color": "#FFFFCA50",
+          "bg": "#00000000",
+          "frame": 3,
+          "hide_bind": "opt.sel.speed_normal",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            552,
+            142,
+            170,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "speed_normal"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            716,
+            138,
+            148,
+            96
+          ],
+          "color": "#FFFFCA50",
+          "bg": "#00000000",
+          "frame": 3,
+          "hide_bind": "opt.sel.speed_fast",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            720,
+            142,
+            140,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "speed_fast"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            410,
+            238,
+            148,
+            96
+          ],
+          "color": "#FFFFCA50",
+          "bg": "#00000000",
+          "frame": 3,
+          "hide_bind": "opt.sel.follow_on",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            414,
+            242,
+            140,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "follow_on"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            548,
+            238,
+            148,
+            96
+          ],
+          "color": "#FFFFCA50",
+          "bg": "#00000000",
+          "frame": 3,
+          "hide_bind": "opt.sel.follow_off",
+          "keep_min": 1
+        },
+        {
+          "type": "rect",
+          "rect": [
+            552,
+            242,
+            140,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "follow_off"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            150,
+            850,
+            480,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "manual_previous"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            670,
+            850,
+            480,
+            88
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "manual_next"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            28,
+            378,
+            1184,
+            460
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_swipe_left": "manual_next",
+          "on_swipe_right": "manual_previous"
+        }
+      ]
+    },
+    {
+      "id": "cg",
+      "name": "Cg",
+      "widgets": [
+        {
+          "type": "image",
+          "rect": [
+            0,
+            0,
+            1240,
+            1080
+          ],
+          "src_bind": "ui.image.2",
+          "color": "#FFFFFFFF",
+          "need_bind": "module_ready",
+          "keep_max": 0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            0,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_0",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            413,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_1",
+          "haptic": "click"
+        },
+        {
+          "type": "rect",
+          "rect": [
+            826,
+            960,
+            414,
+            120
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "need_bind": "ui.footer_visible",
+          "on_tap": "page_2",
+          "haptic": "click"
+        },
+        {
+          "type": "image",
+          "rect": [
+            55,
+            125,
+            520,
+            329
+          ],
+          "src_bind": "cg.tile.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "cg.live_slow",
+          "keep_max": 0,
+          "repeat": 53,
+          "repeat_cols": 2,
+          "repeat_dx": 565,
+          "repeat_row_dy": 414,
+          "scroll": "cg_scroll_slow",
+          "on_tap": "cg_tile_{i}",
+          "haptic": "confirm",
+          "id": "yoru_cg_tile_{i}"
+        },
+        {
+          "type": "image",
+          "rect": [
+            55,
+            125,
+            520,
+            329
+          ],
+          "src_bind": "cg.tile.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "cg.live_normal",
+          "keep_max": 0,
+          "repeat": 53,
+          "repeat_cols": 2,
+          "repeat_dx": 565,
+          "repeat_row_dy": 414,
+          "scroll": "cg_scroll_normal",
+          "on_tap": "cg_tile_{i}",
+          "haptic": "confirm",
+          "id": "yoru_cg_tile_{i}"
+        },
+        {
+          "type": "image",
+          "rect": [
+            55,
+            125,
+            520,
+            329
+          ],
+          "src_bind": "cg.tile.{i}.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "cg.live_fast",
+          "keep_max": 0,
+          "repeat": 53,
+          "repeat_cols": 2,
+          "repeat_dx": 565,
+          "repeat_row_dy": 414,
+          "scroll": "cg_scroll_fast",
+          "on_tap": "cg_tile_{i}",
+          "haptic": "confirm",
+          "id": "yoru_cg_tile_{i}"
+        }
+      ],
+      "scrolls": [
+        {
+          "id": "cg_scroll_slow",
+          "rect": [
+            0,
+            105,
+            1240,
+            835
+          ],
+          "row_h": 414,
+          "cols": 2,
+          "pad": 20,
+          "show_bind": "cg.live_slow",
+          "fling": true,
+          "friction": 0.03,
+          "bar_src": "module:yoru:bar/cg_thumb",
+          "bar_track_src": "module:yoru:bar/cg_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        },
+        {
+          "id": "cg_scroll_normal",
+          "rect": [
+            0,
+            105,
+            1240,
+            835
+          ],
+          "row_h": 414,
+          "cols": 2,
+          "pad": 20,
+          "show_bind": "cg.live_normal",
+          "fling": true,
+          "friction": 0.135,
+          "bar_src": "module:yoru:bar/cg_thumb",
+          "bar_track_src": "module:yoru:bar/cg_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        },
+        {
+          "id": "cg_scroll_fast",
+          "rect": [
+            0,
+            105,
+            1240,
+            835
+          ],
+          "row_h": 414,
+          "cols": 2,
+          "pad": 20,
+          "show_bind": "cg.live_fast",
+          "fling": true,
+          "friction": 0.45,
+          "bar_src": "module:yoru:bar/cg_thumb",
+          "bar_track_src": "module:yoru:bar/cg_track",
+          "bar": "#FFFFCA50",
+          "bar_track": "#30EEE9DF",
+          "bar_w": 34
+        }
+      ]
+    },
+    {
+      "id": "cg-full",
+      "name": "Cg-full",
+      "widgets": [
+        {
+          "type": "image",
+          "rect": [
+            0,
+            0,
+            1240,
+            1080
+          ],
+          "src_bind": "ui.image",
+          "color": "#FFFFFFFF",
+          "need_bind": "module_ready",
+          "keep_max": 0
+        },
+        {
+          "type": "rect",
+          "rect": [
+            0,
+            0,
+            1240,
+            1080
+          ],
+          "color": "#00000000",
+          "bg": "#00000000",
+          "frame": 0,
+          "on_tap": "cg_back",
+          "haptic": "light"
+        }
+      ]
+    }
+  ],
+  "page_binds": [
+    {
+      "point": "state.screen",
+      "equals": 0,
+      "when_equal": {
+        "page": "waiting",
+        "transition": "fade",
+        "duration_ms": 260,
+        "easing": "ease_in_out"
+      },
+      "when_not_equal": {
+        "page": "log",
+        "transition": "fade",
+        "duration_ms": 260,
+        "easing": "ease_in_out"
+      }
+    },
+    {
+      "point": "ui.full_cg",
+      "equals": 1,
+      "when_equal": {
+        "page": "cg-full",
+        "transition": "fade",
+        "duration_ms": 220,
+        "easing": "ease_in_out"
+      },
+      "when_not_equal": {
+        "page": "cg",
+        "transition": "fade",
+        "duration_ms": 180,
+        "easing": "ease_in_out"
+      }
+    },
+    {
+      "point": "module_error",
+      "equals": 1,
+      "when_equal": {
+        "page": "waiting",
+        "transition": "fade",
+        "duration_ms": 220,
+        "easing": "ease_in_out"
+      }
+    },
+    {
+      "point": "ui.page",
+      "equals": 0,
+      "when_equal": {
+        "page": "log",
+        "transition": "fade",
+        "duration_ms": 180,
+        "easing": "ease_in_out"
+      }
+    },
+    {
+      "point": "ui.page",
+      "equals": 1,
+      "when_equal": {
+        "page": "option",
+        "transition": "fade",
+        "duration_ms": 180,
+        "easing": "ease_in_out"
+      }
+    },
+    {
+      "point": "ui.page",
+      "equals": 2,
+      "when_equal": {
+        "page": "cg",
+        "transition": "fade",
+        "duration_ms": 180,
+        "easing": "ease_in_out"
+      }
+    }
+  ]
+}

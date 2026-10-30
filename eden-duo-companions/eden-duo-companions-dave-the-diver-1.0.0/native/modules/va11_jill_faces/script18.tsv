@@ -1,0 +1,409 @@
+# Jill's faces for day 18 (romfs scripts/<lang>/script18.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+4	think	Gil is humming
+5	neutral
+6	baka	in love?
+7	neutral
+8	baka	right...
+9	think
+10	baka	teases Gil
+11	baka
+12	neutral
+13	baka	totally
+14	baka	Alma?
+15	neutral
+16	smile	congratulations
+17	neutral
+18	uh	Streaming-chan
+19	uh	tries to escape
+20	neutral
+21	uh	caught
+22	neutral
+30	baka	sighs
+31	neutral
+36	neutral
+45	baka	asks Alma
+46	neutral
+48	baka	right
+49	neutral
+51	smile
+52	smile	start of the night
+53	neutral
+55	uh
+56	think	one happy, one mopey
+57	neutral
+58	surprise
+59	neutral
+67	think	and you?
+68	neutral
+69	smile	for the occasion
+70	neutral
+71	smile
+72	neutral
+73	neutral
+74	neutral
+75	surprise	she liked him
+76	neutral
+83	think	he's not happy
+84	neutral
+86	baka	Gil is too obvious
+87	neutral
+89	think	Deal's lost in thought
+90	neutral
+94	smile
+95	neutral
+98	neutral
+99	neutral
+101	neutral
+102	neutral
+103	neutral
+105	neutral
+106	neutral
+107	neutral
+112	surprise	her?
+113	neutral
+121	baka	quite the heartbreaker
+122	neutral
+124	uh	not the right person
+125	think
+126	baka	Gil on cloud nine
+127	baka
+128	think
+129	neutral
+130	baka	she hides well
+131	think	sighs
+132	think	how does he feel?
+133	neutral
+134	think	get to know her
+135	smile
+136	smile
+137	think
+138	neutral
+139	baka	love advice to a Lilim
+140	think
+141	neutral
+142	think
+143	neutral
+146	think
+147	neutral
+149	think	Lilim integration
+150	uh
+151	smile	get to know her
+152	neutral
+153	baka	uninspired advice
+154	smile
+155	neutral
+156	smile
+157	neutral
+161	neutral
+162	neutral
+165	neutral
+166	neutral
+168	neutral
+169	neutral
+172	neutral
+173	neutral
+174	uh
+175	neutral
+177	think	Betty's sniffling?
+178	neutral
+183	smile	Deal won't leave her
+185	neutral
+193	smile	almost forgot
+194	smile	the party
+195	neutral
+198	neutral
+199	neutral
+200	baka	"Bill"
+201	smile	goodbye
+202	neutral
+203	smile	almost forgot
+204	neutral
+205	smile	the party
+206	neutral
+208	smile
+209	neutral
+211	smile	goodbye
+212	neutral
+215	uh
+216	uh	forgot she was here
+217	sad	such bliss
+218	neutral
+221	uh	shit
+222	uh	tries to escape
+223	neutral
+224	uh	caught again
+225	neutral
+229	uh
+230	neutral
+232	baka
+233	neutral
+238	baka	nasty, alright
+239	neutral
+242	neutral
+243	baka	sip or talk
+244	neutral
+245	uh	a gift?
+246	neutral
+247	baka	no thanks
+248	neutral
+249	uh	means it
+250	neutral
+251	uh	how?!
+252	neutral
+253	baka	bullshit
+254	neutral
+255	uh	hacked the player?
+256	neutral
+257	uh	sighs
+258	baka	whatever
+259	neutral
+262	think	where are the dogs?
+263	think
+264	neutral
+266	think	did the boss trick the dog?
+267	baka
+268	neutral
+269	think	they should show up
+270	neutral
+271	uh	sorry, what?
+272	neutral
+273	baka	not a newspaper
+274	baka
+275	neutral
+276	uh	shut up (to Anna)
+277	neutral
+279	uh	covers it up
+280	uh
+281	uh
+282	neutral
+285	baka	Gil won't even retort
+286	think
+287	neutral
+288	uh
+289	smile	Miki came again
+290	neutral
+293	uh
+294	neutral
+295	surprise	the boss was listening?
+296	neutral
+297	uh	thin walls
+298	neutral
+300	surprise	a photo too?
+301	neutral
+307	baka	as baffled as her
+308	baka
+309	neutral
+310	baka	not wrong
+311	neutral
+312	smile	a graceful client
+313	neutral
+315	baka	doubts Miki will return
+316	neutral
+319	baka	okay...
+320	neutral
+321	neutral
+323	neutral
+324	neutral
+327	baka	maybe it's just her
+328	neutral
+329	baka	she's just that good
+330	neutral
+332	baka	not hitting on her
+333	baka	wants her gone
+334	neutral
+335	uh	another nuisance
+336	neutral
+337	uh	not hate
+338	uh	not again
+339	neutral
+341	think	does Anna know?
+342	neutral
+343	baka	not taking chances
+344	neutral
+346	uh	nothing
+347	neutral
+349	uh	fuck
+350	neutral
+351	uh
+352	think	changes the subject
+353	neutral
+357	think	huh
+358	neutral
+359	baka	not a dog
+360	neutral
+361	surprise	the boss steps in
+362	neutral
+363	smile	a break
+364	neutral
+367	baka	right
+368	smile	takes Gil
+369	neutral
+370	smile
+371	neutral
+372	baka
+373	smile	Alma replied
+374	baka	shouts the news
+375	neutral
+376	smile	congratulations from Alma
+377	neutral
+378	baka	who was it?
+379	neutral
+380	baka	a guy?
+381	neutral
+382	baka	a girl, then
+383	neutral
+384	think	he's hard to reach
+385	neutral
+386	think
+387	think
+388	baka	teasing is the only way
+389	neutral
+390	baka	a weird loner
+391	smile	did he enjoy it?
+392	neutral
+393	smile	good for him
+394	think	why the humming?
+395	neutral
+397	baka	right
+398	uh	the idol?
+399	neutral
+400	uh	would feel weird
+401	smile	back to work
+402	neutral
+403	think
+404	neutral
+405	smile	open up more
+406	smile
+407	neutral
+408	uh	shut up
+409	smile
+410	smile	back
+411	neutral
+412	baka	"fucking"
+413	neutral
+418	baka	too obvious, Gil
+419	neutral
+420	smile
+421	neutral
+422	surprise	a Gut Punch?
+423	neutral
+424	uh	nothing
+425	uh
+426	neutral
+427	sad	sorry
+428	neutral
+429	neutral
+430	sad	took her by surprise
+431	think	unusual order
+432	neutral
+438	think	why the exposition?
+439	think
+440	neutral
+442	surprise
+443	neutral
+450	smile	glad to hear
+451	neutral
+452	smile
+453	neutral
+454	neutral
+455	neutral
+456	think	surreal
+457	neutral
+458	think	talking to an AI
+459	smile	as a kid
+460	sad	the loops
+461	sad
+462	smile	amazing
+463	smile	makes her inner child happy
+464	think
+465	neutral
+466	think	humans as nature's Lilim
+468	smile	full circle
+469	neutral
+471	baka	don't overdo it
+472	smile
+473	neutral
+474	smile
+475	neutral
+476	neutral
+477	baka	how romantic
+478	neutral
+479	neutral
+480	smile	laughs
+481	think	the crisis is over?
+482	neutral
+485	smile	nobody's judging
+486	neutral
+494	sad
+495	neutral
+496	smile	thank god
+497	neutral
+501	uh	oh fuck
+502	neutral
+505	uh	fiddlesticks
+506	neutral
+510	uh
+511	neutral
+516	uh
+517	neutral
+518	uh	sorry, what?
+519	neutral
+520	baka	right
+521	neutral
+522	neutral
+524	neutral
+525	neutral
+526	neutral
+528	baka	that's her name
+529	neutral
+530	baka
+531	neutral
+536	baka	"humble"
+537	neutral
+545	uh
+546	neutral
+551	uh	shut up
+552	neutral
+553	uh	quiet, you
+554	neutral
+555	uh
+556	neutral
+557	think	no sponsor?
+558	think
+559	neutral
+564	uh	an uncomfortable story
+565	uh
+577	baka	no experience needed
+578	baka	Gil's grimacing
+579	neutral
+584	uh
+585	neutral
+586	neutral
+588	neutral
+589	neutral
+592	neutral
+593	neutral
+596	neutral
+597	neutral
+599	uh	more stories coming
+636	uh	they left
+637	baka	a pair made in hell
+638	smile	at least they're having fun
+639	baka	the convoluted filming
+640	baka
+641	uh	more stories
+695	uh
+696	think	the signal jammers
+697	baka	nah
+698	think	a distorted stream?
+699	smile	done
+700	neutral
+701	baka	same place?
+702	neutral
+703	surprise	what's this?
+704	neutral
+705	surprise	a bonus
+707	smile	moved
+708	neutral
+710	think	Alma and Gil?

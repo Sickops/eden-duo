@@ -1,0 +1,48 @@
+# Jill's faces for the game over scenes (romfs scripts/<lang>/gameover.txt): the boss sends Jill
+# home for spamming easy drinks. Several short variants, one after another.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+3	surprise	Boss?
+4	neutral
+5	think	what?
+6	neutral
+7	uh	okay...
+8	neutral
+9	uh	well...
+10	neutral
+11	sad	but Boss...!
+12	neutral
+13	uh	ButtBoss?
+14	neutral
+17	uh	bench? soldier?
+18	neutral
+19	think	Boss?
+20	neutral
+21	surprise	why?
+22	neutral
+23	uh	she has?
+24	neutral
+28	baka	right
+29	neutral
+30	think	hm?
+31	neutral
+32	think	why?
+33	neutral
+34	uh
+35	neutral
+37	surprise	Boss?
+38	think	weren't you out?
+39	neutral
+40	surprise	she has?
+41	neutral
+42	uh	well...
+43	baka	how would she know?
+44	neutral
+46	baka	taunting her?
+47	neutral
+49	think	Boss?
+50	neutral
+51	smile	smirks
+52	neutral
+53	smile	the helmet
+54	smile
+55	neutral

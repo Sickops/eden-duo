@@ -1,0 +1,357 @@
+# Jill's faces for the 1.2 scene "anna" (romfs scripts/<lang>/1.2/anna.txt): New Year's night at
+# Jill's place, Anna turns up. Our own reading of the scene.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+2	think
+3	smile	lets Gaby sleep
+4	neutral
+5	uh	Anna
+6	neutral
+7	uh	ignores her
+8	neutral
+9	baka	heard her the first time
+10	neutral
+11	baka	trespassing
+12	neutral
+13	baka
+14	neutral
+15	think	how?
+16	neutral
+17	uh	don't change the subject
+18	neutral
+19	baka
+20	neutral
+21	think
+22	uh
+23	baka	forget it
+24	think	why is she here?
+25	neutral
+26	baka	bored
+27	neutral
+28	baka	it helps
+29	neutral
+33	baka	no beer for her
+34	neutral
+36	baka	she knows
+37	neutral
+38	think	it's the thought
+39	neutral
+41	smile	can Fore see her?
+42	neutral
+45	think	what game?
+46	neutral
+47	think	Truth or Dare?
+48	neutral
+51	think	the what now?
+52	neutral
+53	baka	right...
+54	think	will she keep her word?
+55	neutral
+56	think	fine, she'll play
+57	neutral
+58	think
+59	think	what is she?
+60	neutral
+61	baka	not what she meant
+62	neutral
+63	baka	not that either
+64	neutral
+65	baka	not serious
+66	neutral
+67	think	hm?
+68	neutral
+72	sad	sorry if rude
+73	neutral
+74	uh
+75	neutral
+76	smile	likes the boss
+77	neutral
+78	uh	"mhm"
+79	neutral
+81	uh	well...
+82	neutral
+83	uh	flustered
+84	neutral
+85	uh	off-guard
+86	neutral
+88	uh
+89	neutral
+90	baka
+91	neutral
+92	uh
+93	neutral
+94	uh	not a crush
+95	neutral
+97	baka	friendship
+98	neutral
+99	uh
+100	neutral
+101	think	how true is her story?
+102	neutral
+103	think
+104	think
+105	neutral
+106	baka	not an answer
+107	neutral
+111	think
+112	neutral
+113	uh
+114	baka	just ask
+115	neutral
+116	think	after the bar closes
+117	think	the other bar
+118	think
+119	neutral
+122	think	doesn't know
+123	neutral
+125	think	doesn't know
+126	neutral
+127	smile	okay with not knowing
+128	neutral
+129	think	her regrets
+130	think
+131	smile	one thing at a time
+132	smile
+133	neutral
+134	baka	whatever
+135	think	her turn
+136	neutral
+137	think	why only her?
+138	neutral
+140	think	why?
+141	neutral
+144	think	how so?
+145	neutral
+149	surprise	with her mind?
+150	neutral
+152	think	who's Beth?
+153	neutral
+155	think	how so?
+156	neutral
+157	uh	clears her throat
+158	smile	the boss is strong
+159	smile
+160	smile
+161	smile	makes her feel safe
+162	smile	how can she not see it?
+163	neutral
+165	uh	maybe
+166	think	hobbies?
+167	neutral
+168	baka	present tense
+169	neutral
+170	surprise	tabletop games?
+171	neutral
+172	baka	Monopoly
+173	neutral
+175	baka	no shit
+176	neutral
+178	baka	right...
+179	neutral
+183	think	sensible
+184	neutral
+186	think	any regrets?
+187	neutral
+189	neutral
+191	baka	busy?
+192	neutral
+194	uh	coughs
+195	neutral
+196	baka	another break?
+197	neutral
+198	baka	good for her
+199	smile	the party was fun
+200	smile	food, drinks and friends
+201	baka	the fireworks
+202	surprise	Gil's girlfriend
+203	smile	Dorothy's friends
+204	smile	Alma and her...
+205	smile
+206	neutral
+207	smile	has friends
+208	neutral
+210	smile	it's true
+211	smile	real friendship
+212	smile
+213	smile
+214	smile	an awesome feeling
+215	neutral
+217	baka	give it time
+218	neutral
+220	baka	took pics
+221	neutral
+223	baka	no
+224	neutral
+226	think	what does she like?
+227	neutral
+228	baka	not what she meant
+229	neutral
+230	think
+231	neutral
+243	smile	a concise list
+244	neutral
+245	uh	come again?
+246	neutral
+247	baka	doubts it
+248	neutral
+249	baka	wouldn't
+250	neutral
+251	baka	wouldn't
+252	neutral
+253	baka	doesn't hit on strangers
+254	baka
+255	neutral
+256	uh
+257	neutral
+260	baka	happy?
+261	neutral
+263	think	any regrets?
+264	neutral
+265	think
+266	neutral
+275	smile	not a big deal
+276	neutral
+281	think	about what?
+282	neutral
+283	smile	didn't lie
+284	neutral
+285	think
+286	smile	the truth
+287	neutral
+288	smile	between them
+289	smile	didn't lie
+290	neutral
+291	smile	time with Gaby
+292	smile
+293	smile	play, read, TV
+294	smile	a little sister
+295	sad	Gaby's hate hurt
+296	sad
+297	smile	why would she lie?
+298	neutral
+301	smile	Lenore was special
+302	neutral
+304	baka	how long will she keep this up?
+305	neutral
+306	think
+307	neutral
+308	baka
+309	baka
+310	neutral
+311	think	what?
+312	neutral
+313	baka	third time asking
+314	neutral
+315	think
+316	baka	the spilled drinks
+317	neutral
+318	sad	wanted curry
+319	baka	the jokes
+320	uh	mind-breaking
+321	uh
+322	uh
+323	think
+324	think
+325	neutral
+326	baka	everything's innuendo
+327	neutral
+328	smile	no reason to hate her
+329	smile
+330	smile	fun to talk to
+331	smile
+332	smile	doesn't hate her
+333	neutral
+334	baka	keep it at home?
+335	neutral
+336	uh
+337	neutral
+339	baka	don't push your luck
+340	think	let's get this over with
+341	neutral
+342	uh	caught off guard
+343	neutral
+345	uh
+346	neutral
+347	uh
+348	neutral
+349	baka	just answer
+350	neutral
+351	think	why not?
+352	neutral
+353	surprise	huh
+354	neutral
+355	baka	can she blame her?
+356	neutral
+359	baka	flattered?
+360	neutral
+362	think	takes her as she comes
+363	think
+364	think
+365	neutral
+367	baka	maybe
+368	neutral
+372	think
+373	neutral
+374	think	I wonder
+375	neutral
+376	uh	be quiet
+377	neutral
+378	think
+379	smile	Glo-ri-a
+380	neutral
+382	surprise	Anna too?
+383	neutral
+388	baka	someone she doesn't know
+389	neutral
+390	think	yet?
+391	neutral
+392	smile	met an idol
+393	think	met anyone else?
+394	neutral
+395	baka	a ghost
+396	neutral
+397	baka	poltergeist, imp, brat
+398	neutral
+407	baka	vague pronouns
+408	neutral
+410	baka	none
+411	neutral
+415	baka	can't think of any
+416	neutral
+417	baka	she's fine
+418	neutral
+419	baka	hell no
+420	neutral
+421	baka	she's good
+422	neutral
+423	smile	a good goal
+424	baka	Fore objects
+425	neutral
+426	uh	crap
+427	neutral
+428	baka	did nothing
+429	neutral
+430	uh	did not
+431	neutral
+432	uh	quiet
+433	neutral
+435	neutral
+436	smile	Anna
+437	smile	happy new year
+438	smile	come by anytime
+439	uh
+440	neutral
+442	baka	on second thought
+443	neutral
+446	baka	sighs
+447	neutral
+448	baka	just vanish
+449	neutral
+450	baka	fine
+451	think
+452	smile	there
+453	neutral
+455	smile	take care
+456	think
+457	baka	stop drinking?
+458	neutral
+459	baka	a bit

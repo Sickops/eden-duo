@@ -1,0 +1,68 @@
+# Eden Duo upstream-sync tools
+
+Eden Duo tracks Eden nightly. These scripts keep that sync mechanical. They need
+`bash`, `git` and `python3` (unlike the POSIX `sh` tools one level up) and must be
+run from the repository root. Neither script ever pushes.
+
+The upstream commit Duo is based on is recorded in `.upstream/eden.json`
+(`source_commit`). The deliberate differences from upstream are listed in
+`.upstream/DIVERGENCES.md`.
+
+## `duo-touched-ledger.sh`
+
+Read-only. Prints a TSV of every path where `HEAD` differs from the recorded
+upstream commit, sorted by category:
+
+| category | meaning |
+|---|---|
+| `duo-only` | file added by Duo; never conflicts |
+| `upstream-hook` | upstream file Duo edits; a sync hotspot |
+| `branding` | upstream file Duo replaces wholesale (identity, icons, About page) |
+
+```sh
+tools/duo/duo-touched-ledger.sh > .upstream/duo-touched.tsv     # refresh the ledger
+tools/duo/duo-touched-ledger.sh --check .upstream/duo-touched.tsv
+```
+
+`--check` exits 1 when `HEAD` edits an upstream-owned file that the committed
+ledger does not list. Run it before every release (or in CI). A failure means a
+change added a new upstream hotspot: move the code into a Duo-owned file and keep
+a one-line hook, or, if the edit is unavoidable, regenerate the ledger and add an
+entry to `.upstream/DIVERGENCES.md` when it is a deliberate divergence.
+
+The upstream commit must be present locally (`git fetch origin <sha>`).
+
+## `duo-upstream-sync.sh`
+
+```sh
+tools/duo/duo-upstream-sync.sh --dry-run <upstream-commit>   # predict conflicts only
+tools/duo/duo-upstream-sync.sh <upstream-commit>             # merge on a new branch
+```
+
+`--dry-run` writes nothing. It lists the predicted textual conflicts (using the
+recorded upstream commit as an explicit merge base) and the upstream files that
+changed and that Duo also edits; check those for API changes even when they merge
+cleanly.
+
+Without `--dry-run` it requires a clean tree, then:
+
+1. creates `sync/eden-<sha>` from `HEAD` (adding a tree-unchanged bridge commit if
+   the recorded upstream commit is not yet an ancestor);
+2. enables `rerere` and adds `merge=ours` rules for Duo-owned branding files to
+   `.git/info/attributes` (local only; no tracked file changes);
+3. merges the upstream commit without committing, removes upstream AI-agent
+   files, and updates `source_commit` in `.upstream/eden.json`;
+4. lists the conflicts left to resolve.
+
+Then resolve the conflicts, fill `release_tag` / `release_url` in
+`.upstream/eden.json`, build, run the tests, review `.upstream/DIVERGENCES.md`
+(drop entries upstream has fixed itself), refresh the ledger and commit.
+
+Formatting rule: only format Duo-owned paths. Never run `clang-format` over whole
+upstream files; reflowed upstream code conflicts on every sync.
+
+## `daybreak-texture-check.py`
+
+Not a sync tool: the pixel check from PR #12 for Trails through Daybreak II rendering
+(stale or missing textures). It needs your own 1920x1080 captures of the scenes named in
+its header and Pillow (plus ffmpeg for the video modes); it is not run by any test suite.

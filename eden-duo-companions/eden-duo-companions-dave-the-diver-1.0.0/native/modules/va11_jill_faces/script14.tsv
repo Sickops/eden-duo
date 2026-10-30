@@ -1,0 +1,482 @@
+# Jill's faces for day 14 (romfs scripts/<lang>/script14.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+2	think	yawns
+3	neutral
+4	surprise	what?
+5	uh	the dog is in charge?!
+6	neutral
+7	baka	no
+8	neutral
+9	baka	no
+10	neutral
+11	uh
+12	baka	start of the night
+13	neutral
+14	baka	won't pet him
+15	neutral
+16	uh	won't!
+17	neutral
+19	baka	not Gil
+20	neutral
+23	uh	nobody!
+24	neutral
+25	uh	no Will!
+26	neutral
+27	uh	SHUT UP
+28	neutral
+29	uh	screams
+30	uh	back to work
+31	neutral
+32	uh	standby!
+33	neutral
+34	uh	GO!
+35	uh
+36	uh	what just happened?
+37	neutral
+38	smile	welcome
+39	surprise	Virgilio, calm?
+40	neutral
+41	think	no speech
+42	neutral
+43	surprise	an act?
+44	neutral
+45	think
+46	neutral
+47	smile
+48	neutral
+49	smile
+50	neutral
+51	neutral
+52	baka	"my name is Jane"
+53	neutral
+54	think	why the act?
+55	neutral
+56	think
+57	neutral
+58	baka	"safer"
+59	surprise	that was hiding?
+60	neutral
+61	uh	sounds weird
+62	neutral
+63	think
+64	neutral
+65	uh
+66	surprise	eh?
+67	neutral
+73	think
+74	surprise	huh
+75	smile	congrats
+76	baka	fell for it
+77	baka	completely fooled
+78	neutral
+80	smile
+81	neutral
+82	neutral
+86	think	doesn't mind spice
+87	neutral
+89	think
+90	neutral
+93	smile	tell her about the curry stand
+94	neutral
+95	neutral
+97	baka	burns a bit
+98	neutral
+100	smile	call me Jill
+101	neutral
+102	surprise	an apology
+103	neutral
+104	sad	she was rude too
+105	sad
+106	sad	she should apologise
+107	neutral
+108	think	who is he?
+109	think	his real name?
+110	neutral
+111	baka	a magnet for hidden pasts
+112	baka
+113	neutral
+114	baka	just rambling
+115	think	why steampunk?
+116	neutral
+120	think
+121	neutral
+122	baka	of course
+123	think	how did he find the bar?
+124	neutral
+125	baka	again
+126	neutral
+127	baka	runaways end up here
+128	baka
+129	neutral
+130	baka	not helping
+131	think
+133	think
+134	think
+135	think
+136	smile
+137	uh	rambling
+138	neutral
+140	baka	not helping
+141	smile	maybe just a buffoon
+142	neutral
+143	smile
+144	neutral
+145	neutral
+147	think	doesn't like coffee
+148	neutral
+149	neutral
+150	neutral
+151	baka	"you're the bitter one"
+152	uh
+153	sad	sorry
+154	neutral
+156	think	still scared of her?
+157	neutral
+158	think
+159	neutral
+162	think	stop thinking about it
+163	think
+164	neutral
+166	think
+167	neutral
+168	think
+169	think
+170	neutral
+172	smile	goodbye
+173	smile	welcome
+174	smile	the detective
+175	neutral
+176	baka	another mute client
+177	think
+178	neutral
+179	smile
+180	neutral
+181	neutral
+182	neutral
+183	baka	free drink
+184	think	what's up?
+185	neutral
+186	think	Mega Christmas?
+187	neutral
+188	baka	a Festivus guy
+189	neutral
+190	baka
+191	baka	cheapskate
+192	neutral
+193	baka	she'll refrain
+194	think
+195	neutral
+200	surprise	"Turbo Male"?
+201	neutral
+202	baka	such a tacky name
+203	neutral
+204	think	the wrestler Santa
+209	neutral
+210	baka	"Turbo Male"
+212	neutral
+214	baka	the holiday's a joke
+215	neutral
+216	baka	no Festivus?
+217	neutral
+222	think
+223	smile
+224	neutral
+225	smile
+226	neutral
+227	neutral
+228	neutral
+230	baka	would he be happy with thinner?
+231	think	not holiday blues
+232	neutral
+233	baka	just bored
+234	baka	could be her dad
+235	neutral
+236	baka	never. period.
+237	neutral
+239	think	doesn't have to tell
+240	neutral
+243	surprise	her last moments
+244	neutral
+250	think	the rejection
+252	neutral
+255	sad	frustrating
+256	sad
+257	neutral
+259	think	why tear it?
+260	neutral
+267	sad	tough stuff
+268	neutral
+271	surprise	his daughter
+272	neutral
+275	sad
+276	neutral
+282	think	he should be home
+283	neutral
+284	smile	go be with her
+285	smile
+286	smile	second chances
+287	neutral
+288	baka	scared off a client?
+289	think	word on the street
+290	neutral
+293	surprise	the lynchings stopped
+294	neutral
+296	smile	good to hear
+297	think	more details?
+298	neutral
+301	think	Sei
+302	think
+303	think
+304	neutral
+305	uh	got distracted
+306	neutral
+312	think
+313	neutral
+314	smile	goodbye
+315	think
+316	uh	the boss is out
+317	smile	calls Gil
+318	neutral
+319	smile	break
+320	smile	back
+321	smile	Gil
+322	neutral
+324	baka	the dogs like him
+325	neutral
+327	smile	good luck
+328	surprise	the boss rushes by
+329	neutral
+330	think	a meeting?
+331	think	expensive bottles
+332	neutral
+333	smile	welcome
+334	neutral
+335	surprise	the boss shouts
+336	neutral
+339	surprise	knows her name?
+340	neutral
+343	think
+344	think	a dog?
+345	neutral
+346	uh	Gil, a dog
+347	uh	can't be right
+348	baka	first she's heard
+349	neutral
+352	uh
+353	uh
+354	baka	a dog, huh?
+355	neutral
+357	baka	a dog sneezing
+358	smile
+359	neutral
+360	smile
+361	smile
+362	neutral
+363	neutral
+364	neutral
+367	surprise	the boss is excited
+368	neutral
+370	baka	another oddity in her past
+371	think	a policewoman?
+372	neutral
+377	surprise	a loaf of bread?
+378	baka	sounds like the boss
+379	neutral
+381	baka	the bread swords
+382	think	how did she join?
+383	neutral
+384	uh	NSFW?
+385	neutral
+389	think
+390	baka	not jail time
+391	neutral
+392	think	a visit?
+393	neutral
+394	think
+395	neutral
+396	baka	not "simple"
+397	neutral
+399	think	never heard of them
+400	neutral
+402	smile
+403	neutral
+404	neutral
+405	neutral
+406	neutral
+408	baka	the boss owns a bar
+409	neutral
+410	think	she's right
+411	uh	is she?
+412	neutral
+414	surprise	they dated?!
+415	neutral
+416	think
+417	think	what didn't work?
+418	neutral
+420	think	"too Dana"?
+421	neutral
+422	baka	too Dana
+423	neutral
+433	smile	goodbye
+434	think
+435	think
+436	neutral
+438	think
+439	neutral
+440	uh	does she swing that way?
+441	neutral
+442	baka	right
+443	baka	Lexi thinks Gil is a dog
+444	neutral
+445	baka
+446	neutral
+448	uh	don't overdo it
+449	neutral
+450	surprise	that voice
+451	neutral
+453	uh
+454	neutral
+455	uh
+456	neutral
+458	baka	ignore her
+459	neutral
+460	uh
+461	neutral
+463	uh	her full name
+464	uh
+465	uh	calm down
+466	think	how does she know?
+467	neutral
+468	surprise	reading her thoughts?!
+469	neutral
+471	uh	going crazy
+472	neutral
+477	baka	a crazy person's argument
+478	neutral
+479	uh	shit
+480	neutral
+481	baka	not serving her
+482	neutral
+483	uh	the spilled drinks
+484	neutral
+485	uh	paid with her money
+486	uh
+487	sad	the curry money
+488	neutral
+489	uh	looks angry
+490	uh	she's fine
+491	neutral
+492	think	what happened?
+493	neutral
+494	uh	distraught
+495	uh	she's fine
+496	think	nobody sees her
+497	uh	jeans under a skirt
+498	uh
+499	uh	why?
+500	neutral
+506	baka	nobody else sees it
+507	neutral
+508	uh
+509	uh	remembering stuff
+510	sad	misses not being crazy
+511	think	leaving early
+512	uh	"and you stay here!"
+513	neutral
+514	uh	said it out loud
+515	neutral
+516	uh	blames a dog
+517	neutral
+518	think	leave early?
+519	smile
+520	neutral
+523	think	quiet outside
+524	smile	Kim
+525	smile	"Miss Kim"
+526	neutral
+527	smile	a good mood
+528	neutral
+529	baka	I guess
+530	smile
+531	neutral
+533	smile
+534	neutral
+535	neutral
+536	neutral
+537	think	how's she doing?
+538	neutral
+543	smile	nice to hear
+544	neutral
+545	surprise	bartender training?
+546	neutral
+550	think	a bit of advice
+551	think
+552	think
+553	neutral
+554	think
+555	think
+556	baka	got away with it
+557	neutral
+558	think	England
+559	think
+560	think	Realty Nua
+561	think
+562	neutral
+563	think	a weird company
+564	think
+565	think
+566	neutral
+567	think
+568	think
+569	think
+570	think
+571	think
+572	think
+573	neutral
+574	baka	just reads a lot
+575	think
+576	think
+577	smile	enough rambling
+578	smile
+579	neutral
+580	smile
+581	smile
+582	neutral
+583	neutral
+584	neutral
+586	surprise	thanking her?
+587	neutral
+592	smile	appreciated
+593	neutral
+594	smile	better now
+595	neutral
+597	surprise	a cool act?
+598	neutral
+599	baka	no
+600	neutral
+601	baka	called cold
+602	baka
+603	baka	no act
+604	sad	too much of a mess
+605	neutral
+606	baka	disappointed?
+607	neutral
+610	smile	good luck
+611	neutral
+612	smile
+613	neutral
+614	smile
+615	neutral
+616	neutral
+617	neutral
+618	smile	the boss
+619	neutral
+621	surprise	Kim thanks the boss
+622	neutral
+631	uh	right
+632	neutral
+643	smile	goodbye
+644	think	the woman who caught her
+645	baka	would the boss know?
+646	neutral
+647	smile	the right thing to do

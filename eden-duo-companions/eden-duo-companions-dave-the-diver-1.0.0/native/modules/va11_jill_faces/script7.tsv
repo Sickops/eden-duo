@@ -1,0 +1,471 @@
+# Jill's faces for day 7 (romfs scripts/<lang>/script7.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+2	surprise	Gil is back
+3	neutral
+10	smile	the boss called it
+11	uh	why does he have a key?
+12	neutral
+13	think	true
+14	neutral
+16	think
+17	neutral
+18	baka	not today
+19	sad	tells him she cares
+21	sad
+22	neutral
+23	uh	isn't that normal?
+24	neutral
+25	uh	shut up
+26	neutral
+29	think	the hoodie
+30	neutral
+31	think
+32	neutral
+33	think	why?
+34	neutral
+36	uh	"cute"
+37	neutral
+39	uh
+40	uh	about last night
+42	neutral
+43	uh
+44	neutral
+45	think
+46	neutral
+48	uh	the boss teases her
+49	neutral
+50	uh	nothing
+51	neutral
+52	uh	I'M FINE
+53	neutral
+54	sad	the closure
+55	sad
+56	neutral
+57	sad
+58	neutral
+60	think
+61	neutral
+62	baka
+63	smile
+64	smile	start of the night
+65	think
+66	neutral
+67	smile	glad he's fine
+68	neutral
+69	neutral
+70	think
+71	neutral
+72	neutral
+73	uh	shouts for the boss
+74	neutral
+75	uh	"you heard her"
+76	neutral
+77	think
+78	neutral
+79	surprise	the regional manager
+80	uh
+81	uh
+82	uh	bad first impression
+83	neutral
+86	smile
+87	neutral
+89	smile
+90	neutral
+92	think
+93	neutral
+97	think	nobody told her
+98	neutral
+102	uh
+103	neutral
+104	smile
+105	neutral
+106	surprise
+107	neutral
+108	uh	the closure question
+109	neutral
+110	think
+111	neutral
+112	smile	thanks
+113	neutral
+115	think
+116	neutral
+121	think
+122	neutral
+124	think
+125	neutral
+127	think
+128	baka	"you'll find out soon"
+129	neutral
+130	baka	nothing
+131	baka	Gil was right
+132	neutral
+133	neutral
+134	surprise	he's appealing for them?
+135	neutral
+138	uh	the alpaca lady
+139	neutral
+141	smile	thanks for trying
+142	neutral
+144	smile	the Suplex
+145	neutral
+146	smile
+147	neutral
+149	baka	points at Gil
+150	neutral
+152	uh	"Robert"
+153	neutral
+154	uh	covers for Gil
+155	uh
+156	neutral
+157	uh
+158	neutral
+159	neutral
+160	neutral
+162	sad	sorry
+163	neutral
+164	neutral
+165	neutral
+167	neutral
+170	think
+171	think
+172	neutral
+173	think	asks for a rating
+174	neutral
+175	smile	top-notch
+176	neutral
+178	smile
+179	neutral
+181	uh
+182	neutral
+183	think
+184	neutral
+185	think
+186	neutral
+187	smile	Stella
+188	neutral
+189	think	is she okay?
+190	neutral
+191	think
+192	neutral
+193	uh
+194	neutral
+196	think
+197	neutral
+198	sad	Sei
+199	sad
+200	sad
+201	neutral
+203	sad
+204	sad
+205	neutral
+207	uh	heavy air
+208	neutral
+209	think
+210	neutral
+211	uh
+212	neutral
+213	think
+214	neutral
+215	think
+216	neutral
+217	think
+218	uh	can't think straight
+219	neutral
+220	surprise	Stella jumps
+221	neutral
+223	think
+224	neutral
+225	think
+226	neutral
+227	smile	still has hope
+228	neutral
+229	think
+230	neutral
+233	sad
+234	sad
+235	sad	a magic wand
+236	neutral
+237	uh
+238	sad	no right words
+240	neutral
+241	think
+242	neutral
+243	smile	gladly
+244	neutral
+245	neutral
+246	neutral
+248	smile
+249	neutral
+252	sad	bad timing
+253	neutral
+260	sad	Stella's outburst
+263	think	admires her self-control
+264	sad
+265	smile	fresh air
+266	baka
+267	neutral
+268	neutral
+269	neutral
+271	surprise	a fight?
+272	neutral
+274	uh	what happened?
+275	neutral
+280	think
+281	neutral
+299	uh	can't get a word in
+300	neutral
+306	uh
+307	neutral
+319	neutral
+320	neutral
+321	neutral
+323	neutral
+324	neutral
+334	surprise	a mature answer
+335	neutral
+346	think
+347	neutral
+350	smile	Stella brightens
+351	neutral
+358	smile	the drink's name
+359	neutral
+360	smile
+364	smile	can't stop laughing
+365	smile
+366	neutral
+372	uh
+373	neutral
+375	think
+376	neutral
+384	think
+385	neutral
+389	surprise	is she that good?
+390	neutral
+392	think
+393	neutral
+396	sad
+397	sad	the ice cream
+398	neutral
+402	smile
+403	neutral
+404	neutral
+405	neutral
+406	neutral
+409	neutral
+411	neutral
+412	neutral
+418	smile	generous today
+419	neutral
+423	smile	goodbye
+424	neutral
+425	baka	not asleep
+426	neutral
+430	neutral
+438	smile
+439	neutral
+440	think
+441	uh	an odd holocall
+442	neutral
+444	uh	nervous
+445	uh
+446	neutral
+448	baka	finally hung up
+449	neutral
+450	think
+451	neutral
+453	smile	goodbye
+454	surprise	where's Stella?
+455	neutral
+457	sad	hopes she's fine
+458	smile	Art
+459	neutral
+460	smile
+461	neutral
+462	smile
+463	neutral
+465	think
+466	neutral
+467	baka
+468	neutral
+470	baka	not far from the truth
+471	neutral
+472	neutral
+473	baka	looks happy
+474	neutral
+476	think
+477	neutral
+479	think
+480	neutral
+481	baka	a coincidence
+482	neutral
+483	think
+484	neutral
+485	think
+486	neutral
+488	think
+489	neutral
+492	think
+493	neutral
+495	uh	unstable
+496	think
+497	neutral
+501	smile
+502	neutral
+504	baka	not red
+505	neutral
+507	baka
+508	neutral
+509	baka	"you're weird"
+510	neutral
+511	neutral
+512	neutral
+513	baka	smiles about not paying
+514	think
+515	neutral
+516	baka	not many clients
+517	neutral
+519	surprise	he isn't looking?
+520	neutral
+521	think
+522	neutral
+525	uh	gruesome
+527	uh
+528	neutral
+535	surprise	a family?
+536	neutral
+537	think
+538	neutral
+541	think
+542	neutral
+543	smile
+544	neutral
+546	think
+547	sad	pianos are expensive
+548	neutral
+550	baka	actually a woman
+551	neutral
+552	neutral
+553	neutral
+554	think
+555	neutral
+556	think
+557	neutral
+558	neutral
+559	neutral
+560	uh
+561	neutral
+563	uh
+564	neutral
+565	baka	he's not moving
+566	neutral
+568	baka	calls a cab
+569	neutral
+572	uh	hung up
+573	neutral
+574	think
+575	neutral
+576	baka	figures
+577	neutral
+578	smile	take care
+579	neutral
+581	think
+582	neutral
+583	smile
+584	neutral
+585	think	quite the day
+586	smile	calm streets
+587	uh
+588	baka	calm until now
+589	neutral
+590	uh	he's winded
+591	neutral
+592	baka
+593	neutral
+595	uh
+596	baka	still winded
+597	neutral
+599	baka	only he is panting
+600	neutral
+601	baka	dressed like that?
+602	neutral
+603	baka
+604	neutral
+606	baka	of course
+607	neutral
+609	baka	totally-not-Beer
+610	neutral
+613	baka
+614	neutral
+615	uh	don't correct him
+616	neutral
+618	baka
+619	neutral
+620	uh
+621	neutral
+623	baka
+624	neutral
+627	baka	didn't even try
+628	baka
+629	neutral
+630	uh
+631	think
+632	neutral
+633	surprise
+634	neutral
+636	think
+637	neutral
+638	surprise	not the curator
+639	neutral
+641	uh
+642	neutral
+643	baka	yeeeah
+644	baka	a janitor
+645	neutral
+647	baka	"challenge"
+648	neutral
+649	uh
+650	neutral
+651	baka	pure
+652	neutral
+653	uh	sighs
+654	neutral
+661	think	interesting reaction
+662	neutral
+663	uh
+664	neutral
+665	smile	careful out there
+666	neutral
+668	neutral
+672	surprise	he fled
+673	baka	scared off a client
+674	neutral
+676	smile
+677	neutral
+682	smile	goodbye
+683	neutral
+684	uh	"ogling"
+685	neutral
+688	surprise	he ran again
+689	think	hiding from someone
+690	think
+691	neutral
+692	baka	of course
+693	neutral
+696	uh	Gil remembers him
+697	think
+698	neutral
+699	baka	Gil stuff
+700	think
+701	neutral
+707	think
+708	neutral
+710	surprise	a new employee?
+711	neutral
+712	think
+713	neutral
+715	uh
+716	think	deja vu
+717	neutral
+718	uh
+719	think
+720	uh	chilly

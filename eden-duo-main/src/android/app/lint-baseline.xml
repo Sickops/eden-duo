@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.9.1" type="baseline" client="gradle" dependencies="false" name="AGP (8.9.1)" variant="all" version="8.9.1">
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                    if (!mGatt.readCharacteristic(chr)) {"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="119"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                    if (!mGatt.writeCharacteristic(chr)) {"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="130"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                            mGatt.setCharacteristicNotification(chr, true);"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="155"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                            if (!mGatt.writeDescriptor(cccd)) {"
+        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="157"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                return mDevice.connectGatt(mManager.getContext(), managed, this, TRANSPORT_LE);"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="232"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                return mDevice.connectGatt(mManager.getContext(), managed, this);"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="234"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            return mDevice.connectGatt(mManager.getContext(), managed, this);"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="237"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        return btManager.getConnectionState(mDevice, BluetoothProfile.GATT);"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="260"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            mGatt.disconnect();"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="266"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                    mGatt.disconnect();"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="288"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                        mGatt.disconnect();"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="300"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                mGatt.disconnect();"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="315"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            mGatt.disconnect();"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="412"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                        mGatt.discoverServices();"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="547"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                gatt.disconnect();"
+        errorLine2="                ~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="567"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                    mGatt.requestMtu(517);"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="576"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                mGatt.writeCharacteristic(reportChr);"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="644"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        if (mDevice.getName().startsWith(&quot;Steam Ctrl&quot;)) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="700"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            g.disconnect();"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="818"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            g.close();"
+        errorLine2="            ~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceBLESteamController.java"
+            line="819"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        List&lt;BluetoothDevice> currentConnected = mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT);"
+        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="464"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        if (bluetoothDevice.getName() == null) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="537"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        if ((bluetoothDevice.getType() &amp; BluetoothDevice.DEVICE_TYPE_LE) == 0) {"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="542"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        return bluetoothDevice.getName().equals(&quot;SteamController&quot;) || bluetoothDevice.getName().startsWith(&quot;Steam Ctrl&quot;);"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="547"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="        return bluetoothDevice.getName().equals(&quot;SteamController&quot;) || bluetoothDevice.getName().startsWith(&quot;Steam Ctrl&quot;);"
+        errorLine2="                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="547"
+            column="71"/>
+    </issue>
+
+    <issue
+        id="SuspiciousIndentation"
+        message="Suspicious indentation: This is indented but is not nested under the previous expression (`if (!pendingScrollAf`...)"
+        errorLine1="                doOnNextLayout {"
+        errorLine2="                ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/yuzu/yuzu_emu/views/CarouselRecyclerView.kt"
+            line="71"
+            column="17"/>
+        <location
+            file="src/main/java/org/yuzu/yuzu_emu/views/CarouselRecyclerView.kt"
+            line="70"
+            column="13"
+            message="Previous statement here"/>
+    </issue>
+
+    <issue
+        id="WrongConstant"
+        message="Must be one or more of: Type.STATUS_BARS, Type.NAVIGATION_BARS, Type.CAPTION_BAR, Type.IME, Type.WINDOW_DECOR, Type.SYSTEM_GESTURES, Type.MANDATORY_SYSTEM_GESTURES, Type.TAPPABLE_ELEMENT, Type.DISPLAY_CUTOUT"
+        errorLine1="                    val isKeyboardVisible = insets!!.isVisible(WindowInsets.Type.ime())"
+        errorLine2="                                                               ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard.kt"
+            line="53"
+            column="64"/>
+    </issue>
+
+    <issue
+        id="UnspecifiedRegisterReceiverFlag"
+        message="`mUsbBroadcast` is missing `RECEIVER_EXPORTED` or `RECEIVER_NOT_EXPORTED` flag for unprotected broadcasts registered for org.libsdl.app.USB_PERMISSION"
+        errorLine1="            mContext.registerReceiver(mUsbBroadcast, filter);"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="${:app*mainlineRelease*MAIN*sourceProvider*0*javaDir*1}/org/libsdl/app/HIDDeviceManager.java"
+            line="199"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% e`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Angir prosentandelen som skal begrense emuleringshastigheten. 100 % er normal hastighet. Høyere eller lavere verdier vil øke eller redusere hastighetsgrensen.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-nb/strings.xml"
+            line="298"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% a`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Az emuláció sebességét határozza meg. 100% a normál sebesség. A magasabb értékek növelik, az alacsonyabbak csökkentik a sebességkorlátot.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-hu/strings.xml"
+            line="314"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% a`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Menentukan persentase untuk membatasi kecepatan emulasi. 100% adalah kecepatan normal. Nilai yang lebih tinggi atau lebih rendah akan menambah atau mengurangi batas kecepatan&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-id/strings.xml"
+            line="345"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% c`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Spécifier le pourcentage pour limiter la vitesse d\&apos;émulation. 100% correspond à la vitesse normale. Des valeurs plus élevées ou plus basses augmenteront ou diminueront la limite de vitesse.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-fr/strings.xml"
+            line="412"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% s`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-de/strings.xml"
+            line="440"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInvalid"
+        message="Incorrect formatting string `frame_limit_slider_description`; missing conversion character in &apos;`% e`&apos;?"
+        errorLine1="    &lt;string name=&quot;frame_limit_slider_description&quot;>Especifica el porcentaje para limitar la velocidad de emulación. 100% es la velocidad normal. Valores más altos o bajos incrementarán o disminuirán el límite de velocidad.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-es/strings.xml"
+            line="450"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatMatches"
+        message="Suspicious argument type for formatting argument #1 in `value_with_units`: conversion is `s`, received `int` (argument #2 in method call) (Did you mean formatting character `d`, &apos;o&apos; or `x`?)"
+        errorLine1="            setting.getSelectedValue(),"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/yuzu/yuzu_emu/features/settings/ui/viewholder/SliderViewHolder.kt"
+            line="26"
+            column="13"/>
+        <location
+            file="src/main/res/values/strings.xml"
+            line="516"
+            column="5"
+            message="Conflicting argument declaration here"/>
+    </issue>
+
+    <issue
+        id="StringFormatMatches"
+        message="Suspicious argument type for formatting argument #1 in `value_with_units`: conversion is `s`, received `int` (argument #2 in method call) (Did you mean formatting character `d`, &apos;o&apos; or `x`?)"
+        errorLine1="            setting.getSelectedValue(),"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/yuzu/yuzu_emu/features/settings/ui/viewholder/SliderViewHolder.kt"
+            line="26"
+            column="13"/>
+        <location
+            file="src/main/res/values/strings.xml"
+            line="516"
+            column="5"
+            message="Conflicting argument declaration here"/>
+    </issue>
+
+    <issue
+        id="RtlCompat"
+        message="Inconsistent alignment specification between `textAlignment` and `gravity` attributes: was `bottom`, expected `center_horizontal`"
+        errorLine1="                    android:textAlignment=&quot;center&quot;"
+        errorLine2="                                           ~~~~~~">
+        <location
+            file="src/main/res/layout/card_game_grid_compact.xml"
+            line="74"
+            column="44"/>
+        <location
+            file="src/main/res/layout/card_game_grid_compact.xml"
+            line="71"
+            column="45"
+            message="Incompatible direction here"/>
+    </issue>
+
+</issues>

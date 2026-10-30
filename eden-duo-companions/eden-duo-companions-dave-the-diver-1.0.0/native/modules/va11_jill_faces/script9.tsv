@@ -1,0 +1,541 @@
+# Jill's faces for day 9 (romfs scripts/<lang>/script9.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+4	baka	always "late"
+5	neutral
+7	smile	Christmas specials with Fore
+8	neutral
+9	smile	a party
+10	neutral
+13	think	the raids stopped
+14	neutral
+15	think
+16	neutral
+17	smile	start of the night
+18	smile	welcome
+19	surprise	a kid?
+20	neutral
+21	uh
+22	neutral
+23	uh
+24	baka	ID, please
+25	neutral
+28	baka	money?
+29	neutral
+30	uh	DO YOU?
+31	neutral
+32	uh
+33	neutral
+35	uh
+36	neutral
+38	uh
+39	baka	"Miss Ghost"
+40	neutral
+42	baka	teases Gil
+43	neutral
+44	baka	aside
+45	uh	wants an ID
+46	neutral
+47	baka	in a year or so
+48	uh	no place for her
+49	neutral
+50	baka	non-alcoholic
+51	baka
+52	neutral
+53	baka	explains the trick
+55	baka	Gil plays along
+56	neutral
+58	baka
+60	neutral
+61	uh	please leave
+62	neutral
+63	uh
+64	think	sighs
+65	neutral
+67	baka	saw the ID
+68	neutral
+69	baka
+70	neutral
+72	think	why come here?
+73	neutral
+75	neutral
+76	uh	shut up
+77	sad	sorry for being harsh
+78	sad	heavy days
+79	sad	Kim's incident
+80	neutral
+81	think
+82	baka	don't change the subject
+83	neutral
+84	baka	unless it's illegal
+85	neutral
+87	think	wild?
+88	neutral
+93	think
+94	neutral
+96	think	reminds her of Kim
+98	sad
+99	neutral
+100	think
+102	neutral
+103	think	calm down
+104	sad
+105	neutral
+106	smile	Alma's mom
+107	neutral
+108	think
+109	neutral
+110	think
+111	neutral
+112	think
+113	neutral
+114	baka	doing it wrong
+115	neutral
+116	smile	advice
+117	smile	become a belly dancer
+118	think
+119	think
+120	neutral
+122	think	start there
+123	neutral
+124	think
+127	neutral
+128	baka	very
+129	smile	go home
+130	baka	humor her
+131	neutral
+133	smile	call me Jill
+134	neutral
+135	smile	careful out there
+136	neutral
+137	uh	shut up
+138	neutral
+140	uh	oh shit, the dog
+141	neutral
+142	baka	you're late
+143	neutral
+144	uh
+145	baka	too early
+146	neutral
+147	uh	will he be any good?
+148	neutral
+149	baka	I know
+150	neutral
+151	uh	a PART-TIMER DOG
+152	neutral
+159	baka	training
+160	baka	only "sir yes sir"
+161	neutral
+162	surprise	a motorcycle?
+163	neutral
+166	neutral
+167	surprise	a silent biker
+168	neutral
+169	uh	clients only
+170	neutral
+171	uh
+172	neutral
+174	uh	the other one!
+175	baka	sheesh
+176	neutral
+182	smile	don't mention it
+183	neutral
+184	uh	no need to buy
+185	neutral
+186	smile
+187	neutral
+188	think	didn't hear
+189	neutral
+190	uh
+191	neutral
+192	neutral
+193	baka	looks happy
+194	neutral
+195	neutral
+196	neutral
+198	uh	too strong?
+199	neutral
+200	neutral
+201	neutral
+202	uh
+203	think
+204	neutral
+206	smile	don't worry
+207	think
+208	neutral
+214	neutral
+215	smile
+216	neutral
+218	smile	the boss
+219	neutral
+222	baka	where do you work?
+223	neutral
+224	baka	the day job
+225	neutral
+226	baka	appropriate
+227	think
+228	neutral
+231	sad	gets lost on detours
+232	neutral
+233	baka	"b-bitch"
+234	neutral
+235	neutral
+236	think	Moonblast?
+237	neutral
+238	uh
+239	neutral
+240	neutral
+241	baka	it's a Moonblast
+242	neutral
+245	neutral
+246	neutral
+247	uh	drink it faster
+248	neutral
+249	neutral
+250	neutral
+251	uh
+252	think	the tough guy act
+253	neutral
+254	smile	he looked cute
+255	neutral
+256	think
+257	neutral
+259	baka	she'd be lighting drinks on fire
+260	neutral
+261	think	trying too hard
+262	neutral
+264	smile	be a nice biker
+265	neutral
+266	baka	high school talk
+267	neutral
+268	think	just advice
+269	neutral
+270	smile
+271	neutral
+272	smile	stay quiet
+273	neutral
+274	think
+275	neutral
+276	smile
+277	neutral
+278	neutral
+279	neutral
+282	uh	maybe
+283	neutral
+284	neutral
+287	think	Gil?
+288	neutral
+289	baka	no
+290	neutral
+291	think
+292	neutral
+293	think	he...?
+294	neutral
+296	smile	goodbye
+297	think
+298	baka	heartbreaking fuckboy
+299	neutral
+300	baka	nothing
+301	think
+302	neutral
+306	think
+307	neutral
+308	smile	motion sickness
+310	smile
+312	think
+313	smile	a bug
+315	smile
+316	neutral
+318	smile	goodbye
+319	neutral
+320	baka	same
+321	smile	break
+322	neutral
+323	smile	back
+324	neutral
+325	think	any luck?
+326	neutral
+328	think
+329	neutral
+331	surprise	Dorothy screams
+332	neutral
+334	baka	sends the dog off
+335	neutral
+337	baka	bad with dogs
+338	neutral
+339	think	why?
+340	neutral
+346	baka	chinchillas are extinct
+347	neutral
+348	smile
+349	neutral
+350	uh	"that time of the month"
+351	neutral
+352	think	do Lilim...?
+353	uh
+354	neutral
+356	think
+357	neutral
+358	uh
+359	neutral
+360	neutral
+362	neutral
+363	neutral
+366	think	business?
+367	neutral
+369	surprise	competition?
+370	neutral
+373	think
+374	neutral
+376	surprise
+377	neutral
+381	think	never saw it that way
+382	think
+383	neutral
+384	uh	40%?
+385	uh	too much detail
+387	think
+388	neutral
+389	baka	mere curiosity
+390	neutral
+391	smile
+392	neutral
+393	neutral
+394	baka	the fairy story
+395	baka
+396	neutral
+397	neutral
+398	neutral
+400	neutral
+401	neutral
+403	neutral
+404	neutral
+405	think	the kid earlier
+406	neutral
+407	uh	a double standard
+408	baka	just a funny story
+409	neutral
+410	uh	sighs
+411	neutral
+418	uh	an uncomfortable prank
+423	baka	how considerate
+424	neutral
+425	uh
+426	neutral
+427	think	how old is she?
+428	neutral
+429	baka	numbers
+430	neutral
+431	baka	27
+432	neutral
+435	think
+436	neutral
+437	baka	fair enough
+438	neutral
+439	sad	dangerous times
+440	smile	getting old is an achievement
+441	neutral
+442	smile	go ahead
+443	neutral
+446	smile
+447	neutral
+449	think
+450	neutral
+451	neutral
+452	neutral
+453	neutral
+455	uh	an uncomfortable story
+456	uh	the what?
+463	uh
+464	uh	regrets asking
+465	neutral
+466	baka	of course they were
+467	neutral
+470	uh	speechless
+471	neutral
+472	baka	ruined Santas
+473	neutral
+474	think	the date
+475	neutral
+476	think
+477	baka	shouldn't she know?
+478	neutral
+479	baka
+480	neutral
+481	surprise	she can't?
+482	neutral
+485	think
+486	think	why the date?
+487	neutral
+488	think	something heavy
+489	smile	offers help
+490	neutral
+491	smile
+492	neutral
+494	smile	bye
+495	neutral
+496	think	the text processor
+497	neutral
+498	baka	forgot
+499	neutral
+500	baka	look again
+501	neutral
+502	neutral
+503	surprise	another kid?
+504	neutral
+506	uh	a hassle
+507	uh	Alma was right
+508	neutral
+509	think	Alma's warning
+514	uh	two kids already
+515	uh
+516	neutral
+517	think	a cartoon?
+518	neutral
+519	baka	true
+520	neutral
+521	uh
+522	uh
+523	neutral
+524	uh	no place for kids
+525	neutral
+526	uh
+527	uh	she just stares
+528	neutral
+530	think
+531	neutral
+532	uh	she says nothing
+533	neutral
+535	uh
+536	uh
+537	neutral
+538	uh
+539	neutral
+540	surprise	BWAH!
+541	neutral
+542	uh
+543	neutral
+544	uh
+545	neutral
+546	neutral
+547	neutral
+548	neutral
+551	neutral
+552	think
+553	think	the expired Karmotrine
+554	neutral
+555	smile
+556	neutral
+557	surprise	the girl speaks
+558	uh
+559	neutral
+560	think	am I happy?
+561	think
+562	neutral
+563	think	deep question
+564	sad	a regret or two
+565	neutral
+566	sad
+567	neutral
+569	uh
+570	neutral
+571	uh
+572	neutral
+573	surprise	BWAH! again
+574	neutral
+575	baka	maybe
+576	neutral
+577	think
+578	neutral
+580	think
+581	neutral
+582	baka	no action these days
+583	neutral
+584	baka	threw it at someone?
+585	neutral
+586	baka	right
+587	think	physical money
+588	neutral
+589	think
+590	neutral
+592	surprise
+593	neutral
+594	think	recognize her?
+595	think
+596	sad	sorry
+597	neutral
+598	uh	no sister
+599	surprise	sister?
+600	neutral
+601	surprise
+602	surprise	Gaby
+603	sad	she's grown so much
+604	sad
+605	neutral
+606	sad	three years
+607	neutral
+608	uh	her ex's sister
+609	uh
+610	neutral
+612	smile	always smart
+613	smile
+614	neutral
+615	smile	no pressure
+616	uh	asks about Lenore
+617	neutral
+618	uh
+619	neutral
+620	baka	defends her cat
+621	uh
+622	uh	asks again
+623	neutral
+624	surprise	she's dead
+625	surprise	didn't hear right
+626	neutral
+627	uh	stop fooling around
+628	neutral
+630	surprise	she was sick?
+631	neutral
+635	uh	lashing out
+636	neutral
+638	uh
+639	neutral
+644	uh	SHUT UP!
+645	neutral
+646	uh	shouting back
+648	neutral
+649	uh
+650	sad	scared of losing her youth
+651	sad
+652	uh
+653	sad	she loved her
+654	sad
+655	neutral
+656	sad	"idiot"
+657	sad
+658	sad	screams
+659	sad
+660	sad
+666	sad	silent
+667	neutral
+668	sad
+669	neutral
+670	sad
+671	sad	not hungry
+672	neutral
+673	sad	needs to be alone
+674	neutral
+676	uh	IT'S NOT OKAY
+677	sad
+680	sad	crumbling
+681	sad
+684	sad	if only she'd apologised
+688	sad
+690	think	thanks, boss
+691	neutral
+692	think
+693	think
+694	neutral
+697	think
+698	neutral
+702	sad
+703	think	Billy

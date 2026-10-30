@@ -1,0 +1,153 @@
+{
+  "title_id": "0100BA4026E94000",
+  "build_id": "0F1169AA7D0FA4529C861F96ADEC306E00000000000000000000000000000000",
+  "module": "main",
+  "format": 2,
+  "layout": {
+    "segments": [
+      {
+        "location": 0,
+        "size": 85144424
+      },
+      {
+        "location": 85147648,
+        "size": 24555520
+      },
+      {
+        "location": 109703168,
+        "size": 7150208
+      }
+    ],
+    "bss_size": 3782016
+  },
+  "mailbox_size": 4096,
+  "mailbox_epoch_offset": 4092,
+  "patches": [
+    {
+      "offset": 67981056,
+      "expected": "fd7bbda9",
+      "replacement": "00000014",
+      "relocations": [
+        {
+          "offset": 0,
+          "kind": "aarch64_branch26",
+          "target": "code",
+          "addend": 0
+        }
+      ]
+    }
+  ],
+  "guest_code": {
+    "bytes": "fd7bbda9ff8302d1e07b00a9f35301a9f55b02a9f76303a9f96b04a9fb7305a9e827066dea2f076dec37086dee3f096d1300009073020091690640b929050011690600b9690240b94a8889520a4aa6723f010a6ba12200546922009134fddf88756240b99f02156b002200546b0e40b97f0500712b1d00547f190071ec1c00546c1240b969f23f912dfddf88ad1c00349f010d6b611c005409000090290140f9891c00b42a5d40f94a1c00b44b014039cb1b00356b0e40b97f050071800100547f090071a00700547f0d0071e00900547f110071000e00547f150071601000547f190071c0120054cc000014000000900000009100000094692240f9e91900b42a0140f96b5240f9cb1b00b45f010beb411900546c0e40f94c1900b48d0140f96e3e40f9ee1a00b4bf010eeb611900546f1240f9af1800b4e90140f96a4240f90a1a00b43f010aebc1180054ef0d40f909000090200140f9401900b4201900376a3a40f96a0000b41f000aeba118005400000094201800b4f50300aae00315aa613a40b9693240b92001271e693640b92101271ee2030faa00000094602240f9e1030caae20315aa00000094a91240b9693600f9b7000014692240f9e91300b42a0140f96b5240f9cb1500b45f010beb411300546c0e40f94c1300b48d0140f96e3e40f9ee1400b4bf010eeb61130054602240f9e1030caa623240b9000000947f3600f9a3000014692240f9691100b42a0140f96b5240f94b1300b45f010bebc11000546c0e40f9cc1000b48d0140f96e3e40f96e1200b4bf010eebe11000546f1240f92f1000b4e90140f96a3a40f98a1100b43f010aeb41100054701640f9900f00b4090240f96a4240f9aa1000b43f010aeba10f0054602240f9e1030caae2030faae30310aa000000947f3600f980000014692640f9090d00b42a0140f96b5640f9eb0e00b45f010beb610c00546c0e40f96c0c00b48d0140f96e4640f90e0e00b435000094800c00343e000094000d0034602640f9e1030caa000000947f3600f96b000014692640f9690a00b42a0140f96b5640f94b0c00b45f010bebc10900546c0e40f9cc0900b48d0140f96e4a40f96e0b00b420000094e009003429000094600a0034602640f9e1030caa000000947f3600f956000014692640f9c90700b42a0140f96b5640f9ab0900b45f010beb210700546c0e40f92c0700b48d0140f96e4e40f9ce0800b40b0000944007003414000094c0070034602640f9e1030caa623240b900000094007c4093603600f93f0000140f0180d2bf010eebe0000054ad2d40f96d0000b4ef0500f161ffff5400008052c0035fd620008052c0035fd62f1140f94f0200b4f01940b9f10940f9f10100b431820091000080d2010081d21f0010eb4a0100541f0001eb0a010054227a60f85f000ceb6000005400040091f8ffff1720008052c0035fd600008052c0035fd6400080521b000014600080521900001480008052170000148000805215000014a000805213000014c000805211000014e00080520f000014000180520d000014200180520b000014400180520900001460018052070000148001805205000014a00180520300001420008052010000147f3600f9030000140000805201000014606600b9690a40b96a82019149fd9f88e07b40a9f35341a9f55b42a9f76343a9f96b44a9fb7345a9e827466dea2f476dec37486dee3f496dff83029100000014",
+    "relocations": [
+      {
+        "offset": 48,
+        "kind": "aarch64_adrp",
+        "target": "mailbox",
+        "addend": 0
+      },
+      {
+        "offset": 52,
+        "kind": "aarch64_add_lo12",
+        "target": "mailbox",
+        "addend": 0
+      },
+      {
+        "offset": 152,
+        "kind": "aarch64_adrp",
+        "target": "main",
+        "addend": 114554752
+      },
+      {
+        "offset": 156,
+        "kind": "aarch64_ldr64_lo12",
+        "target": "main",
+        "addend": 114554752
+      },
+      {
+        "offset": 236,
+        "kind": "aarch64_adrp",
+        "target": "main",
+        "addend": 114574552
+      },
+      {
+        "offset": 240,
+        "kind": "aarch64_add_lo12",
+        "target": "main",
+        "addend": 114574552
+      },
+      {
+        "offset": 244,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 6022160
+      },
+      {
+        "offset": 336,
+        "kind": "aarch64_adrp",
+        "target": "main",
+        "addend": 114574552
+      },
+      {
+        "offset": 340,
+        "kind": "aarch64_ldr64_lo12",
+        "target": "main",
+        "addend": 114574552
+      },
+      {
+        "offset": 368,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 6023040
+      },
+      {
+        "offset": 408,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 29561248
+      },
+      {
+        "offset": 424,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 29550496
+      },
+      {
+        "offset": 508,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 29552480
+      },
+      {
+        "offset": 648,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 29556144
+      },
+      {
+        "offset": 732,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 32851888
+      },
+      {
+        "offset": 816,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 32851680
+      },
+      {
+        "offset": 904,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 32852096
+      },
+      {
+        "offset": 1236,
+        "kind": "aarch64_branch26",
+        "target": "main",
+        "addend": 67981060
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+    global:
+        eden_dsmod_get_module;
+        eden_dsmod_get_extensions;
+        eden_dsmod_get_font_extensions;
+        eden_dsmod_get_data_extensions;
+        eden_dsmod_get_write_extensions;
+    local:
+        *;
+};

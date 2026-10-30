@@ -1,0 +1,133 @@
+# Jill's faces for the epilogues (romfs scripts/<lang>/epilogues.txt): short scenes after the
+# last day, one after another. Our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+2	smile	the curry
+3	smile	waited so long for curry
+4	sad	the spilled drinks
+5	baka	her budget
+6	neutral
+7	think	his real name
+8	neutral
+9	smile	the two girls
+10	neutral
+11	smile	call me Jill
+12	think	two questions
+13	think
+14	think
+15	neutral
+20	sad
+21	sad	sorry for asking
+22	neutral
+23	think	the restaurant
+24	neutral
+26	smile	nice girls
+27	neutral
+30	neutral
+31	smile	Sei
+32	neutral
+34	surprise	Stella so excited
+35	neutral
+37	think	sure she doesn't mind?
+38	neutral
+40	smile	amazing
+41	smile	a nice girl
+42	neutral
+43	baka	doesn't mind stalkers
+44	neutral
+45	think	her wounds?
+46	neutral
+47	think	the bank?
+48	neutral
+50	surprise	a job?
+51	neutral
+53	smile	that's nice
+54	neutral
+55	think	a vigilante?
+56	neutral
+59	neutral
+60	surprise	a song for her?!
+61	uh	another uncomfortable story
+68	uh	one is enough
+69	neutral
+70	uh	covers it
+71	neutral
+72	uh
+73	baka	something more subdued?
+74	neutral
+75	uh	shut up (to Anna)
+76	neutral
+78	think	Anna
+79	neutral
+80	uh	quiet, you
+81	neutral
+84	sad
+86	think	she was?
+87	neutral
+96	sad	moved
+97	neutral
+100	uh	didn't say anything
+101	neutral
+102	surprise	heard "Silly Becky"
+103	surprise
+104	neutral
+106	uh	the story continues
+107	uh	the sleepover
+108	neutral
+109	uh	shut up
+110	neutral
+112	baka	whatever
+113	neutral
+117	uh	talking too much
+118	neutral
+122	uh	too much, little girl
+123	neutral
+126	uh	ow, her hair!
+127	neutral
+128	baka	seriously
+129	neutral
+133	baka	a cheeky remark
+134	neutral
+136	uh	talking too much, Alma
+137	neutral
+150	uh	worried about herself
+151	sad	never been away from Fore
+152	neutral
+153	sad
+154	neutral
+157	neutral
+158	surprise	you what?
+159	neutral
+162	think	imouto?
+163	neutral
+164	baka	just say little sister
+165	neutral
+167	sad	evicted
+168	neutral
+169	uh	two months late
+170	neutral
+172	uh
+173	neutral
+174	uh	about that...
+175	neutral
+177	sad
+178	surprise	the huge bed
+179	neutral
+182	think	no mattress in two years
+183	neutral
+184	baka	bad for her morale
+185	smile	good night
+186	neutral
+188	think
+189	think
+190	uh	hot in here
+191	uh	the hug
+192	think
+193	smile	Alma looks comfortable
+194	think	sighs
+195	think	the boss's place
+196	think
+197	think
+198	neutral
+199	uh	no, Fore
+200	uh	don't you dare
+201	uh	MMMMPH

@@ -1,0 +1,327 @@
+# Jill's faces for the 1.2 prologue, part 3 (romfs scripts/<lang>/1.2/pro3.txt): the last day of
+# the Corgi party, Betty and Deal, and the boss's news about the bar. Our own reading of the scene.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+3	think	the boss looks bummed
+4	neutral
+5	baka	no more Corgis
+6	neutral
+7	uh	one problem at a time
+8	neutral
+9	uh	ONE PROBLEM AT A TIME
+10	think	the boss is tense
+11	neutral
+13	baka	right...
+14	smile	start of the night
+15	neutral
+16	smile	Ms. Betty
+17	neutral
+18	baka	Mr. Corgi Lover
+19	neutral
+20	baka	Deal
+21	neutral
+22	baka	Deal
+23	neutral
+24	smile
+25	neutral
+27	smile
+28	smile
+29	neutral
+31	neutral
+34	uh
+35	neutral
+38	uh
+39	neutral
+42	uh
+43	think
+44	neutral
+46	think	not the dogs
+47	think	the boss is acting weird
+48	neutral
+50	think	the late booking
+51	think	distracted
+52	neutral
+53	think	worse
+54	neutral
+55	think	something's going on
+56	neutral
+57	baka	no license for that
+58	baka	not her job
+59	neutral
+60	smile	sure
+61	neutral
+62	think	trained from scratch
+63	neutral
+64	think	simulations
+65	neutral
+66	think	chemical hazards
+67	think
+68	think
+69	neutral
+70	smile	back to the dogs
+71	neutral
+73	uh	who?
+74	neutral
+76	uh	nevermind
+77	smile	something to calm down
+78	neutral
+79	smile
+80	neutral
+81	neutral
+82	neutral
+83	neutral
+84	neutral
+86	uh
+87	neutral
+88	think	something the matter?
+89	neutral
+90	baka	not her job to preach
+91	neutral
+92	smile
+93	neutral
+94	neutral
+96	surprise	the what now?
+97	neutral
+98	think	is he racist?
+99	neutral
+100	think
+101	neutral
+102	smile	then why worry?
+103	smile	don't take it personally
+104	neutral
+105	neutral
+107	sad	feels guilty
+108	neutral
+130	smile	having fun?
+131	neutral
+132	baka	fewer dogs
+133	neutral
+134	baka	ate their tickets
+135	neutral
+136	baka	mom's saying
+137	baka	your body, your choices
+138	smile	no point hating
+139	neutral
+146	think	ordering anything?
+147	neutral
+149	smile	call if needed
+150	neutral
+151	think
+152	neutral
+153	baka	so much for avoiding retaliation
+154	neutral
+156	baka	the mirror?
+157	neutral
+158	baka	I see
+159	neutral
+160	baka	he won't hurt anyone
+161	neutral
+163	smile
+164	smile
+165	neutral
+166	baka	will do
+167	neutral
+168	neutral
+169	baka	who knows?
+170	think
+171	neutral
+172	baka	not many dogs today
+173	think
+174	neutral
+178	smile	the Bad Touch giggles
+179	neutral
+181	smile
+182	neutral
+183	neutral
+185	neutral
+186	neutral
+188	smile	no fighting
+189	neutral
+192	smile	stifles a laugh
+193	neutral
+196	neutral
+197	neutral
+199	uh	right...
+200	think	how did that start?
+201	neutral
+206	smile	heard that too
+207	neutral
+232	think	the race conflict
+233	neutral
+236	think	unethical?
+237	neutral
+242	think	Juergen?
+243	neutral
+244	think	common
+245	think
+246	neutral
+250	think	how to become a guardian
+251	neutral
+256	baka	adoption and lottery
+257	neutral
+265	neutral
+266	think	an AI nerd
+267	neutral
+268	think	I see
+269	smile	the dogs
+270	surprise	LISTEN HERE PUNK
+271	neutral
+275	uh	alright...
+276	neutral
+277	neutral
+281	uh	huh
+282	neutral
+291	think	me what?
+292	neutral
+293	think	which dog?
+294	neutral
+295	baka	not a dog person
+296	neutral
+297	smile	Fore
+298	smile	a stray
+299	neutral
+300	baka	no
+301	neutral
+303	sad	the Lilim she met
+304	sad	nevermind
+305	neutral
+306	baka	better than Asshat
+307	neutral
+309	baka	a Fore pun
+310	neutral
+323	think	a question
+324	neutral
+326	think	why hate puns?
+327	neutral
+328	think	a vendetta
+329	neutral
+330	surprise	what?
+331	neutral
+343	smile	anything else?
+344	neutral
+346	smile
+347	neutral
+348	neutral
+349	neutral
+350	neutral
+351	think	they get along
+352	neutral
+353	think	sentient?
+354	neutral
+355	baka	I see
+356	think	more to it
+357	think
+358	neutral
+360	smile	she can see that
+361	neutral
+364	baka	can dogs mock people?
+365	neutral
+375	neutral
+376	baka	how do they get on the sinks?
+377	neutral
+381	neutral
+382	sad	they broke up
+383	neutral
+393	sad
+394	sad
+395	sad	silence
+396	think
+397	sad	asking after people
+398	sad
+399	sad
+400	neutral
+403	smile	she hangs out with them
+404	baka	dogs are only so interesting
+405	think	unwanted?
+406	neutral
+408	smile	thanks
+409	smile	the taxi line
+410	neutral
+411	neutral
+412	smile	the best part of the job
+413	smile	everyone has a story
+414	smile
+415	think	humbling
+416	smile
+417	smile	the gap is small
+418	smile
+419	smile	all kinds of stories
+420	smile
+421	smile	fascinating
+422	neutral
+423	baka	not interested
+424	smile	a friendly ear
+425	neutral
+428	smile	checks on the dogs
+429	neutral
+431	surprise	QUICK!
+432	uh	okay...
+433	neutral
+434	neutral
+435	surprise	broke the glass
+436	uh	why?
+437	neutral
+438	uh
+439	neutral
+440	uh	go.
+441	neutral
+442	baka	understands the pun hate
+443	neutral
+444	think	yeah?
+445	neutral
+446	baka	you don't say
+447	think	how is she drunk?
+448	neutral
+449	think	why?
+450	neutral
+455	baka	no drink
+456	neutral
+457	smile	alright
+458	neutral
+460	smile	cheers
+461	neutral
+465	neutral
+502	surprise	Lilim sweat?
+503	neutral
+507	uh	a strange tangent
+513	uh
+514	uh	that's her... she thinks
+515	neutral
+516	uh	excuse me?
+517	neutral
+527	uh	an uncomfortable joke
+528	neutral
+552	neutral
+553	think	read about it
+554	think
+555	neutral
+556	baka	seems like it
+557	neutral
+560	smile	anything else?
+561	neutral
+570	neutral
+571	smile	bye, Ms. Betty
+572	neutral
+575	think	etiquette
+576	baka	the forehead
+577	neutral
+579	smile	good luck
+580	neutral
+581	baka	closing
+582	neutral
+585	smile	that's my job
+586	neutral
+588	smile	goodbye
+589	neutral
+590	smile	regards to Betty
+591	neutral
+592	smile	bye
+593	neutral
+594	smile
+595	smile	new regulars
+596	sad
+597	think	the boss is acting weird
+598	neutral
+599	surprise	what do you mean?
+600	neutral
+601	sad	the bar is at risk
+602	sad

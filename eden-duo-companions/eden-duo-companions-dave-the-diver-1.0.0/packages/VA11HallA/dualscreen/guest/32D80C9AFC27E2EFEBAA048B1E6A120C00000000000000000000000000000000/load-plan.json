@@ -1,0 +1,57 @@
+{
+ "format": 1,
+ "title_id": "010086500D3C8000",
+ "build_id": "32D80C9AFC27E2EFEBAA048B1E6A120C00000000000000000000000000000000",
+ "module": "main",
+ "layout": {
+  "segments": [
+   {
+    "location": 0,
+    "size": 2892896
+   },
+   {
+    "location": 2895872,
+    "size": 1318620
+   },
+   {
+    "location": 4214784,
+    "size": 7270880
+   }
+  ],
+  "bss_size": 2547232
+ },
+ "mailbox_size": 4096,
+ "patches": [
+  {
+   "offset": 158008,
+   "expected": "0ac2ff97",
+   "replacement": "ce6e0a94"
+  },
+  {
+   "offset": 158752,
+   "expected": "50c1ff97",
+   "replacement": "146e0a94"
+  }
+ ],
+ "payloads": [
+  {
+   "offset": 2892912,
+   "expected": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+   "bytes": "09000090290100912a0940b94a0500112a0900b92a0140b92b0540b95f010b6b60020054bf3903d5fd7bbea9fd030091f35301a9f30309aaf4030a2a740600b9700a40f9d00000b4608641a9628e42a9641e40f900023fd6602200f9bf3b03d5740e00b9f35341a9fd7bc2a82153f517",
+   "relocations": [
+    {
+     "offset": 0,
+     "kind": "aarch64_adrp",
+     "target": "mailbox",
+     "addend": 0
+    },
+    {
+     "offset": 4,
+     "kind": "aarch64_add_lo12",
+     "target": "mailbox",
+     "addend": 0
+    }
+   ]
+  }
+ ]
+}

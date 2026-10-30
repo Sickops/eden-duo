@@ -1,0 +1,19 @@
+# Built native modules are local build outputs, never package source.
+*.so
+# Release archives and build output
+*.zip
+dist/
+build/
+out/
+# Local inputs for the generators (your own game files and data derived from them)
+p5r-work/
+romfs/
+legacy/
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Standalone native build directories
+build-*/

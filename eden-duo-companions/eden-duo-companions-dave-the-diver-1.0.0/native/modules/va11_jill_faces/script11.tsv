@@ -1,0 +1,414 @@
+# Jill's faces for day 11 (romfs scripts/<lang>/script11.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+# Lines 724-913 are the scene where Alma sits Jill down: the game tags those faces itself
+# ([XS:jillface,..]), so this table leaves that stretch alone.
+5	smile	Lilim are soft and warm
+6	neutral
+7	baka	you heard me
+8	neutral
+10	sad	a sad pile of shit
+11	think	the noise stopped
+12	uh
+13	neutral
+15	smile	cozy
+16	surprise	the boss paid Dorothy?
+17	neutral
+18	think
+19	neutral
+22	smile	touched
+23	neutral
+27	smile	thanks
+28	neutral
+30	baka	nice to know
+31	smile	back to work
+32	smile	start of the night
+33	neutral
+34	baka	"did you say something?"
+35	neutral
+36	uh
+37	uh	oh, it's the dogs
+38	neutral
+39	baka	aren't you a part-timer?
+40	neutral
+42	uh
+43	baka	tries to take her break
+44	neutral
+45	uh	shit
+46	think
+47	neutral
+48	think	"soldier"?
+49	think	the dog from Monday
+50	neutral
+53	neutral
+54	uh
+55	think	CIRA
+56	neutral
+61	baka	Corgis only?
+62	neutral
+64	baka	an eyepatch corgi
+65	neutral
+68	uh	you sure?
+69	neutral
+70	uh
+71	neutral
+72	neutral
+75	baka	you asked for it
+76	neutral
+80	baka	right
+81	neutral
+84	baka	did you really?
+85	neutral
+86	baka
+87	neutral
+90	think	does he get paid?
+91	neutral
+92	think	can the boss afford it?
+93	neutral
+97	think	the boss spending
+98	think
+99	neutral
+106	think	paying from her pocket
+107	neutral
+110	think
+111	baka	paid in steaks
+112	neutral
+114	baka	steak is worth more
+115	neutral
+118	think	the boss wouldn't scam anyone
+119	neutral
+125	think	forgot she knew him
+126	neutral
+136	think	why make Gil go?
+137	think
+138	neutral
+140	think	put that way
+141	neutral
+143	smile	the boss is nice
+144	neutral
+146	neutral
+147	uh	missed the chance to ask
+148	neutral
+149	neutral
+150	surprise	Deal and the dog
+151	neutral
+155	smile	welcome
+156	neutral
+158	smile
+159	neutral
+163	smile
+164	neutral
+165	smile	THE Beer
+166	smile
+167	neutral
+169	smile
+170	neutral
+171	neutral
+172	neutral
+174	sad	sorry
+175	neutral
+176	think
+177	neutral
+178	surprise	does she look down?
+179	neutral
+180	sad	getting better
+181	neutral
+183	sad	sorry
+184	think	is it obvious?
+185	neutral
+188	baka	the beer cans
+189	neutral
+191	baka	no thanks
+192	think	dog town
+193	neutral
+194	think
+195	neutral
+197	surprise	a rabbit?
+198	neutral
+206	neutral
+207	think
+208	neutral
+245	think	asks about Laura
+246	neutral
+249	think
+250	neutral
+256	think
+257	neutral
+262	think	may she say something?
+263	neutral
+264	uh	searching for words
+266	uh
+267	neutral
+268	uh	not what she meant
+269	neutral
+300	smile	the drink's name
+301	neutral
+302	smile	the bloom story
+306	neutral
+307	baka	not this one
+308	neutral
+309	neutral
+317	neutral
+318	neutral
+321	uh
+322	neutral
+323	neutral
+324	neutral
+325	baka	"a blooming beauty"
+326	neutral
+327	neutral
+328	neutral
+329	sad	sorry
+330	think	changed for a partner?
+331	think
+332	think
+333	neutral
+334	think
+335	baka	the grammar habit
+336	uh
+337	neutral
+354	think	it was other people
+355	neutral
+360	think
+361	neutral
+362	smile	the boss walked her home
+363	neutral
+365	baka	dogs after all
+366	surprise	the whole time?
+367	neutral
+376	think
+377	neutral
+389	think	a cynical view
+395	think
+396	neutral
+397	smile	prefers his idealism
+398	smile	people help others
+399	neutral
+401	baka	Gil walks a dog
+402	neutral
+409	baka	dogs pay?
+410	baka	a dog paid for nothing
+411	baka	not certain
+412	neutral
+413	neutral
+420	smile	goodbye
+421	neutral
+423	smile	break
+424	neutral
+425	smile	back
+426	smile	Alma
+427	neutral
+428	think
+429	neutral
+430	uh
+431	neutral
+432	think	Alma is down
+433	smile	a drink on the house
+434	neutral
+435	smile	drink up
+436	neutral
+437	baka	got the message
+438	neutral
+439	smile	how is it?
+440	neutral
+441	smile	Brandtini girl
+442	smile	they suit her
+443	neutral
+444	smile	always
+445	neutral
+452	smile
+453	neutral
+454	smile	a cool dad
+455	neutral
+457	smile	sweet things soothe
+458	neutral
+460	baka
+461	neutral
+463	smile	got her talking
+464	neutral
+465	uh	a silent Alma is uncanny
+466	neutral
+467	baka
+468	neutral
+469	neutral
+470	neutral
+471	baka	a drink
+472	neutral
+473	baka	still a drink
+474	neutral
+475	baka	for throwing in her face
+476	neutral
+477	think	why deflating?
+478	neutral
+479	smile	grandpa's tire
+481	neutral
+482	think
+483	neutral
+486	baka	can't feel any worse
+487	smile	go ahead
+488	neutral
+490	baka	the perfect summary
+491	neutral
+493	surprise
+494	neutral
+499	think
+500	neutral
+502	surprise	what?
+503	neutral
+505	uh	speechless
+506	neutral
+522	uh
+523	neutral
+529	uh	damn
+530	sad	no words
+531	neutral
+534	think	can she help?
+535	neutral
+536	surprise	she already did
+537	neutral
+541	baka	a joke about her chest
+542	neutral
+543	baka
+544	neutral
+553	think	good genes
+554	baka	shrimp allergy
+555	neutral
+558	think	the nephews?
+559	neutral
+561	think
+562	neutral
+565	smile	worrying means she'll be fine
+566	neutral
+567	smile	pretty sure
+568	think
+569	neutral
+570	think
+571	baka	irrational standards
+572	neutral
+573	baka	am I lying?
+574	neutral
+576	smile	she'll find someone
+577	neutral
+579	smile
+580	neutral
+582	smile
+583	neutral
+584	neutral
+585	smile	that's why she's here
+586	neutral
+587	neutral
+589	uh	the ice melted
+590	neutral
+591	neutral
+592	neutral
+595	sad	sorry
+596	neutral
+599	smile	just making sure
+600	neutral
+601	sad	don't think about it
+602	neutral
+603	sad
+604	smile	almost forgot
+605	neutral
+606	smile	the party
+607	neutral
+609	think	chicken?
+610	smile
+611	neutral
+613	think	favourite part
+614	smile	legs
+615	neutral
+616	baka	breast is too simple
+617	neutral
+618	surprise	the boss
+619	neutral
+620	uh	what's that?
+621	neutral
+622	think	where from?
+623	neutral
+625	uh	why the bucket?
+626	neutral
+627	uh	because... eh?
+628	neutral
+638	uh
+639	baka	she left the bucket
+640	smile	want some?
+641	neutral
+643	think	a mixed-up order
+644	neutral
+645	baka	the itchy buckets
+646	neutral
+648	think
+649	surprise	sudden question
+650	think	decent enough
+652	neutral
+653	think
+654	think	no tattoos
+655	neutral
+659	baka	still single
+660	neutral
+661	think
+662	neutral
+663	smile
+664	neutral
+665	smile
+666	neutral
+667	neutral
+668	neutral
+670	neutral
+671	neutral
+673	neutral
+674	neutral
+677	neutral
+678	neutral
+681	neutral
+682	neutral
+685	baka	mission accomplished
+686	neutral
+688	uh	caught off guard
+689	neutral
+690	uh	you first
+691	neutral
+695	uh	calm down
+696	uh	light-coloured hair
+697	neutral
+698	uh
+699	neutral
+700	baka	set up
+701	neutral
+703	uh	caught
+704	neutral
+706	baka	sighs
+707	neutral
+709	think
+710	neutral
+712	baka	wouldn't let her go
+713	neutral
+715	think	that
+716	sad	don't think about it
+717	neutral
+719	sad
+720	neutral
+721	surprise	sit here?
+722	neutral
+723	surprise	being moved
+915	neutral
+917	think
+918	smile	thanks for today
+919	neutral
+921	smile	friends
+922	neutral
+924	think	her parents
+925	neutral
+926	sad	doesn't want to bother them
+927	neutral
+930	smile	take care
+931	neutral
+932	uh	did the boss hear?
+933	neutral
+935	surprise	her face changed?
+936	neutral
+938	smile	Right!
+939	think	the chicken wings
+940	neutral
+943	uh	Boss?
+944	smile	no dogs in sight

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-FileCopyrightText: Copyright 2026 igawa6
+    SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<!-- Eden Duo strings. Duo ships these in English only; upstream strings.xml stays untouched. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- Eden Duo: Graphics -> Second Screen -->
+    <string name="second_screen">Second Screen</string>
+    <string name="swap_screens">Swap Screens</string>
+    <string name="swap_screens_description">Game on the second screen, companion on the main one. Applies when a game starts.</string>
+    <string name="companion_ratio">Companion Ratio</string>
+    <string name="companion_ratio_description">Fit keeps the companion page shape; Stretch fills the screen.</string>
+    <string name="companion_ratio_fit">Fit</string>
+    <string name="companion_ratio_stretch">Stretch</string>
+    <string name="no_companion">No Companion</string>
+    <string name="no_companion_description">What the second screen shows when a game has no companion. Off leaves it free for other apps; App opens the app you pick there. Applies when a game starts.</string>
+    <string name="no_companion_icon">Icon</string>
+    <string name="no_companion_black">Black</string>
+    <string name="no_companion_off">Off</string>
+    <string name="no_companion_app">App</string>
+    <string name="companion_app">App</string>
+    <string name="companion_app_description">Opens on the second screen when a game has no companion</string>
+    <string name="companion_app_description_none">Opens on the second screen when a game has no companion. Until you choose one, App works like Off.</string>
+    <string name="companion_app_choose">Choose an app</string>
+    <string name="companion_app_missing">%1$s (not installed)</string>
+    <string name="companion_app_search">Search apps</string>
+    <!-- Eden Duo: in-game companion toggle -->
+    <string name="companion_toggle_gesture">Companion toggle gesture</string>
+    <string name="companion_toggle_gesture_description">Hides or shows the companion during a game, so the second screen can be used for another app. Also in the in-game menu and the Companion Quick Settings tile.</string>
+    <string name="companion_toggle_gesture_tap4">4-finger tap</string>
+    <string name="companion_toggle_gesture_pinch5">5-finger pinch</string>
+    <string name="companion_toggle_gesture_swipe3">3-finger swipe down</string>
+    <string name="companion_toggle_gesture_off">Off</string>
+    <string name="companion_toggle_hide">Hide companion</string>
+    <string name="companion_toggle_show">Show companion</string>
+    <string name="companion_toggle_hidden">Companion hidden</string>
+    <string name="companion_toggle_shown">Companion shown</string>
+    <string name="companion_toggle_no_companion">No companion for this game</string>
+    <string name="companion_toggle_addon_off">The companion is turned off for this game. Turn it on in Add-ons and restart the game.</string>
+    <string name="companion_toggle_no_screen">No second screen</string>
+    <string name="companion_toggle_no_game">No game running</string>
+    <string name="companion_tile">Companion</string>
+    <string name="companion_tile_shown">Shown</string>
+    <string name="companion_tile_hidden">Hidden</string>
+    <string name="companion_tile_no_game">No game</string>
+    <string name="dual_screen_mods">Dual screen mods</string>
+    <string name="dual_screen_companion_available">Companion available for %1$s</string>
+    <string name="dual_screen_filter">Show games with dual screen companions</string>
+    <string name="dual_screen_filter_show_all">Show all games</string>
+    <string name="dual_screen_filter_empty">No games match this filter. Try clearing search or turning off the dual screen filter.</string>
+    <string name="game_filter_empty">No games match your search or filters.</string>
+    <string name="about_eden_duo" translatable="false">Eden Duo</string>
+    <string name="about_eden" translatable="false">Eden</string>
+    <string name="about_discord" translatable="false">Discord</string>
+    <string name="about_github" translatable="false">GitHub</string>
+    <string name="eden_duo_discord_link" translatable="false">https://discord.gg/r6vBWKAqCK</string>
+    <string name="eden_duo_github_link" translatable="false">https://github.com/igawa6/eden-duo</string>
+    <string name="dual_screen_mod_fetch_source">Eden Duo companions for %1$s</string>
+    <string name="dual_screen_mod_fetch_loading">Fetching published companion releases…</string>
+    <string name="dual_screen_mod_fetch_empty">No published companion releases for this game yet.</string>
+    <string name="dual_screen_mod_fetch_release">%1$s\n%2$s · %3$s</string>
+    <string name="dual_screen_mod_fetch_no_notes">No release notes.</string>
+    <string name="dual_screen_mod_fetch_failed">Could not fetch the companion. Check your connection and try again.\n\n%1$s</string>
+    <string name="dual_screen_mod_downloading">Downloading %1$s</string>
+    <string name="installing_dual_screen_mod">Installing dual screen mod</string>
+    <string name="dual_screen_mod_installed">Dual screen mod installed successfully</string>
+    <string name="dual_screen_mod_check_no_scan">The package was unpacked, but the add-on scanner could not open this game, so Eden Duo cannot confirm it will be used. Restart Eden Duo and check the Add-ons list.</string>
+    <string name="dual_screen_mod_check_missing">The package was unpacked, but its files are missing from %1$s.</string>
+    <string name="dual_screen_mod_check_not_listed">The package was unpacked to %1$s, but the add-on scanner (reading %2$s) does not list it, so the second screen will not use it. Please report this with the log file.</string>
+    <string name="dual_screen_mod_install_cancelled">Dual screen mod installation cancelled</string>
+    <string name="dual_screen_mod_install_failed">Dual screen mod installation failed</string>
+    <string name="dual_screen_mod_linked_folder">Dual screen mods cannot be installed into a linked (SAF) add-on folder. Install them into the internal add-on folder, or copy the package into the linked folder with a file manager.</string>
+    <string name="dual_screen_mod_title_mismatch">This package is for a different game.</string>
+    <string name="dual_screen_mod_archive_too_large">The dual screen package is too large.</string>
+    <string name="dual_screen_mod_malformed_archive">The selected file is not a valid ZIP archive.</string>
+    <string name="dual_screen_mod_invalid_package">The package metadata or directory layout is invalid.</string>
+    <string name="dual_screen_mod_install_failed_description">The dual screen package could not be installed.</string>
+    <string name="dual_screen_mod_old_not_removed">The older version in %1$s could not be deleted (files copied there with adb or by another app?). It was turned off so the new version is used; delete that folder with a file manager.</string>
+    <string name="dual_screen_mod_others_disabled">Other dual screen packages for this game were turned off so the new one is used: %1$s. You can turn them back on in Add-ons.</string>
+    <string name="dual_screen_mod_others_enabled">These add-ons also contain a dual screen package and are used instead of the new one while they are on: %1$s. Turn them off in Add-ons to use the new companion.</string>
+    <string name="dual_screen_mod_error_detail">%1$s\n\nDetails: %2$s</string>
+    <string name="dual_screen_mod_runtime_too_old">This companion needs a newer Eden Duo (dual-screen runtime %1$s; this app has %2$d). Update Eden Duo, then install the companion again. The companion you already had installed was kept.</string>
+    <string name="dual_screen_mod_missing_platform_library">This companion has no build of its native module for this device (%1$s).</string>
+    <string name="dual_screen_mod_checksum_mismatch">The companion\'s native module is damaged (checksum mismatch). Download the package again.</string>
+    <string name="dual_screen_mod_version_mismatch">The version in the file name does not match the package (%1$s). Download the package again.</string>
+    <string name="dual_screen_mod_cannot_write">Eden Duo cannot write to %1$s. Files copied there with adb or by another app can cause this; remove them and try again.</string>
+    <string name="about_kofi" translatable="false">Ko-fi</string>
+    <string name="about_next_game_poll">Next game poll</string>
+    <string name="eden_duo_kofi_link" translatable="false">https://ko-fi.com/igawa6</string>
+    <string name="eden_duo_poll_link" translatable="false">https://ko-fi.com/polls/3rd-Poll-Next-Switch-Game-on-Eden-Duo-C7J128KB48</string>
+    <!-- The library's "not in your library" section. -->
+    <string name="companion_unowned_header">Dual-screen games not in your library</string>
+    <string name="companion_unowned_covers_credit">Covers: GameTDB</string>
+    <string name="companion_unowned_chip">Not in library</string>
+    <string name="companion_unowned_dialog_title">Dual-screen companion available</string>
+    <string name="companion_unowned_dialog_message">Add this game to your games folder to play it with its companion.</string>
+    <string name="companion_unowned_dialog_link">Companion list</string>
+    <string name="companion_unowned_tile_description">%1$s, not in your library. Dual-screen companion available.</string>
+    <string name="companion_unowned_setting">Show dual-screen games not in your library</string>
+    <string name="companion_unowned_link" translatable="false">https://github.com/igawa6/eden-duo-companions#readme</string>
+    <string name="about_cover_art_credit" translatable="false">Game cover art: GameTDB (https://www.gametdb.com)</string>
+    <!-- Importing saves and user data. -->
+    <string name="duo_task_failed">Something went wrong</string>
+    <string name="duo_task_failed_description">Eden Duo could not finish this task.\n\nDetails: %1$s</string>
+    <string name="duo_save_import_other_title">This save belongs to title %1$s, not to this game (%2$s). Import it from that game\'s properties.</string>
+    <string name="duo_save_import_error_description">The zip could not be read, so your current saves were kept.\n\nDetails: %1$s</string>
+    <string name="duo_save_import_failed_description">The saves in the zip could not be copied to %1$s.</string>
+    <string name="duo_save_import_profile">Saves are imported into the profile %1$s.</string>
+</resources>

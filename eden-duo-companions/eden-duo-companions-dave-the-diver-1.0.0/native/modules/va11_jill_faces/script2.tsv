@@ -1,0 +1,516 @@
+# Jill's faces for day 2 (romfs scripts/<lang>/script2.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+4	surprise	someone in the helmet
+5	surprise	jumps
+6	neutral
+7	surprise
+9	neutral
+11	uh	the boss tried it on
+12	neutral
+14	smile	the boss is happy
+15	neutral
+26	uh	the what where now?
+27	neutral
+29	smile	glad the boss relaxed
+30	neutral
+33	smile	start of the night
+34	surprise	Kim bursts in
+35	neutral
+37	surprise	blamed
+38	neutral
+39	smile	glad she got home
+40	neutral
+42	baka	no remorse
+43	neutral
+46	baka	told her so
+47	neutral
+51	smile
+52	neutral
+53	baka	"luck"
+54	neutral
+56	uh	the obvious order
+57	neutral
+58	uh
+59	neutral
+62	smile
+63	uh	angry with herself
+64	uh
+66	uh
+67	neutral
+69	think	relieved
+70	neutral
+81	uh	lewd remark
+84	neutral
+87	uh
+88	neutral
+95	baka	Gil's denial
+97	neutral
+107	baka	"laconic"
+108	neutral
+112	uh	catches herself
+113	baka
+115	sad	lost scholarship
+117	neutral
+119	smile	the idol band
+120	sad	rather not remember
+121	neutral
+127	think	challenged
+129	neutral
+137	uh
+139	uh
+141	neutral
+142	baka	aside
+143	neutral
+146	uh
+147	neutral
+148	uh	mocked
+150	neutral
+152	baka
+153	neutral
+158	surprise	racial slurs?
+159	neutral
+162	surprise	"your clients"
+163	neutral
+172	smile	stifles a laugh
+173	neutral
+181	baka	"sure"
+183	think
+184	neutral
+185	uh	rude questions
+187	uh	coughs
+188	sad	her old blog
+189	neutral
+194	uh	crude questions
+196	neutral
+200	surprise
+201	neutral
+204	uh	too much info
+207	baka
+208	neutral
+210	surprise
+211	neutral
+235	baka	"considerate"
+236	neutral
+238	baka	what if it's your dad?
+239	uh	"did I stutter?"
+241	neutral
+246	baka
+247	neutral
+248	smile	goodbye
+249	think
+250	neutral
+254	baka	blond and tanned
+255	neutral
+257	baka
+258	neutral
+263	baka	there's an audience for it
+264	neutral
+265	smile
+266	neutral
+267	think	tiring
+268	neutral
+269	uh	don't tell me
+270	neutral
+271	smile	Gil laughing
+272	neutral
+276	neutral
+277	surprise	is she out of air?
+278	neutral
+279	smile	Gil laughing again
+280	uh	scared
+281	neutral
+286	surprise	Iris?
+287	neutral
+289	smile	trusts the boss
+290	neutral
+292	surprise	Dorothy, invisible
+293	neutral
+297	uh	talking to herself again
+298	baka
+299	neutral
+303	neutral
+305	uh
+306	uh	odd explanation
+308	uh	come again?
+309	neutral
+314	uh
+315	neutral
+323	smile	sounds interesting
+324	neutral
+327	surprise
+328	neutral
+332	uh	"again"
+333	baka	nothing important
+334	neutral
+336	smile
+337	neutral
+342	smile
+343	neutral
+346	uh
+348	neutral
+349	uh	doesn't want to know
+350	neutral
+352	surprise
+353	neutral
+354	baka	lucky
+355	neutral
+357	uh
+358	neutral
+359	baka	nice to know
+360	neutral
+361	surprise	the old ticket
+362	think
+363	neutral
+365	uh	shouldn't count
+366	think
+367	neutral
+369	uh	odd offer
+372	baka	the cat
+373	uh
+374	baka	threat
+375	neutral
+380	baka	and Monday
+381	neutral
+387	think	Gil's past
+389	neutral
+391	baka	people lie
+392	neutral
+395	smile	Gil is right there
+396	baka	any lies?
+397	neutral
+400	baka	stuck in a helmet
+401	neutral
+402	baka	no shit
+403	uh	a bad story coming
+404	uh	stops her
+406	neutral
+409	smile	"did you miss me?"
+410	neutral
+411	uh
+412	neutral
+414	surprise	the daughter job
+415	neutral
+422	surprise	does he have a daughter?
+423	sad	she died
+425	neutral
+427	uh	won't say
+428	neutral
+429	smile
+430	neutral
+433	baka	sugar in alcohol
+434	neutral
+437	uh
+438	uh
+439	uh	wrong
+441	uh
+442	neutral
+446	neutral
+452	surprise	Dorothy reacts
+453	neutral
+455	surprise
+458	surprise
+459	neutral
+466	smile
+467	neutral
+468	uh	which poster?
+470	baka	blames the vending machines
+471	neutral
+474	uh	they talk so much
+476	neutral
+477	baka	single
+478	baka
+479	neutral
+484	surprise	look like babies?
+485	neutral
+494	think
+495	sad	roleplaying
+498	think
+499	uh	should she think about it?
+500	neutral
+501	smile	fine as she is
+502	neutral
+503	surprise	Jamie arrives
+505	uh	both at once
+506	neutral
+508	uh	"Jules"
+509	baka	threat
+510	neutral
+513	uh	"hello sailor"
+514	uh
+515	neutral
+527	uh	on edge
+528	neutral
+529	smile
+531	neutral
+534	baka	it's my job
+535	neutral
+536	uh
+537	neutral
+541	smile
+542	neutral
+544	uh	hates bitter
+547	uh	scolded
+548	neutral
+549	uh
+550	neutral
+553	uh	Dorothy's naming game
+559	uh	an uncomfortable story
+577	uh	Jamie at a loss
+578	baka
+579	smile	she's nice really
+580	uh	Gil upset
+581	neutral
+582	uh	price list
+584	neutral
+587	uh
+589	neutral
+605	smile	Jamie keeps it private
+607	neutral
+609	smile	goodbye
+610	neutral
+611	smile	roots for her
+612	uh
+613	neutral
+615	surprise	the boss yells
+616	neutral
+620	smile
+621	neutral
+622	baka	Jamie likes Gil better
+623	neutral
+625	smile
+626	neutral
+629	baka	so, no war
+631	neutral
+632	neutral
+633	uh	wrong drink
+634	neutral
+639	smile	the cannon's name
+641	smile
+642	neutral
+644	think
+645	neutral
+646	uh	toxicology
+647	neutral
+649	uh
+650	think	no comment?
+651	neutral
+653	sad	the daughter story
+655	neutral
+657	smile
+659	uh	no beheadings
+661	neutral
+664	think	Sanders
+665	neutral
+668	sad
+669	think
+670	neutral
+671	uh	dangerous information
+673	neutral
+675	smile	flattered
+676	uh	stops mid-word
+678	uh
+679	uh	he might have lied
+680	neutral
+682	think
+685	neutral
+691	surprise	the boss?
+692	neutral
+694	surprise	haywire?
+695	neutral
+696	uh
+697	think
+698	neutral
+701	sad	still a mystery
+702	neutral
+704	baka	the boss's rumours
+705	neutral
+706	smile
+707	neutral
+708	smile	break time
+709	baka	finally
+710	smile
+711	neutral
+715	smile
+716	neutral
+720	smile
+721	neutral
+722	uh
+723	surprise	a new client
+724	smile	welcome
+725	neutral
+727	baka
+728	neutral
+729	baka	a bar
+730	neutral
+735	uh	tea
+736	neutral
+738	uh	vague order
+740	think
+741	neutral
+743	smile	right drink
+744	neutral
+745	uh	too strong
+746	neutral
+747	smile
+748	neutral
+750	neutral
+751	uh
+753	uh
+754	neutral
+755	surprise	the idol routine
+759	uh
+761	uh	call and response
+764	uh
+770	neutral
+772	smile
+776	smile	everyone joins in
+785	uh	what just happened
+786	neutral
+789	smile	impressed
+790	neutral
+793	surprise	the concert star
+795	neutral
+800	uh	sneaking out
+801	neutral
+804	uh
+805	neutral
+808	smile
+809	neutral
+810	surprise	100,000 is not many?
+811	neutral
+812	uh
+813	baka	Ms. Idol
+814	smile
+815	neutral
+816	uh	soft?
+818	uh
+820	smile
+821	neutral
+823	surprise
+824	neutral
+826	sad	the bump on the forehead
+827	baka
+828	neutral
+830	smile
+831	neutral
+833	smile
+834	think
+835	neutral
+836	uh
+838	baka	aside
+839	neutral
+842	neutral
+846	smile
+847	uh
+848	smile
+849	neutral
+850	think
+851	neutral
+852	smile
+854	smile	pretty autograph
+857	neutral
+867	baka	cats and stars
+868	smile
+869	neutral
+873	uh	burns
+874	neutral
+876	think
+877	neutral
+884	uh	the fanclub
+885	neutral
+889	uh	nice stalkers?
+892	uh	she doesn't see the problem
+893	uh
+895	smile	her liquor collection
+896	uh	no, it isn't
+897	smile
+898	uh
+899	neutral
+907	smile
+908	neutral
+910	think	the bad coffee
+911	uh
+912	neutral
+914	smile
+915	neutral
+917	smile
+918	neutral
+920	smile
+921	neutral
+922	uh
+923	neutral
+925	baka
+926	uh
+927	baka
+928	neutral
+934	surprise	a pianist
+935	neutral
+943	surprise	impressed
+944	neutral
+946	smile	music without lyrics
+948	uh
+950	neutral
+952	smile
+953	neutral
+956	surprise	blue roses?
+957	neutral
+958	think
+959	neutral
+962	uh
+964	uh	awkward classmate
+965	baka
+966	neutral
+967	uh
+972	baka	pagan goddess
+973	neutral
+975	uh
+976	surprise	remembers the names
+977	smile
+979	smile	goodbye
+980	smile
+983	neutral
+984	smile
+985	neutral
+986	think
+987	neutral
+988	baka	lost her ID
+989	neutral
+990	surprise	sudden change
+991	uh
+993	surprise
+994	neutral
+1003	sad	sounds rough
+1004	neutral
+1006	surprise
+1007	neutral
+1013	surprise
+1014	neutral
+1018	surprise	moved
+1019	neutral
+1031	surprise	speechless
+1032	neutral
+1034	surprise	wow
+1035	neutral
+1036	smile	wants to follow her
+1037	neutral
+1038	think	looks it up
+1039	neutral
+1042	baka	a peculiar drunk
+1043	neutral
+1045	smile
+1046	neutral
+1049	neutral
+1050	think	the Red Comet
+1051	neutral
+1052	surprise
+1053	neutral
+1055	baka	why red?
+1056	uh	three times faster
+1057	neutral
+1060	smile
+1061	neutral
+1062	smile
+1063	neutral
+1065	baka	no more helmets
+1066	neutral
+1067	baka	the chicken buckets

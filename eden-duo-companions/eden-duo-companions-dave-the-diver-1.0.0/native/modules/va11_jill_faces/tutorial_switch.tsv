@@ -1,0 +1,59 @@
+# Jill's faces for the Switch tutorial (romfs scripts/<lang>/tutorial_switch.txt): the start of
+# day 1, Gil walking a distracted, broke and annoyed Jill through the basics.
+# line <TAB> face <TAB> note. A face holds until the next entry; the file starts neutral.
+4	think	miles away
+5	baka	calls him John
+8	uh	"Jules"
+9	uh	shuts him up
+10	neutral
+11	think	ignores the question
+12	neutral
+14	surprise	didn't hear him
+15	neutral
+16	think	"just stuff"
+17	neutral
+18	sad	rent
+19	neutral
+20	uh	talking to herself
+21	sad	the bar might close
+22	uh	going crazy
+23	sad	broke, eviction
+24	uh	the beer cans
+25	surprise	Gil snaps her out of it
+26	uh
+28	smile	of course she can
+29	neutral
+30	uh	a lesson, really?
+31	neutral
+32	think
+33	neutral
+39	uh	"Gil..."
+40	neutral
+44	uh	she's certified
+45	neutral
+46	think	sighs
+47	baka	happy now?
+48	neutral
+49	think	sighs again
+50	neutral
+53	uh	blended by mistake
+54	neutral
+55	baka	happy?
+57	neutral
+59	uh	wrong drink
+60	neutral
+69	uh	bored
+70	neutral
+72	baka	yeah, yeah
+74	neutral
+78	surprise
+80	baka
+81	neutral
+84	uh	Gil fumbles for praise
+86	neutral
+87	baka	finally
+88	neutral
+89	uh	there's more?
+90	neutral
+96	baka	done with the exposition?
+97	neutral

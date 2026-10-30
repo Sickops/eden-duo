@@ -1,0 +1,436 @@
+# Jill's faces for day 15 (romfs scripts/<lang>/script15.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+3	surprise	a New Year's party
+4	uh	so soon?
+5	neutral
+6	uh
+7	baka	nevermind
+8	smile	she's in
+9	neutral
+10	think	and Gil?
+11	neutral
+12	baka	"hey..."
+13	think	where is he?
+14	neutral
+17	smile	Gil's coming?
+18	neutral
+19	neutral
+20	baka	depressing people
+21	neutral
+23	surprise	a note from Gaby
+24	sad	Gaby apologises
+26	sad
+28	sad
+30	sad
+32	neutral
+33	smile	always smart
+34	think
+35	think	different handwriting
+36	neutral
+38	uh
+39	uh	second thoughts
+40	neutral
+41	sad	can't face Gaby
+42	sad	remembers why
+43	sad	fear and shame
+44	sad
+45	sad
+46	sad	afraid of the breakup
+47	sad
+48	sad
+49	sad	afraid Gaby hates her
+50	sad
+51	sad
+52	neutral
+53	surprise	"IDIOOOT"
+54	neutral
+59	surprise	struck
+60	neutral
+68	think	yeah
+69	smile	won't run away
+70	neutral
+71	smile	thanks, boss
+72	neutral
+73	smile
+74	smile	start the day
+75	smile	start of the night
+76	think
+77	think	the second note
+78	neutral
+79	sad	Lenore's letter
+80	neutral
+81	sad	yup
+82	neutral
+83	sad
+84	neutral
+85	think	maybe
+86	neutral
+91	smile	thanks
+92	think
+93	neutral
+94	smile	Stella is happy
+95	neutral
+98	smile	Santa outfits
+99	think	sold out everywhere
+100	neutral
+102	neutral
+103	smile	don't hide happiness
+104	neutral
+106	smile
+107	neutral
+108	smile
+109	neutral
+110	neutral
+111	think	meeting Sei?
+112	neutral
+115	think	how's Sei?
+116	neutral
+118	think	her eye?
+119	uh	Stella jumps
+120	neutral
+126	sad	worried for Sei
+127	think	old ways?
+128	neutral
+138	think
+139	smile	a stifled laugh
+140	neutral
+143	smile	people mature
+144	smile	Sei knows better
+145	neutral
+147	smile
+148	neutral
+149	smile
+150	smile	Sei's kind of drink
+151	neutral
+152	neutral
+153	neutral
+154	neutral
+155	neutral
+156	think	Sei came here first
+157	neutral
+159	think	the talk out back
+160	neutral
+161	think
+162	sad	Sei was devastated
+164	sad
+165	neutral
+166	surprise	thanks her?
+167	neutral
+168	surprise	she did?
+169	neutral
+172	smile	sure
+173	baka	didn't do much
+174	think	Sei's family
+175	neutral
+185	think	did he come back?
+186	neutral
+188	think	how?
+189	neutral
+190	smile	can't help laughing
+191	uh	shouldn't laugh
+192	neutral
+194	think	is it safe down here?
+195	neutral
+196	think
+197	think
+198	neutral
+200	think	comfier?
+201	neutral
+205	neutral
+206	smile	welcome
+207	neutral
+210	smile
+211	neutral
+216	smile
+217	neutral
+219	neutral
+220	neutral
+223	neutral
+224	neutral
+238	uh	messy
+239	neutral
+242	smile	almost forgot
+243	smile	the party
+244	neutral
+248	smile	goodbye
+249	neutral
+252	think	the armor?
+253	neutral
+256	think	"crack through"?
+257	neutral
+261	think	frozen White Knights
+262	neutral
+267	uh
+268	smile	the party
+269	neutral
+272	smile	goodbye
+273	smile	invites Sei
+274	neutral
+276	smile	the last party
+277	smile
+279	baka	too much food
+280	neutral
+281	smile
+282	smile
+283	neutral
+284	smile
+285	neutral
+286	smile
+287	neutral
+288	neutral
+289	smile	Stella was cheery
+290	neutral
+293	surprise	her birthday
+294	neutral
+298	think	"spiritual reincarnation"?
+299	neutral
+303	smile	cute
+304	think
+305	think	Stella's worry
+306	think
+307	neutral
+311	smile	expected as much
+312	neutral
+313	smile
+314	neutral
+315	neutral
+316	neutral
+319	think
+320	surprise	the story of the eye
+321	uh	shouldn't hear it
+322	neutral
+329	think
+330	neutral
+331	surprise	the eye
+332	neutral
+342	sad	damn
+343	sad
+344	think	why bring it up?
+345	neutral
+347	surprise	Virgilio?!
+348	think
+349	think	what made her think so?
+350	neutral
+353	smile	the museum
+354	neutral
+357	think	the first visit
+358	smile
+359	neutral
+361	think	the other White Knight
+362	neutral
+363	think
+364	think
+366	neutral
+367	think
+368	think
+369	think
+370	think	the vending machines
+371	think
+372	think	personally invested
+373	neutral
+375	baka	just a coincidence
+376	neutral
+378	smile	another skill
+379	think
+380	neutral
+382	baka	weird, I know
+383	think
+384	neutral
+386	baka	creepy
+387	neutral
+388	smile	goodbye
+389	think	break
+390	neutral
+391	smile	back
+392	surprise	Dorothy walking into the bar
+393	uh
+394	neutral
+395	baka	stop walking
+396	neutral
+398	think
+399	neutral
+401	uh	"usual, usu..."
+402	neutral
+403	neutral
+404	neutral
+407	neutral
+408	neutral
+410	uh	freaking her out
+411	neutral
+412	think
+413	neutral
+417	baka	that brought her here?
+418	neutral
+420	uh	"Dorothy..."
+421	neutral
+422	think	a solipsistic crisis?
+423	neutral
+424	think	explains the word
+425	neutral
+427	think	the Latin
+428	neutral
+433	think	semantic satiation
+434	neutral
+436	uh	stop tapping
+437	neutral
+438	uh
+439	uh	about to throw it
+440	neutral
+441	think	from the start
+442	neutral
+452	think	what tells HER?
+453	neutral
+455	think
+456	neutral
+457	sad	she's been there
+458	sad
+460	sad	panic attacks
+461	sad
+462	neutral
+463	smile	a book
+464	smile	The Last Rain in the World
+465	sad	cried over it
+467	think
+468	smile	still cares
+469	smile
+470	neutral
+472	smile	made it for her
+473	neutral
+474	uh
+475	neutral
+476	surprise	threw it on her head?
+477	neutral
+478	baka	and?
+479	neutral
+480	baka	a towel
+481	neutral
+482	smile	Mario
+483	neutral
+484	smile	the boss's package
+485	neutral
+487	think	what's inside?
+488	neutral
+491	uh
+492	neutral
+497	smile	laughing
+498	neutral
+502	smile	stop
+503	neutral
+505	smile	laughing fit
+506	smile
+507	neutral
+508	smile	blames Dorothy
+509	neutral
+515	think	another delivery?
+516	neutral
+519	smile
+520	neutral
+522	think	sorry, what?
+523	neutral
+525	baka
+526	smile
+527	neutral
+528	smile
+529	neutral
+530	neutral
+531	neutral
+532	neutral
+533	neutral
+535	neutral
+536	neutral
+538	neutral
+539	neutral
+552	neutral
+553	uh
+554	neutral
+559	baka	out with you
+560	neutral
+562	baka	it's clear
+563	think	motorcycles
+564	neutral
+565	think	the motor district
+566	neutral
+567	think	illegal races?
+568	neutral
+569	baka	not a cop
+570	neutral
+572	think	semi-legal?
+573	neutral
+577	think
+578	think	Christine Love
+579	neutral
+580	think	dangerous?
+581	neutral
+582	surprise	nobody knows?
+583	neutral
+586	think
+587	smile
+588	neutral
+589	smile
+590	neutral
+591	neutral
+592	neutral
+593	neutral
+594	neutral
+597	think	replibots?
+598	neutral
+601	baka	Gil knows a lot
+602	neutral
+603	think	first she's heard
+604	think
+605	neutral
+609	think	a lookalike?
+610	neutral
+615	baka	doubts it
+616	think	Lilim behave differently
+617	think
+618	think
+619	neutral
+621	smile	goodbye
+622	neutral
+623	think	does Gil believe?
+624	neutral
+625	think	her fear of aliens
+626	think
+627	sad	lost sleep
+628	neutral
+629	baka	let her finish
+630	think
+631	think	useless to be afraid
+632	think
+633	think
+634	uh	the crab invasion
+635	uh	the replibots
+636	neutral
+638	baka	useless to be afraid
+639	neutral
+640	neutral
+641	neutral
+642	baka	Gil laughing
+643	baka	no
+644	neutral
+645	surprise
+646	neutral
+648	baka	his heavy past
+649	baka
+650	think	does he have a past?
+651	neutral
+652	smile	Gil is good game
+653	smile
+654	think	but distant
+655	neutral
+656	baka	not interested
+657	neutral
+659	smile	goodbye
+660	baka
+661	baka	heartbreaking fuckboy
+662	neutral
+663	smile	the boss is back
+664	baka	an 8-year-old's humour
+665	neutral
+666	uh	hey!
+667	neutral
+668	neutral
+671	smile	laughing again
+672	neutral
+673	think	food for Fore

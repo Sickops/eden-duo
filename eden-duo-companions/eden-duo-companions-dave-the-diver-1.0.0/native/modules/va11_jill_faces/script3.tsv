@@ -1,0 +1,444 @@
+# Jill's faces for day 3 (romfs scripts/<lang>/script3.txt), our own reading of the scenes.
+# line <TAB> face <TAB> note. A face holds until the next entry; the day starts neutral.
+5	smile	Alma tags along
+7	neutral
+12	baka	the helmet again?
+13	neutral
+15	smile
+16	neutral
+17	smile	start of the night
+18	neutral
+23	smile
+24	smile	shows off the glass
+25	neutral
+29	smile
+30	baka	not impressed
+31	neutral
+35	baka	not surprised either
+36	neutral
+42	baka	"I know the product"
+43	neutral
+45	surprise	the photos of the boss
+48	uh	caught
+49	uh
+51	uh
+52	uh
+53	neutral
+55	uh
+56	neutral
+57	smile	stifles a laugh
+58	neutral
+60	smile
+62	baka
+63	neutral
+66	baka	"you wish"
+67	neutral
+69	neutral
+73	smile	can't stop laughing
+74	neutral
+78	surprise	LARP?
+79	neutral
+81	baka
+82	neutral
+84	baka
+85	neutral
+89	baka	told her so
+92	neutral
+94	baka	the cat
+95	neutral
+96	sad	a year ago
+97	neutral
+99	uh
+101	neutral
+106	sad	misses that warmth
+109	baka	changes the subject
+110	neutral
+113	think
+114	neutral
+117	smile
+118	neutral
+120	baka
+121	neutral
+125	think
+126	neutral
+129	baka	sees through her
+130	neutral
+134	baka	knows the speech is coming
+136	neutral
+148	neutral
+159	neutral
+161	surprise
+163	uh	the invitations
+164	uh
+166	neutral
+170	baka	dry comeback
+171	neutral
+173	baka	refuses
+174	neutral
+176	uh	not a morning person
+181	neutral
+184	smile	the Alma she knows
+185	neutral
+187	smile	the drink's history
+190	neutral
+193	neutral
+196	smile
+197	neutral
+200	neutral
+201	uh
+203	neutral
+210	baka
+211	neutral
+214	think
+215	neutral
+221	think
+222	neutral
+230	uh	speechless
+231	neutral
+236	baka	she's drunk
+237	neutral
+238	baka
+240	neutral
+242	baka	calls a cab
+243	neutral
+246	smile	take care
+247	neutral
+253	think
+254	neutral
+258	think
+259	neutral
+264	neutral
+276	smile
+277	neutral
+278	smile	take care
+279	neutral
+281	uh	groped
+282	neutral
+283	baka
+284	neutral
+285	uh
+286	neutral
+287	uh	insulted
+288	baka	a warning
+289	neutral
+292	baka	"the usual"
+293	neutral
+295	uh
+296	neutral
+298	uh	irked
+299	neutral
+300	uh
+303	uh
+304	neutral
+308	uh
+309	neutral
+311	neutral
+312	surprise	blackmail?
+313	neutral
+315	smile	the glass
+316	neutral
+319	baka	no
+320	neutral
+321	baka	no
+322	neutral
+323	baka	no
+324	neutral
+325	smile	stands up for Miki
+326	neutral
+328	baka
+329	neutral
+330	uh	insists
+331	neutral
+332	think	thinks of Kim
+333	neutral
+348	think
+349	uh	asks about Kim
+350	neutral
+351	uh	covers for her
+352	neutral
+353	surprise	rude question
+354	uh
+362	uh	coughs
+363	neutral
+365	baka
+366	neutral
+369	think
+370	neutral
+373	think
+374	neutral
+376	uh
+377	neutral
+379	neutral
+380	neutral
+382	uh
+383	neutral
+385	uh
+386	neutral
+387	uh
+389	neutral
+393	surprise	bears?
+394	neutral
+396	surprise
+397	neutral
+399	think	the arm again
+400	neutral
+404	baka	made up by the boss
+405	neutral
+407	smile	goodbye
+408	neutral
+411	surprise
+412	neutral
+416	think
+417	neutral
+421	uh
+423	uh	worried
+424	baka	aside
+425	neutral
+426	surprise	he likes her?
+427	neutral
+428	uh	crude remark
+430	uh
+431	neutral
+433	think
+434	neutral
+436	uh
+438	neutral
+439	uh
+440	uh	shudders
+441	neutral
+443	smile	the boss is back
+444	neutral
+447	uh	worried
+448	sad	the bar will close
+449	neutral
+452	sad
+453	neutral
+454	surprise
+455	neutral
+457	sad	moved
+458	neutral
+460	smile	a little laugh
+461	neutral
+464	think
+465	neutral
+466	baka	the "potion" story
+467	baka	euphemisms
+468	neutral
+470	think	who is Gil?
+471	neutral
+473	smile	"Yessir!"
+474	neutral
+475	baka	Gil heard everything
+476	neutral
+478	smile	welcome
+479	neutral
+480	surprise
+481	neutral
+483	smile
+484	neutral
+485	smile
+486	neutral
+487	uh
+488	uh
+489	neutral
+493	uh	silence
+494	baka	aside
+495	neutral
+496	smile	the helmet
+497	neutral
+498	surprise
+499	neutral
+502	surprise
+503	neutral
+505	neutral
+512	neutral
+513	smile	the glass starts talk
+514	neutral
+517	surprise	the outburst
+518	neutral
+520	smile
+521	neutral
+534	surprise
+535	neutral
+537	baka	the dark act
+538	neutral
+543	think
+544	baka	a bad liar
+545	neutral
+550	neutral
+556	smile
+557	neutral
+558	smile
+559	neutral
+562	uh	she's right
+563	neutral
+565	uh
+566	neutral
+571	sad	overstepped
+572	neutral
+575	sad	apologises
+576	neutral
+578	smile
+579	neutral
+580	smile	loves the bottles
+582	uh	sounds silly
+583	smile
+585	smile	grandpa's collection
+586	sad	debts
+587	neutral
+592	neutral
+593	think	Gil looks off
+594	neutral
+595	think	allergies...
+596	uh
+597	uh	caught looking
+598	baka
+599	neutral
+602	smile
+603	neutral
+604	smile	welcome
+605	neutral
+609	surprise	climbed down?
+610	neutral
+611	baka
+612	neutral
+624	smile	thanked
+625	neutral
+626	uh	"maybe"
+627	neutral
+633	smile
+634	neutral
+638	neutral
+641	neutral
+643	baka	aside
+644	smile	returns the helmet
+645	neutral
+646	surprise	Stella explodes
+653	neutral
+663	smile	sweet moment
+667	uh
+668	neutral
+669	smile
+670	neutral
+671	think	an interesting drunk
+672	neutral
+676	smile	corrects the Latin
+677	neutral
+683	uh	the boss and the helmet
+684	neutral
+686	baka	keeps quiet
+687	neutral
+689	think
+690	neutral
+694	sad	everyone on edge
+696	neutral
+708	smile	she cares
+709	smile
+710	neutral
+711	uh	smells like bacon
+712	uh
+713	neutral
+714	baka	blames the ingredients
+715	neutral
+716	think
+717	neutral
+720	sad	shady business
+723	neutral
+726	think
+727	neutral
+729	think	politics
+730	neutral
+732	neutral
+735	uh
+736	surprise	Dorothy's big entrance
+737	baka	scolds her
+738	neutral
+740	uh
+741	neutral
+747	baka	we'll see
+748	neutral
+750	neutral
+754	smile
+755	neutral
+759	neutral
+763	neutral
+764	uh
+765	neutral
+776	uh	word games
+777	neutral
+783	think
+784	neutral
+786	think
+787	neutral
+794	baka
+795	neutral
+797	uh	ouch
+798	neutral
+800	surprise	Sei reads Dorothy
+801	neutral
+814	uh	tense
+815	surprise
+816	neutral
+834	neutral
+838	smile	goodbye
+839	neutral
+841	smile
+842	neutral
+845	baka	underestimated her
+846	think
+848	uh
+849	neutral
+850	uh
+851	neutral
+852	uh
+853	neutral
+855	baka
+856	uh	about yesterday
+857	uh
+858	uh
+859	uh
+860	neutral
+861	uh	thank god
+862	neutral
+863	baka	more grateful
+864	neutral
+867	surprise	he cried?
+868	neutral
+873	think
+874	uh
+883	baka	aside
+884	neutral
+885	baka	not helping
+886	neutral
+889	smile	take care
+890	baka	a diviner?
+891	neutral
+893	think
+894	neutral
+896	surprise	read too well
+902	sad	struck a nerve
+903	sad
+904	neutral
+907	neutral
+909	uh	shoos her
+910	neutral
+911	uh	go
+912	neutral
+914	baka	"Fuckboy"
+915	neutral
+916	neutral
+917	think
+918	neutral
+920	think
+921	smile	the jar story
+922	smile
+926	neutral
+928	neutral
+929	baka	gets stuck in things
+930	baka
+931	neutral
+937	smile
+939	neutral
+940	smile	hopes she'll try
+941	neutral
+942	smile	laughs to herself
